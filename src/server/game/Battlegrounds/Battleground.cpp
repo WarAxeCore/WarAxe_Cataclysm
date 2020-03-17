@@ -696,6 +696,11 @@ void Battleground::RewardHonorToTeam(uint32 Honor, uint32 TeamID)
     for (BattlegroundPlayerMap::const_iterator itr = _Players.begin(); itr != _Players.end(); ++itr)
         if (Player* player = _GetPlayerForTeam(TeamID, itr, "RewardHonorToTeam"))
             UpdatePlayerScore(player, SCORE_BONUS_HONOR, Honor);
+
+	// Battleground Experience (Added in Patch 3.2.0)
+	for (BattlegroundPlayerMap::const_iterator itr = _Players.begin(); itr != _Players.end(); ++itr)
+		if (Player* player_bg_experience = _GetPlayerForTeam(TeamID, itr, "RewardHonorToTeam"))
+			player_bg_experience->GiveXP(player_bg_experience->GetUInt32Value(PLAYER_NEXT_LEVEL_XP) * 0.01, player_bg_experience); // This amount is estimated but we can't get real blizz values.
 }
 
 void Battleground::RewardReputationToTeam(uint32 faction_id, uint32 Reputation, uint32 TeamID)
