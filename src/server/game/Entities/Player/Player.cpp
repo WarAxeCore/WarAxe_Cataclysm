@@ -3091,6 +3091,8 @@ void Player::GiveLevel(uint8 level)
     if (sWorld->getBoolConfig(CONFIG_ALWAYS_MAXSKILL)) // Max weapon skill when leveling up
         UpdateSkillsToMaxSkillsForLevel();
 
+	sLFGMgr->InitializeLockedDungeons(this); // Re-do locked dungeons after a level-up
+
     // set current level health and mana/energy to maximum after applying all mods.
     SetFullHealth();
     SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
