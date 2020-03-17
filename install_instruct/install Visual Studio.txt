@@ -1,0 +1,1 @@
+You need a Visual Studio Community 2017 with Desktop Development C++ option downloaded
