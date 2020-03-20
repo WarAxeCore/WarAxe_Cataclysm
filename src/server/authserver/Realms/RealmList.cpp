@@ -85,7 +85,7 @@ void RealmList::UpdateRealms(bool init)
             std::string externalAddress = fields[2].GetString();
             std::string localAddress    = fields[3].GetString();
             std::string localSubmask    = fields[4].GetString();
-            uint16 port                 = fields[5].GetUInt16();
+            uint16 port                 = fields[5].GetUInt32();
             uint8 icon                  = fields[6].GetUInt8();
             RealmFlags flag             = RealmFlags(fields[7].GetUInt8());
             uint8 timezone              = fields[8].GetUInt8();
