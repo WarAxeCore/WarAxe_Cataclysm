@@ -27,6 +27,12 @@
 
 enum ShamanSpells
 {
+	//WarAxe Core
+	SPELL_SHAMAN_SOOTHE_R1 = 16187,
+	SPELL_SHAMAN_SOOTHE_R2 = 16205,
+	SPELL_SHAMAN_PURIFICATION = 16213,
+	SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL = 52042,
+	//SFC
     SHAMAN_SPELL_GLYPH_OF_MANA_TIDE     = 55441,
     SHAMAN_SPELL_MANA_TIDE_TOTEM        = 16191,
     SHAMAN_SPELL_FIRE_NOVA_R1           = 1535,
@@ -36,6 +42,73 @@ enum ShamanSpells
     //For Earthen Power
     SHAMAN_TOTEM_SPELL_EARTHBIND_TOTEM  = 6474, //Spell casted by totem
     SHAMAN_TOTEM_SPELL_EARTHEN_POWER    = 59566, //Spell witch remove snare effect
+};
+
+// 52041 - Healing Stream Totem
+/// 4.0.6
+class spell_sha_healing_stream_totem : public SpellScriptLoader
+{
+public:
+	spell_sha_healing_stream_totem() : SpellScriptLoader("spell_sha_healing_stream_totem") { }
+
+	class spell_sha_healing_stream_totem_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_sha_healing_stream_totem_SpellScript);
+
+		bool Validate(SpellInfo const* /*spellInfo*/)
+		{
+			return sSpellMgr->GetSpellInfo(SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL);
+		}
+
+		void HandleDummy(SpellEffIndex /* effIndex */)
+		{
+			int32 damage = GetEffectValue();
+
+			SpellInfo const* triggeringSpell = GetTriggeringSpell();
+
+			if (Unit* target = GetHitUnit())
+			{
+				if (Unit* caster = GetCaster())
+				{
+					if (Unit* owner = caster->GetOwner())
+					{
+						if (triggeringSpell)
+							damage = triggeringSpell->Effects[EFFECT_0].CalcValue(caster);
+
+						float bonus = 1.0f;
+
+						if (AuraEffect* soother1 = owner->GetAuraEffect(SPELL_SHAMAN_SOOTHE_R1, EFFECT_0))
+							AddPctU(bonus, soother1->GetAmount());
+
+						if (AuraEffect* soother2 = owner->GetAuraEffect(SPELL_SHAMAN_SOOTHE_R2, EFFECT_0))
+							AddPctU(bonus, soother2->GetAmount());
+
+						if (owner->GetAura(SPELL_SHAMAN_PURIFICATION))
+							AddPctU(bonus, 10);
+
+						damage += owner->SpellBaseHealingBonus(SPELL_SCHOOL_MASK_ALL) * 0.0827;
+						damage *= bonus;
+
+						//if (owner->GetAura(SPELL_SHAMAN_DEEP_HEALING))
+							//AddPct(damage, (owner->ToPlayer() ? owner->ToPlayer()->GetMasteryAmount(SPELL_SHAMAN_DEEP_HEALING, EFFECT_0) : 0) *
+							//(1.0f - (target->GetHealthPct() / 100.0f)));
+
+						caster->CastCustomSpell(target, SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL, &damage, 0, 0, true, 0, 0, GetOriginalCaster()->GetGUID());
+					}
+				}
+			}
+		}
+
+		void Register()
+		{
+			OnEffectHitTarget += SpellEffectFn(spell_sha_healing_stream_totem_SpellScript::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_sha_healing_stream_totem_SpellScript();
+	}
 };
 
 // 16191 - Mana Tide
@@ -375,4 +448,5 @@ void AddSC_shaman_spell_scripts()
     new spell_sha_healing_rain();
     new spell_sha_earthquake();
     new spell_raid_haste();
+	new spell_sha_healing_stream_totem();
 }
