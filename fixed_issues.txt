@@ -1,0 +1,7 @@
+This is a list of fixed issues that warcoreaxe team has completed using the skyfire issues on github
+
+*Core/Spells: Soothing Rains #941
+Status: Partial Fix
+Percentage: 50%
+Comments: The totem part is fixed still need to do healing rain
+----------
