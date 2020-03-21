@@ -4,4 +4,21 @@ This is a list of fixed issues that warcoreaxe team has completed using the skyf
 Status: Partial Fix
 Percentage: 50%
 Comments: The totem part is fixed still need to do healing rain
+Commits:
+https://github.com/Razfury/WarAxeCore/commit/5d4c20ae02e1b91039a9b6b6318c9969dc72564c
+https://github.com/Razfury/WarAxeCore/commit/aa52b3d24b524085600a72fb966b716f6bf1f648
+----------
+*Core/Spell: Sanctity of Battle #942
+Status: Fixed
+Percentage: 100%
+Comments: Haste reduction works.
+Commits:
+https://github.com/Razfury/WarAxeCore/commit/e3e66593bd02a9e389f0273c24e6118c8340a894
+----------
+*Spell Bugged Heroic Leap - Warrior #887
+Status: Fixed
+Percentage: 100%
+Comments: Scales with attack power now via DB
+Commits:
+SQL fix
 ----------
