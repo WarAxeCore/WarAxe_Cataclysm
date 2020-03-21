@@ -1534,28 +1534,6 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                     m_caster->CastCustomSpell(unitTarget, 52025, NULL, &bp1, NULL, true, NULL, NULL, m_originalCasterGUID);
                 return;
             }
-            // Healing Stream Totem
-            if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_SHAMAN_HEALING_STREAM)
-            {
-                if (!unitTarget)
-                    return;
-
-                if (Unit* owner = m_caster->GetOwner())
-                {
-                    if (m_triggeredByAuraSpell)
-                        damage = int32(owner->SpellHealingBonus(unitTarget, m_triggeredByAuraSpell, damage, HEAL));
-
-                    // Restorative Totems
-                    if (AuraEffect* dummy = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, 338, 1))
-                        AddPctN(damage, dummy->GetAmount());
-
-                    // Glyph of Healing Stream Totem
-                    if (AuraEffect const* aurEff = owner->GetAuraEffect(55456, EFFECT_0))
-                        AddPctN(damage, aurEff->GetAmount());
-                }
-                m_caster->CastCustomSpell(unitTarget, 52042, &damage, 0, 0, true, 0, 0, m_originalCasterGUID);
-                return;
-            }
             // Mana Spring Totem
             if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_SHAMAN_MANA_SPRING)
             {
