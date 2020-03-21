@@ -106,7 +106,7 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
     }
 
     // race specific initial known nodes: capital and taxi hub masks
-    switch (race)
+	switch (race)
     {
         case RACE_HUMAN:    SetTaximaskNode(2);  break;     // Human
         case RACE_ORC:      SetTaximaskNode(23); break;     // Orc
@@ -121,12 +121,93 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
         case RACE_DRAENEI:  SetTaximaskNode(94); break;     // Draenei
     }
 
+	//Patch 4.0 players unlock all taxi nodes within the recommended level.
+	/*
+	switch (Player::TeamForRace(race))
+	{
+	case ALLIANCE:
+		if (level >= 0)
+		{
+			SetTaximaskNode(2); // Stormwind
+			SetTaximaskNode(582); // Goldshire
+			SetTaximaskNode(589); // Eastvale Logging Camp
+			SetTaximaskNode(6); // Ironforge
+			SetTaximaskNode(619); // Kharnos
+			SetTaximaskNode(620); // Gol'Bolar Quarry
+			SetTaximaskNode(27); // Rut'theran Village
+			SetTaximaskNode(456); // Dolanaar
+			SetTaximaskNode(457); // Darnassus
+			SetTaximaskNode(94); // The Exodar
+			SetTaximaskNode(624); // Azure Watch
+		}
+		if (level >= 10)
+		{
+			SetTaximaskNode(93); // Blood Watch
+			SetTaximaskNode(26); // Lor'danel
+			SetTaximaskNode(339); // Grove of The Ancients
+			SetTaximaskNode(4); // Sentinel Hill
+			SetTaximaskNode(583); // Moonbrook
+			SetTaximaskNode(584); // Furlbrow's Pumpkin Farm
+			SetTaximaskNode(8); // Thelsmar
+			SetTaximaskNode(555); // Farstrider Lodge
+			SetTaximaskNode(80); // Rachet (netural)
+		}
+		if (level >= 15)
+		{
+			SetTaximaskNode(5); // Lakeshire
+			SetTaximaskNode(596); // Shalewind Canyon
+			SetTaximaskNode(615); // Camp Everstill
+		}
+		if (level >= 20)
+		{
+			SetTaximaskNode(12); // Darkshire
+		}
+		break;
+	case HORDE:
+		if (level >= 0)
+		{
+			SetTaximaskNode(23); // Orgrimmar
+			SetTaximaskNode(536); // Sen'jin Village
+			SetTaximaskNode(537); // Razor Hill
+			SetTaximaskNode(11); // UnderCity
+			SetTaximaskNode(384); // The Bulwark
+			SetTaximaskNode(460); // Brill
+			SetTaximaskNode(22); // Thunder Bluff
+			SetTaximaskNode(402); // Bloodhoof Village
+			SetTaximaskNode(82); // Silvermoon City
+		}
+		if (level >= 10)
+		{
+			SetTaximaskNode(10); // The Sepulcher
+			SetTaximaskNode(645); // Forsaken High Command
+			SetTaximaskNode(654); // The Forsaken Front
+			SetTaximaskNode(681); // Forsaken Rear Guard
+			SetTaximaskNode(83); // Tranquillien
+			SetTaximaskNode(205); // Zul'Aman
+			SetTaximaskNode(44); // Bildgewater Harbor
+			SetTaximaskNode(613); // Southern Rocketway
+			SetTaximaskNode(614); // Northern Rocketway
+			SetTaximaskNode(683); // Valormok
+			SetTaximaskNode(25); // The Crossroads
+			SetTaximaskNode(80); // Rachet (netural)
+			SetTaximaskNode(458); // Nozzlepot's Outpost
+		}
+		break;
+	} */
+
     // new continent starting masks (It will be accessible only at new map)
     switch (Player::TeamForRace(race))
     {
-        case ALLIANCE: SetTaximaskNode(100); break;
-        case HORDE:    SetTaximaskNode(99);  break;
+        case ALLIANCE: 
+			SetTaximaskNode(100);  // Honor Hold
+			SetTaximaskNode(245); // Valiance Keep
+			break;
+        case HORDE:    
+			SetTaximaskNode(99);  // Thrallmar
+			SetTaximaskNode(257); // Warsong Hold
+			break;
     }
+
     // level dependent taxi hubs
     if (level >= 68)
         SetTaximaskNode(213);                               //Shattered Sun Staging Area
