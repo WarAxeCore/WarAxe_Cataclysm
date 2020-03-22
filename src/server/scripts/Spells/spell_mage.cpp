@@ -42,6 +42,40 @@ enum MageSpells
     SPELL_MAGE_CAUTERIZE_DAMAGE                  = 87023,
 };
 
+// HACK!
+// TODO: Find a better way to build pet spellbar
+// 31687
+class spell_mage_water_elemental : public SpellScriptLoader
+{
+public:
+	spell_mage_water_elemental() : SpellScriptLoader("spell_mage_water_elemental") { }
+
+	class spell_mage_water_elemental_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_mage_water_elemental_SpellScript);
+
+		void HandleExtraEffect()
+		{
+			Unit* caster = GetCaster();
+			
+			if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+				return;
+
+			caster->ToPlayer()->PetSpellInitialize();
+		}
+
+		void Register()
+		{
+			AfterCast += SpellCastFn(spell_mage_water_elemental_SpellScript::HandleExtraEffect);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_mage_water_elemental_SpellScript();
+	}
+};
+
 class spell_mage_blast_wave : public SpellScriptLoader
 {
 public:
@@ -393,6 +427,7 @@ public:
 
 void AddSC_mage_spell_scripts()
 {
+	new spell_mage_water_elemental();
     new spell_mage_blast_wave();
     new spell_mage_cold_snap();
     new spell_mage_frost_warding_trigger();
