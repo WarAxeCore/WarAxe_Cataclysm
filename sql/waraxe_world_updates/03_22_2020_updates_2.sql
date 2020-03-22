@@ -1,0 +1,1 @@
+INSERT INTO `skyfire_world`.`spell_script_names`(`spell_id`, `ScriptName`) VALUES (20271, 'spell_pal_judgementwise');
