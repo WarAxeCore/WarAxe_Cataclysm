@@ -27,6 +27,10 @@
 
 enum PaladinSpells
 {
+	PALADIN_SPELL_JUDGEMENTS_AURA				 = 31878,
+	PALADIN_SPELL_JUDGEMENTS_AURA_2				 = 31930,
+	PALADIN_SPELL_COMMUNION						 = 31876,
+
     PALADIN_SPELL_DIVINE_PLEA                    = 54428,
 
     PALADIN_SPELL_HOLY_SHOCK_R1                  = 20473,
@@ -64,6 +68,59 @@ enum PaladinSpells
     PALADIN_SPELL_BLESSING_OF_MIGHT_1            = 79101,
     PALADIN_SPELL_BLESSING_OF_MIGHT_2            = 79102
 };
+
+//4.0.6a - 
+//Handles 31878 Judgements Of The Wise
+class spell_pal_judgementwise : public SpellScriptLoader
+{
+public:
+	spell_pal_judgementwise() : SpellScriptLoader("spell_pal_judgementwise") { }
+
+	class spell_pal_judgementwise_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_pal_judgementwise_SpellScript);
+
+		void JudgementsOfTheWise()
+		{
+			Unit* caster = GetCaster();
+			Unit* target = GetHitUnit();
+
+			if (!caster)
+				return;
+
+			if (!caster->HasAura(PALADIN_SPELL_JUDGEMENTS_AURA))
+				return;
+
+			int32 basepoints0 = int32(caster->GetCreateMana() * 0.030);
+			caster->CastCustomSpell(target, PALADIN_SPELL_JUDGEMENTS_AURA_2, &basepoints0, NULL, NULL, true);
+		}
+
+		void Replenishment() // Can only affect up to 10 party/raid members needs fixed.
+		{
+			Unit* caster = GetCaster();
+
+			if (!caster)
+				return;
+
+			if (!caster->HasAura(PALADIN_SPELL_COMMUNION))
+				return;
+
+			caster->CastSpell(caster, 57669, true);
+		}
+
+		void Register()
+		{
+			AfterHit += SpellHitFn(spell_pal_judgementwise_SpellScript::JudgementsOfTheWise);
+			AfterHit += SpellHitFn(spell_pal_judgementwise_SpellScript::Replenishment);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_pal_judgementwise_SpellScript();
+	}
+};
+
 
 // 31850 - Ardent Defender
 class spell_pal_ardent_defender : public SpellScriptLoader
@@ -882,6 +939,7 @@ class spell_pal_bless_of_king : public SpellScriptLoader
 
 void AddSC_paladin_spell_scripts()
 {
+	new spell_pal_judgementwise();
     new spell_pal_ardent_defender();
     new spell_pal_blessing_of_faith();
     new spell_pal_holy_shock();

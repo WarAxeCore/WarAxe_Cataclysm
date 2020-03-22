@@ -7025,15 +7025,6 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 }
                 return false;
             }
-            // Judgments of the Wise
-            if (dummySpell->SpellIconID == 3017)
-            {
-                target = this;
-                triggered_spell_id = 31930;
-                // replenishment
-                CastSpell(this, 57669, true, castItem, triggeredByAura);
-                break;
-            }
             // Sacred Shield
             if (dummySpell->SpellFamilyFlags[1] & 0x80000)
             {
@@ -7082,6 +7073,12 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
             }
             switch (dummySpell->Id)
             {
+				case 31878: // Handled in spell_paladin.cpp DO NOT REMOVE! Judgments of the Wise
+				{
+				    return false;
+					// replenishment
+					CastSpell(this, 57669, true, castItem, triggeredByAura);
+				}
                 // Judgments of the Bold
                 case 89901:
                 {
