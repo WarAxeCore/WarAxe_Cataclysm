@@ -201,6 +201,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
         return false;
     }
 
+	//SetEntry(petentry);
     setPetType(pet_type);
     setFaction(owner->getFaction());
     SetUInt32Value(UNIT_CREATED_BY_SPELL, summon_spell_id);
@@ -409,6 +410,8 @@ void Pet::SavePetToDB(PetSlot mode)
         trans = CharacterDatabase.BeginTransaction();
         // remove current data
         trans->PAppend("DELETE FROM character_pet WHERE owner = '%u' AND id = '%u'", ownerLowGUID, m_charmInfo->GetPetNumber());
+		//hack = delete slot 100 pet
+		trans->PAppend("DELETE FROM character_pet WHERE owner = '%u' AND slot = '%d'", owner, 100);
 
         // save pet
         std::ostringstream ss;
