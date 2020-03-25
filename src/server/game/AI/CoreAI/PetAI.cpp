@@ -72,6 +72,8 @@ void PetAI::_stopAttack()
     }
 
     me->AttackStop();
+	me->InterruptNonMeleeSpells(false);
+	me->SendMeleeAttackStop(me->getVictim());
     me->GetCharmInfo()->SetIsCommandAttack(false);
     HandleReturnMovement();
 }
@@ -90,7 +92,7 @@ void PetAI::UpdateAI(const uint32 diff)
         m_updateAlliesTimer -= diff;
 
     // me->getVictim() can't be used for check in case stop fighting, me->getVictim() clear at Unit death etc.
-    if (me->getVictim())
+    if (me->getVictim() && me->getVictim()->isAlive())
     {
         // is only necessary to stop casting, the pet must not exit combat
         if (me->getVictim()->HasBreakableByDamageCrowdControlAura(me))
