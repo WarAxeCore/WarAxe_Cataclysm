@@ -35,6 +35,8 @@ void BuildPlayerLockDungeonBlock(WorldPacket& data, const LfgLockMap& lock)
     {
         data << uint32(it->first);                         // Dungeon entry (id + type)
         data << uint32(it->second);                        // Lock status
+		data << (0); // Required item Level (Not Yet Implemented)
+		data << (0); // Current Item Level (Not Yet Implemented)
     }
 }
 
@@ -46,6 +48,52 @@ void BuildPartyLockDungeonBlock(WorldPacket& data, const LfgLockPartyMap& lockMa
         data << uint64(it->first);                         // Player guid
         BuildPlayerLockDungeonBlock(data, it->second);
     }
+}
+
+void BuildQuestReward(WorldPacket& data, Quest const* quest, Player* player)
+{
+	uint8 rewCount = quest->GetRewItemsCount() + quest->GetRewCurrencyCount();
+
+	if (player->getLevel() < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
+	{
+		data << uint32(quest->GetRewOrReqMoney());
+		data << uint32(quest->XPValue(player));
+	}
+	else
+	{
+		data << uint32(quest->GetRewOrReqMoney() + (quest->GetRewMoneyMaxLevel()));
+		data << uint32(0);
+	}
+
+	data << uint32(0); // Variable Money not used??
+	data << uint32(0); // Variable XP not used??
+
+	data << uint8(rewCount);
+	if (rewCount)
+	{
+		for (uint8 i = 0; i < QUEST_CURRENCY_COUNT; ++i)
+		{
+			if (uint32 currencyId = quest->RewCurrencyId[i])
+			{
+				data << uint32(currencyId);
+				data << uint32(0);
+				data << uint32(quest->RewCurrencyCount[i]);
+				data << uint8(1);                                           // Is currency
+			}
+		}
+
+		for (uint8 i = 0; i < QUEST_REWARDS_COUNT; ++i)
+		{
+			if (uint32 itemId = quest->RewItemId[i])
+			{
+				ItemTemplate const* item = sObjectMgr->GetItemTemplate(itemId);
+				data << uint32(itemId);
+				data << uint32(item ? item->DisplayInfoID : 0);
+				data << uint32(quest->RewItemCount[i]);
+				data << uint8(0);                                           // Is not currency
+			}
+		}
+	}
 }
 
 void WorldSession::HandleLfgJoinOpcode(WorldPacket& recvData)
@@ -220,31 +268,13 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
                     qRew = sObjectMgr->GetQuestTemplate(reward->reward[1].questId);
             }
         }
+
         if (qRew)
         {
-            data << uint8(done);
-            data << uint32(qRew->GetRewOrReqMoney());
-            data << uint32(qRew->XPValue(GetPlayer()));
-            data << uint32(reward->reward[done].variableMoney);
-            data << uint32(reward->reward[done].variableXP);
-            data << uint8(qRew->GetRewItemsCount());
-            if (qRew->GetRewItemsCount())
-            {
-                ItemTemplate const* iProto = NULL;
-                for (uint8 i = 0; i < QUEST_REWARDS_COUNT; ++i)
-                {
-                    if (!qRew->RewItemId[i])
-                        continue;
-
-                    iProto = sObjectMgr->GetItemTemplate(qRew->RewItemId[i]);
-
-                    data << uint32(qRew->RewItemId[i]);
-                    data << uint32(iProto ? iProto->DisplayInfoID : 0);
-                    data << uint32(qRew->RewItemCount[i]);
-                }
-            }
+			data << uint8(done);
+			BuildQuestReward(data, qRew, GetPlayer());
         }
-        else
+        else // Should never happen unless incorrect DB data.
         {
             data << uint8(0);
             data << uint32(0);

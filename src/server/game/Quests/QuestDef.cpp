@@ -176,6 +176,9 @@ Quest::Quest(Field* questRecord)
     m_reqCreatureOrGOcount = 0;
     m_rewitemscount = 0;
     m_rewchoiceitemscount = 0;
+	m_rewCurrencyCount = 0;
+	m_reqCurrencyCount = 0;
+
 
     for (int i=0; i < QUEST_ITEM_OBJECTIVES_COUNT; ++i)
         if (ReqItemId[i])
@@ -192,6 +195,10 @@ Quest::Quest(Field* questRecord)
     for (int i=0; i < QUEST_REWARD_CHOICES_COUNT; ++i)
         if (RewChoiceItemId[i])
             ++m_rewchoiceitemscount;
+
+	for (int i = 0; i < QUEST_CURRENCY_COUNT; ++i)
+		if (RewChoiceItemId[i])
+			++m_rewCurrencyCount;
 }
 
 uint32 Quest::XPValue(Player* player) const
