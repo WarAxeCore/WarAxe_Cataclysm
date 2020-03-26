@@ -20831,8 +20831,6 @@ void Player::RemovePet(Pet* pet, PetSlot mode, bool returnreagent)
 
     pet->CombatStop();
 
-    /*if (returnreagent)
-    {
         switch (pet->GetEntry())
         {
             //warlock pets except imp are removed(?) when logging out
@@ -20840,10 +20838,9 @@ void Player::RemovePet(Pet* pet, PetSlot mode, bool returnreagent)
             case 1863:
             case 417:
             case 17252:
-                mode = PET_SAVE_NOT_IN_SLOT;
+                mode = PET_SLOT_OTHER_PET;
                 break;
         }
-    }*/
 
     // only if current pet in slot
     pet->SavePetToDB(mode);
@@ -21009,8 +21006,20 @@ void Player::PetSpellInitialize()
     // Action bar loop
     if (getLevel() >= sWorld->getIntConfig(CONFIG_START_PETBAR_LEVEL))
     {
-        if (getClass() == CLASS_HUNTER && !HasSpell (SPELL_CONTROL_PET) || (getClass() == CLASS_WARLOCK && !HasSpell (SPELL_CONTROL_DEMON)))
-            charmInfo->BuildActionBar(&data);
+		if (getClass() == CLASS_HUNTER && HasSpell(SPELL_CONTROL_PET))
+		{
+			charmInfo->BuildActionBar(&data);
+		}
+
+		if (getClass() == CLASS_WARLOCK && HasSpell(SPELL_CONTROL_DEMON))
+		{
+			charmInfo->BuildActionBar(&data);
+		}
+
+		if (getClass() == CLASS_MAGE)
+		{
+			charmInfo->BuildActionBar(&data);
+		}
 
         size_t spellsCountPos = data.wpos();
 
