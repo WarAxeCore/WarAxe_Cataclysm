@@ -262,7 +262,6 @@ class LFGMgr
         void Update(uint32 diff);
 
 		uint32 playeritemlvl;
-		uint32 dungeonitemlvl;
 
         // Reward
         void LoadRewards();

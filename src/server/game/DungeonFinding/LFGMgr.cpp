@@ -418,10 +418,11 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
     uint8 expansion = player->GetSession()->Expansion();
     LfgDungeonSet dungeons = GetDungeonsByRandom(0);
     LfgLockMap lock;
-	dungeonitemlvl = 0;
 	playeritemlvl = 0;
 
 	playeritemlvl = player->GetAverageItemLevel();
+	if (playeritemlvl < 0) // Player average can't be below zero
+		playeritemlvl = 0;
 
     for (LfgDungeonSet::const_iterator it = dungeons.begin(); it != dungeons.end(); ++it)
     {
@@ -447,7 +448,7 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
             locktype = LFG_LOCKSTATUS_TOO_HIGH_LEVEL;
         else if (locktype == LFG_LOCKSTATUS_OK && ar)
         {
-			if (ar->itemlvl > player->GetAverageItemLevel()) // Waraxe: If dungeons item level is higher then players lock it.
+			if (ar->itemlvl && player->GetAverageItemLevel() < ar->itemlvl) // Waraxe: If dungeons item level is higher then players lock it.
 				locktype = LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
             if (ar->achievement && !player->GetAchievementMgr().HasAchieved(ar->achievement))
                 locktype = LFG_LOCKSTATUS_RAID_LOCKED;       // FIXME: Check the correct lock value

@@ -35,7 +35,65 @@ void BuildPlayerLockDungeonBlock(WorldPacket& data, const LfgLockMap& lock)
     {
         data << uint32(it->first);                         // Dungeon entry (id + type)
         data << uint32(it->second);                        // Lock status
-		data << (0); // Required item Level (Not Yet Implemented)
+		switch (it->first) // Required Item Level
+		{
+			// Wrath of Lich King Heroics
+		case 83886290: // Culling of Stratholme (Heroic)
+		case 83886285: // Utgarde Pinnacle (Heroic)
+		case 83886291: // Oculus (Heroic)
+		case 83886292: // Halls Of Lightning (Heroic)
+		case 83886293: // Halls of Stone (Heroic)
+		case 83886295: // Drak'tharon Keep (Heroic)
+		case 83886297: // Gundrak (Heroic)
+		case 83886299: // Ahn'kahet
+		case 83886301: // VH
+		case 83886306: // Nexus
+		case 83886321: // Azjolnerub
+		case 83886322: // UtgardeKeep
+			data << uint32(180);
+			break;
+		case 16777461: // ToC Normal
+		case 83886329: //ToC Heroic
+		case 16777467: // Fos Normal
+		case 83886332: // FoS Heroic
+		case 16777469: // PoS Normal
+		case 83886334: // PoS Heroic
+			data << uint32(200);
+			break;
+		case 16777471: // HoR (Normal)
+		case 83886336: // HoR (Heroic)
+			data << uint32(219);
+			break;
+		// Cataclysm Normal
+		case 16777518: // Throne of Tides
+		case 16777519: // BRC
+			data << uint32(226);
+			break;
+		case 16777523: // StoneCore
+		case 16777527: // Vortex
+			data << uint32(272);
+			break;
+		case 16777520: // Grim Batol
+		case 16777521: // Halls of Origination
+		case 16777528: // Lost City of Tolvir
+			data << uint32(305);
+			break;
+		// Cataclysm HEROIC
+		case 83886399: // Vortex Pinnacle
+		case 83886400: // Stonecore
+		case 83886401: // Halls of Origination
+		case 83886402: // Grim Batol
+		case 83886403: //Blackrock Caverns
+		case 83886404: // Throne of the Tides
+		case 83886405: //Lost City of Tolvir
+		case 83886406: //The Deadmines
+		case 83886407: //Shadowfang Keep
+			data << uint32(329);
+			break;
+		default:
+			data << uint32(0);
+			break;
+		}
 		data << (sLFGMgr->playeritemlvl); // Current Item Level (Not Yet Implemented)
     }
 }
