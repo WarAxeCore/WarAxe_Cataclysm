@@ -261,6 +261,9 @@ class LFGMgr
     public:
         void Update(uint32 diff);
 
+		uint32 playeritemlvl;
+		uint32 dungeonitemlvl;
+
         // Reward
         void LoadRewards();
         void RewardDungeonDoneFor(const uint32 dungeonId, Player* player);

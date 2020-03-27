@@ -36,7 +36,7 @@ void BuildPlayerLockDungeonBlock(WorldPacket& data, const LfgLockMap& lock)
         data << uint32(it->first);                         // Dungeon entry (id + type)
         data << uint32(it->second);                        // Lock status
 		data << (0); // Required item Level (Not Yet Implemented)
-		data << (0); // Current Item Level (Not Yet Implemented)
+		data << (sLFGMgr->playeritemlvl); // Current Item Level (Not Yet Implemented)
     }
 }
 

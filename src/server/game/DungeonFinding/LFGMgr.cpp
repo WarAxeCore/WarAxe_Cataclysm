@@ -418,6 +418,10 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
     uint8 expansion = player->GetSession()->Expansion();
     LfgDungeonSet dungeons = GetDungeonsByRandom(0);
     LfgLockMap lock;
+	dungeonitemlvl = 0;
+	playeritemlvl = 0;
+
+	playeritemlvl = player->GetAverageItemLevel();
 
     for (LfgDungeonSet::const_iterator it = dungeons.begin(); it != dungeons.end(); ++it)
     {
@@ -467,8 +471,10 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
             locktype = LFG_LOCKSTATUS_NOT_IN_SEASON; // Need list of instances and needed season to open
         */
 
-        if (locktype != LFG_LOCKSTATUS_OK)
-            lock[dungeon->Entry()] = locktype;
+		if (locktype != LFG_LOCKSTATUS_OK)
+		{
+			lock[dungeon->Entry()] = locktype;
+		}
     }
     SetLockedDungeons(guid, lock);
 }
