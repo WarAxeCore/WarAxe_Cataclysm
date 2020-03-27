@@ -964,6 +964,7 @@ struct AccessRequirement
     uint32 quest_H;
     uint32 achievement;
     std::string questFailedText;
+	uint32 itemlvl;
 };
 
 enum CharDeleteMethod
