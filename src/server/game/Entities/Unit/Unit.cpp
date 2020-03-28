@@ -3631,7 +3631,20 @@ void Unit::RemoveAurasDueToSpell(uint32 spellId, uint64 casterGUID, uint8 reqEff
 
 void Unit::RemoveAuraFromStack(uint32 spellId, uint64 casterGUID, AuraRemoveMode removeMode)
 {
-    for (AuraMap::iterator iter = m_ownedAuras.lower_bound(spellId); iter != m_ownedAuras.upper_bound(spellId);)
+	AuraMapBoundsNonConst range = m_ownedAuras.equal_range(spellId);
+	for (AuraMap::iterator iter = range.first; iter != range.second;)
+	{
+		Aura* aura = iter->second;
+		if ((aura->GetType() == UNIT_AURA_TYPE)
+			&& (!casterGUID || aura->GetCasterGUID() == casterGUID))
+		{
+			aura->ModStackAmount(-1, removeMode);
+			return;
+		}
+		else
+			++iter;
+	}
+    /*for (AuraMap::iterator iter = m_ownedAuras.lower_bound(spellId); iter != m_ownedAuras.upper_bound(spellId);)
     {
         Aura* aura = iter->second;
         if ((aura->GetType() == UNIT_AURA_TYPE)
@@ -3642,7 +3655,7 @@ void Unit::RemoveAuraFromStack(uint32 spellId, uint64 casterGUID, AuraRemoveMode
         }
         else
             ++iter;
-    }
+    }*/
 }
 
 void Unit::RemoveAurasDueToSpellByDispel(uint32 spellId, uint32 dispellerSpellId, uint64 casterGUID, Unit* dispeller, uint8 chargesRemoved/*= 1*/)
@@ -8720,9 +8733,8 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 {
                     case 50421: // Scent of Blood
                     {
-                        CastSpell(this, 50422, true);
-                        RemoveAuraFromStack(auraSpellInfo->Id);
-                        return false;
+						CastSpell(this, 50422, true);
+						return false;
                     }
                     case 80128: // Impending Victory Rank 1
                     case 80129: // Impending Victory Rank 2

@@ -40,6 +40,65 @@ enum DeathKnightSpells
     DK_SPELL_NECROTIC_STRIKE                    = 73975,
 };
 
+// HACK!
+// 50422
+class spell_dk_sob : public SpellScriptLoader
+{
+public:
+	spell_dk_sob() : SpellScriptLoader("spell_dk_sob") { }
+
+	class spell_dk_sob_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_dk_sob_SpellScript);
+
+		void HandleExtraEffect()
+		{
+			Unit* caster = GetCaster();
+
+			if (!caster->GetAura(50421))
+				return;
+
+			if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+				return;
+
+			uint32 previousStacks = caster->GetAura(50421)->GetStackAmount();
+			uint32 duration = caster->GetAura(50421)->GetDuration();
+			caster->RemoveAurasDueToSpell(50421);
+			if (previousStacks == 3) 
+			{
+				caster->CastSpell(caster, 50421, true);
+				caster->CastSpell(caster, 50421, true);
+				if (caster->GetAura(50421))
+				{
+					caster->GetAura(50421)->SetDuration(duration);
+				}
+			}
+			if (previousStacks == 2)
+			{
+				caster->CastSpell(caster, 50421, true);
+				if (caster->GetAura(50421))
+				{
+					caster->GetAura(50421)->SetDuration(duration);
+				}
+			}
+			if (previousStacks == 1)
+			{
+				caster->RemoveAurasDueToSpell(50421);
+			}
+		}
+
+		void Register()
+		{
+			AfterCast += SpellCastFn(spell_dk_sob_SpellScript::HandleExtraEffect);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_dk_sob_SpellScript();
+	}
+};
+
 class spell_dk_necrotic_strike : public SpellScriptLoader
 {
 public:
@@ -673,6 +732,7 @@ public:
 
 void AddSC_deathknight_spell_scripts()
 {
+	new spell_dk_sob();
     new spell_dk_necrotic_strike();
     new spell_dk_anti_magic_shell_raid();
     new spell_dk_anti_magic_shell_self();
