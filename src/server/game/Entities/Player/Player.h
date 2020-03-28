@@ -2083,6 +2083,21 @@ class Player : public Unit, public GridObject<Player>
         void SetMasteryState(bool apply) { _canUseMastery = apply; UpdateMastery(); }
         void CastMasterySpells(Player* caster);
 
+		float GetMasteryPoints()
+		{
+			return CaclulateMasteryFromMasteryRating(_baseRatingValue[CR_MASTERY]);
+		}
+
+		float CaclulateMasteryFromMasteryRating(int32 curr_rating)
+		{
+			return float(curr_rating * 0.0055779569892473f);
+		}
+
+		int32 CaclulateMasteryRatingFromMastery(float curr_mastery)
+		{
+			return int32(curr_mastery / 0.0055779569892473f);
+		}
+
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& min_damage, float& max_damage);
 
         void UpdateDefenseBonusesMod();

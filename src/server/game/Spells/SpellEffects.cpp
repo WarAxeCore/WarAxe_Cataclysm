@@ -1627,24 +1627,31 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
             {
                 m_caster->CastCustomSpell(m_caster, 51209, &bp, NULL, NULL, true);
             }
-            // Death strike
-            if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_DK_DEATH_STRIKE)
-            {
-                bp = std::min<int32>(m_caster->CountPctFromMaxHealth(damage), CalculatePctN(m_caster->GetDamageTakenInPastSecs(5), 15));
+			// Death strike
+			if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_DK_DEATH_STRIKE)
+			{
+				int32 bp;
+				if ((m_caster->CountPctFromMaxHealth(7)) > (15 * m_caster->GetDamageTakenInPastSecs(5) / 100))
+					bp = m_caster->CountPctFromMaxHealth(7);
+				else
+					bp = (15 * m_caster->GetDamageTakenInPastSecs(5) / 100);
 
-                // Improved Death Strike
-                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0))
-                    AddPctN(bp, m_caster->CalculateSpellDamage(m_caster, aurEff->GetSpellInfo(), 2));
+				// Improved Death Strike
+				if (AuraEffect const * aurEff = m_caster->GetAuraEffect(SPELL_AURA_ADD_PCT_MODIFIER, SPELLFAMILY_DEATHKNIGHT, 2751, 0))
+					bp = int32(bp * (m_caster->CalculateSpellDamage(m_caster, aurEff->GetSpellInfo(), 2) + 100.0f) / 100.0f);
 
-                // Glyph of Dark Succor
-                if (AuraEffect const* aurEff = m_caster->GetAuraEffect(96279, 0))
-                    if (bp < int32(m_caster->CountPctFromMaxHealth(aurEff->GetAmount())))
-                        if (m_caster->HasAura(48265) || m_caster->HasAura(48266)) // Only in frost/unholy presence
-                            bp = m_caster->CountPctFromMaxHealth(aurEff->GetAmount());
+				if (m_caster->ToPlayer()->HasAuraType(SPELL_AURA_MASTERY))
+				{
+					if (m_caster->ToPlayer()->HasSpell(77513))          //Blood Shield Mastery Blood
+					{
+							int32 shield = int32(bp * (0.5f + (6.25f * m_caster->ToPlayer()->GetMasteryPoints())) / 100.0f);
+							m_caster->CastCustomSpell(m_caster, 77535, &shield, NULL, NULL, false);
+					}
+				}
 
-                m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
-                return;
-            }
+				m_caster->CastCustomSpell(m_caster, 45470, &bp, NULL, NULL, false);
+				return;
+			}
             switch (m_spellInfo->Id)
             {
             case 49020: // Obliterate
