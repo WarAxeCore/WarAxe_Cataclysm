@@ -1443,24 +1443,80 @@ void Spell::EffectDummy(SpellEffIndex effIndex)
                 break;
             }
         case SPELLFAMILY_WARRIOR:
-            // Concussion Blow
-            if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_WARRIOR_CONCUSSION_BLOW)
-            {
-                m_damage += CalculatePctF(damage, m_caster->GetTotalAttackPowerValue(BASE_ATTACK));
-                return;
-            }
-            switch (m_spellInfo->Id)
-            {
-                // Intercept
-                case 20252:
-                {
-                    // Juggernaut CD part
-                    if (m_caster->HasAura(64976))
-                        m_caster->ToPlayer()->AddSpellCooldown(100, 0, time(NULL) + 13); // 15 - 2 from Juggernaut
-                    return;
-                }
-            }
-            break;
+			// Charge
+			if (m_spellInfo->SpellFamilyFlags & SPELLFAMILYFLAG_WARRIOR_CHARGE && m_spellInfo->SpellVisual[0] == 867)
+			{
+				int32 chargeBasePoints0 = damage;
+				m_caster->CastCustomSpell(m_caster, 34846, &chargeBasePoints0, NULL, NULL, true);
+
+				//Juggernaut crit bonus & Cooldown
+				if (m_caster->HasAura(64976))
+				{
+					m_caster->CastSpell(m_caster, 65156, true);
+					m_caster->CastSpell(m_caster, 96216, false);
+					m_caster->ToPlayer()->AddSpellCooldown(20252, 0, time(NULL) + 30);
+				}
+				return;
+			}
+			//Slam
+			if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_WARRIOR_SLAM && m_spellInfo->SpellIconID == 559)
+			{
+				int32 bp0 = damage;
+				m_caster->CastCustomSpell(unitTarget, 50782, &bp0, NULL, NULL, true, 0);
+				return;
+			}
+			// Execute
+			if (m_spellInfo->SpellFamilyFlags[EFFECT_0] & SPELLFAMILYFLAG_WARRIOR_EXECUTE)
+			{
+				if (!unitTarget)
+					return;
+
+				spell_id = 20647;
+
+				int32 rageUsed = std::min<int32>(300 - m_powerCost, m_caster->GetPower(POWER_RAGE));
+				int32 newRage = std::max<int32>(0, m_caster->GetPower(POWER_RAGE) - rageUsed);
+
+				// Sudden Death rage save
+				if (AuraEffect * aurEff = m_caster->GetAuraEffect(SPELL_AURA_PROC_TRIGGER_SPELL, SPELLFAMILY_GENERIC, 1989, EFFECT_0))
+				{
+					int32 ragesave = aurEff->GetSpellInfo()->Effects[EFFECT_0].CalcValue() * 10;
+					newRage = std::max(newRage, ragesave);
+				}
+
+				m_caster->SetPower(POWER_RAGE, uint32(newRage));
+
+				// Glyph of Execution bonus
+				if (AuraEffect * aurEff = m_caster->GetAuraEffect(58367, EFFECT_0))
+					rageUsed += aurEff->GetAmount() * 10;
+
+				bp = damage + int32(rageUsed * m_spellInfo->Multiplier[effIndex] + m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.2f);
+				break;
+			}
+			// Concussion Blow
+			if (m_spellInfo->SpellFamilyFlags[0] & SPELLFAMILYFLAG_WARRIOR_CONCUSSION_BLOW)
+			{
+				m_damage += uint32(damage * m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 100);
+				return;
+			}
+			switch (m_spellInfo->Id)
+			{
+				// Bloodthirst
+			case 23881:
+			{
+				if (!m_caster->HasAura(23885))
+					m_caster->CastCustomSpell(unitTarget, 23885, &damage, NULL, NULL, true, NULL);
+				return;
+			}
+			// Intercept
+			case 20252:
+			{
+				//Juggernaut CD part
+				if (m_caster->HasAura(64976))
+					m_caster->ToPlayer()->AddSpellCooldown(100, 0, time(NULL) + 13);          //15 - 2 from Juggernaut
+				return;
+			}
+			}
+			break;
         case SPELLFAMILY_DRUID:
         {
             // Starfall
