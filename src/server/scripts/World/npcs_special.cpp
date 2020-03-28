@@ -2164,6 +2164,41 @@ public:
     }
 };
 
+//Sentinel Hill Gnolls
+//Should only take damage if it's from a player
+// 42407, 124, 452, 501, 
+class npc_gnoll_sh : public CreatureScript
+{
+public:
+	npc_gnoll_sh() : CreatureScript("npc_gnoll_sh") { }
+
+	struct npc_gnoll_shAI : public ScriptedAI
+	{
+		npc_gnoll_shAI(Creature* creature) : ScriptedAI(creature) {}
+
+		void DamageTaken(Unit* done_by, uint32& damage)
+		{
+			if (done_by && done_by->GetTypeId() != TYPEID_PLAYER) // If damage dealt is by someone other than a player no damage is dealt.
+			{
+				damage = 0;
+			}
+		}
+
+		void UpdateAI(uint32 const /*diff*/)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_gnoll_shAI(creature);
+	}
+};
+
 /*######
 # npc_shadowfiend
 ######*/
@@ -3463,6 +3498,7 @@ public:
 
 void AddSC_npcs_special()
 {
+	new npc_gnoll_sh();
     new npc_air_force_bots;
     new npc_lunaclaw_spirit;
     new npc_chicken_cluck;
