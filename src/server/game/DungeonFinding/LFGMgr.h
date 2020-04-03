@@ -261,60 +261,61 @@ class LFGMgr
     public:
         void Update(uint32 diff);
 
+		//WarAxeCore: This returns the dungeon finders required item level for dungeons along with players.
 		uint32 playeritemlvl;
 		uint32 ReqItemLvl(uint32 dungeonEntry)
 		{
 			switch (dungeonEntry)
 			{
 				// Wrath of Lich King Heroics
-			case 83886290: // Culling of Stratholme (Heroic)
-			case 83886285: // Utgarde Pinnacle (Heroic)
-			case 83886291: // Oculus (Heroic)
-			case 83886292: // Halls Of Lightning (Heroic)
-			case 83886293: // Halls of Stone (Heroic)
-			case 83886295: // Drak'tharon Keep (Heroic)
-			case 83886297: // Gundrak (Heroic)
-			case 83886299: // Ahn'kahet
-			case 83886301: // VH
-			case 83886306: // Nexus
-			case 83886321: // Azjolnerub
-			case 83886322: // UtgardeKeep
-				return 180;
-			case 16777461: // ToC Normal
-			case 83886329: //ToC Heroic
-			case 16777467: // Fos Normal
-			case 83886332: // FoS Heroic
-			case 16777469: // PoS Normal
-			case 83886334: // PoS Heroic
-				return 200;
-			case 16777471: // HoR (Normal)
-			case 83886336: // HoR (Heroic)
-				return 219;
+				case 83886290: // Culling of Stratholme
+				case 83886285: // Utgarde Pinnacle
+				case 83886291: // Oculus
+				case 83886292: // Halls Of Lightning
+				case 83886293: // Halls of Stone
+				case 83886295: // Drak'tharon Keep
+				case 83886297: // Gundrak
+				case 83886299: // Ahn'kahet
+				case 83886301: // VH
+				case 83886306: // Nexus
+				case 83886321: // Azjolnerub
+				case 83886322: // Utgarde Keep
+					return 180;
+				case 16777461: // Trial of Champions - Normal
+				case 83886329: //Trial of Champions - Heroic
+				case 16777467: // Forge of Souls - Normal
+				case 83886332: // Forge of Souls - Heroic
+				case 16777469: // Pit of Saron - Normal
+				case 83886334: // Pit of Saron - Heroic
+					return 200;
+				case 16777471: // Halls of Reflection - Normal
+				case 83886336: // Halls of Reflection - Heroic
+					return 219;
 				break;
-				// Cataclysm Normal
-			case 16777518: // Throne of Tides
-			case 16777519: // BRC
-				return 226;
-			case 16777523: // StoneCore
-			case 16777527: // Vortex
-				return 272;
-			case 16777520: // Grim Batol
-			case 16777521: // Halls of Origination
-			case 16777528: // Lost City of Tolvir
-				return 305;
-				// Cataclysm HEROIC
-			case 83886399: // Vortex Pinnacle
-			case 83886400: // Stonecore
-			case 83886401: // Halls of Origination
-			case 83886402: // Grim Batol
-			case 83886403: //Blackrock Caverns
-			case 83886404: // Throne of the Tides
-			case 83886405: //Lost City of Tolvir
-			case 83886406: //The Deadmines
-			case 83886407: //Shadowfang Keep
-				return 329;
-			default:
-				return 0;
+				// Cataclysm - Normal
+				case 16777518: // Throne of Tides
+				case 16777519: // Blackrock Caverns
+					return 226;
+				case 16777523: // The Stonecore
+				case 16777527: // Vortex Pinnacle
+					return 272;
+				case 16777520: // Grim Batol
+				case 16777521: // Halls of Origination
+				case 16777528: // Lost City of Tolvir
+					return 305;
+				// Cataclysm - Heroic
+				case 83886399: // Vortex Pinnacle
+				case 83886400: // Stonecore
+				case 83886401: // Halls of Origination
+				case 83886402: // Grim Batol
+				case 83886403: //Blackrock Caverns
+				case 83886404: // Throne of the Tides
+				case 83886405: //Lost City of Tolvir
+				case 83886406: //The Deadmines
+				case 83886407: //Shadowfang Keep
+					return 329;
+				default:
+					return 0;
 			}
 		}
 
