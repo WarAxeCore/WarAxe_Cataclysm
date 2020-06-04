@@ -26,7 +26,6 @@ enum events
 enum Adds
 {
 	NPC_SPOT = 40011,
-	NPC_BUSTER = 40013,
 	NPC_LUCKY = 40008,
 	NPC_RUNTY = 40015,
 };

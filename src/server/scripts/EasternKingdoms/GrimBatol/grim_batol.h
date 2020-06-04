@@ -71,7 +71,6 @@ enum CreatureIds
     //Various NPCs
 
     NPC_VELASTRASZA             = 50390,
-    NPC_VALIONA                 = 40320,
     NPC_BALEFLAME               = 50387,
     NPC_FARSEER_TOORANU         = 50385,
 };

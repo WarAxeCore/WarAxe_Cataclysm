@@ -161,7 +161,7 @@ public:
 				{
 					me->BossYell("Dragon, you will do as I command! Catch me!", 18621);
 					valiona->SetReactState(REACT_PASSIVE);
-					valiona->canFly() == true;
+					valiona->SetFlying(true);
 					valiona->GetMotionMaster()->MovePoint(1001, drahgavalionaPos[1]);
 				}
 				return;
@@ -265,7 +265,7 @@ public:
 				{
 				case 1001:
 					me->SetReactState(REACT_AGGRESSIVE);
-					me->canFly == false;
+					me->SetFlying(false);
 					me->BossYell("If they do not kill you, I will do it myself!", 18523);
 					break;
 				case 1002:
@@ -295,7 +295,7 @@ public:
 				me->SetReactState(REACT_PASSIVE);
 				if (me->GetVehicleKit())
 					me->GetVehicleKit()->RemoveAllPassengers();
-				me->canFly == true;
+				me->SetFlying(true);
 				me->GetMotionMaster()->MovePoint(1002, drahgavalionaPos[0]);
 				if (Creature* drahga = Unit::GetCreature(*me, pInstance->GetData64(DATA_DRAHGA_SHADOWBURNER)))
 					drahga->RemoveAurasDueToSpell(SPELL_TWILIGHT_PROTECTION);

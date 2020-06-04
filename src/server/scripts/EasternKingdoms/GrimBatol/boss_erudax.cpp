@@ -413,7 +413,7 @@ public:
 
 		void Reset()
 		{
-			me->canFly == true;
+			me->SetFlying(true);
 		}
 
 		void JustDied(Unit* killer)
