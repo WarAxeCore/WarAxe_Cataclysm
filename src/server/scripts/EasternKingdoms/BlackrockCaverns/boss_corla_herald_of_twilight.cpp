@@ -89,7 +89,7 @@ public:
 		void EnterCombat(Unit* /*who*/)
 		{
 			DoCast(SPELL_AURA_ACELERATION);
-			events.ScheduleEvent(EVENT_DARK_COMMAND, urand(6000, 10000)); \
+			events.ScheduleEvent(EVENT_DARK_COMMAND, urand(6000, 10000));
 			me->BossYell("HERETICS! You will suffer for this interruption!", 18589);
 			DoZoneInCombat();
 			if (pInstance)
