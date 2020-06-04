@@ -1300,6 +1300,7 @@ class Unit : public WorldObject
 
         virtual void Update(uint32 time);
 
+		void BossYell(const char* text, uint32 soundId);
         void setAttackTimer(WeaponAttackType type, uint32 time) { m_attackTimer[type] = time; }
         void resetAttackTimer(WeaponAttackType type = BASE_ATTACK);
         uint32 getAttackTimer(WeaponAttackType type) const { return m_attackTimer[type]; }

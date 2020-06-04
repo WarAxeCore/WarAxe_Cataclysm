@@ -9587,6 +9587,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     return true;
 }
 
+void Unit::BossYell(const char* text, uint32 soundId)
+{
+	this->MonsterYell(text, 0, NULL);
+	this->SendPlaySound(soundId, false);
+}
+
 bool Unit::HandleOverrideClassScriptAuraProc(Unit* victim, uint32 /*damage*/, AuraEffect* triggeredByAura, SpellInfo const* procSpell, uint32 cooldown)
 {
     int32 scriptId = triggeredByAura->GetMiscValue();
