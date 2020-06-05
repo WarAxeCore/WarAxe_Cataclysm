@@ -608,6 +608,12 @@ inline void UnitAI::DoCast(Unit* victim, uint32 spellId, bool triggered)
     me->CastSpell(victim, spellId, triggered);
 }
 
+inline void UnitAI::DoCastRandom(uint32 spellId, float range)
+{
+	if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, range, true))
+		DoCast(target, spellId);
+}
+
 inline void UnitAI::DoCastVictim(uint32 spellId, bool triggered)
 {
     // Why don't we check for casting unit_state and existing target as we do in DoCast(.. ?

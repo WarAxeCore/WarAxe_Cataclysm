@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2008-2013 TrinityCore <http://www.trinitycore.org/>
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+*/
 
 #include "ScriptPCH.h"
 #include "the_stonecore.h"
@@ -21,337 +22,273 @@
 /***************************************TRASH SPELLS*************************************/
 // Crystalspawn Giant (42810) Health: 536, 810 - 1, 202, 925
 // update creature_template set
-enum Spells
+/*enum Spells
 {
-    SPELL_QUAKE              = 81008,
-    H_SPELL_QUAKE            = 92631,
+// Stonecore Berserker (43430) Health: 312, 753 - 387, 450
+SPELL_SCHARGE            = 81574,
+SPELL_SPINNING_SLASH     = 81568,
 
-    // IMP (43014) Health: 4, 468 - 7, 749, Mana: 16, 676 - 17, 816
-    SPELL_FELL_FIREBALL      = 80344,
-    H_SPELL_FELL_FIREBALL    = 92638,
+// Stonecore Bruiser (42692) Health: 590, 491 - 1, 202, 925
+SPELL_BODY_SLAM          = 80180,
+SPELL_SHOCKWAVE          = 80195,
+H_SPELL_SHOCKWAVE        = 92640,
 
-    // Millhouse Manastorm (43391) Health: 386, 505 - 513, 248, Mana: 186, 560 - 197, 380
-    SPELL_BLUR               = 81216,
-    SPELL_MILL_FEAR          = 81442,
-    SPELL_FROSTBOLT_VOLLEY   = 81440,
-    H_SPELL_FROSTBOLT_VOLLEY = 92642,
-    SPELL_IMPENDING_DOOM     = 86830,
-    SPELL_SHADOW_BOLT        = 81439,
-    H_SPELL_SHADOW_BOLT      = 92641,
-    SPELL_SHADOWFURY         = 81441,
-    H_SPELL_SHADOWFURY       = 92644,
-    SPELL_TIGULE             = 81220,
+// Stonecore Earthshaper (43537) Health: 250, 201 - 309, 960, Mana: 19, 394
+SPELL_DUST_STORM         = 81463,
+SPELL_FORCE_OF_EARTH     = 81459,
+SPELL_GROUND_SHOCK       = 81530,
+H_SPELL_GROUND_SHOCK     = 92628,
+SPELL_LAVA_BURST         = 81576,
+H_SPELL_LAVA_BURST       = 92626,
 
-    // Rock Borer (43917, 42845) Health: 6, 702 - 11, 624
-    SPELL_ROCK_BORE          = 80028,
-    H_SPELL_ROCK_BORE        = 92630,
+// Stonecore Flayer (42808) Health: 312, 753 - 387, 450
+SPELL_FLAY               = 79922,
 
-    // Stonecore Berserker (43430) Health: 312, 753 - 387, 450
-    SPELL_SCHARGE            = 81574,
-    SPELL_SPINNING_SLASH     = 81568,
+// Stonecore Magmalord (42789) Health: 312, 753 - 387, 450, Mana: 25, 014 - 26, 724
+SPELL_IGNITE             = 80151,
+H_SPELL_IGNITE           = 92636,
+SPELL_MAGMA_ERUPTION     = 80038,
 
-    // Stonecore Bruiser (42692) Health: 590, 491 - 1, 202, 925
-    SPELL_BODY_SLAM          = 80180,
-    SPELL_SHOCKWAVE          = 80195,
-    H_SPELL_SHOCKWAVE        = 92640,
+// Stonecore Rift Conjurer (42691) Health: 312, 753 - 387, 450, Mana: 16, 676 - 17, 816
+SPELL_DEMON_PORTAL       = 80308,
+SPELL_SHADOWBOLT         = 80279,
+H_SPELL_SHADOWBOLT       = 92637,
 
-    // Stonecore Earthshaper (43537) Health: 250, 201 - 309, 960, Mana: 19, 394
-    SPELL_DUST_STORM         = 81463,
-    SPELL_FORCE_OF_EARTH     = 81459,
-    SPELL_GROUND_SHOCK       = 81530,
-    H_SPELL_GROUND_SHOCK     = 92628,
-    SPELL_LAVA_BURST         = 81576,
-    H_SPELL_LAVA_BURST       = 92626,
+//Stonecore Sentry (42695) Health: 6, 702 - 11, 624
 
-    // Stonecore Flayer (42808) Health: 312, 753 - 387, 450
-    SPELL_FLAY               = 79922,
-
-    // Stonecore Magmalord (42789) Health: 312, 753 - 387, 450, Mana: 25, 014 - 26, 724
-    SPELL_IGNITE             = 80151,
-    H_SPELL_IGNITE           = 92636,
-    SPELL_MAGMA_ERUPTION     = 80038,
-
-    // Stonecore Rift Conjurer (42691) Health: 312, 753 - 387, 450, Mana: 16, 676 - 17, 816
-    SPELL_DEMON_PORTAL       = 80308,
-    SPELL_SHADOWBOLT         = 80279,
-    H_SPELL_SHADOWBOLT       = 92637,
-
-    //Stonecore Sentry (42695) Health: 6, 702 - 11, 624
-
-    // Stonecore Warbringer (42696) Health: 312, 753 - 387, 450
-    SPELL_CLEAVE             = 15496,
-    SPELL_RAGE               = 80158,
+// Stonecore Warbringer (42696) Health: 312, 753 - 387, 450
+SPELL_CLEAVE             = 15496,
+SPELL_RAGE               = 80158,
 };
 
 enum eEvents
 {
-    EVENT_NONE,
-    EVENT_QUAKE,
-    EVENT_FELL_FIREBALL,
-    EVENT_BLUR,
-    EVENT_MILL_FEAR,
-    EVENT_FROSTBOLT_VOLLEY,
-    EVENT_IMPENDING_DOOM,
-    EVENT_SHADOW_BOLT,
-    EVENT_SHADOWFURY,
-    EVENT_TIGULE,
-    EVENT_ROCK_BORE,
-    EVENT_SCHARGE,
-    EVENT_SPINNING_SLASH,
-    EVENT_BODY_SLAM,
-    EVENT_SHOCKWAVE,
-    EVENT_DUST_STORM,
-    EVENT_FORCE_OF_EARTH,
-    EVENT_GROUND_SHOCK,
-    EVENT_LAVA_BURST,
-    EVENT_FLAY,
-    EVENT_IGNITE,
-    EVENT_MAGMA_ERUPTION,
-    EVENT_DEMON_PORTAL,
-    EVENT_SHADOWBOLT,
-    EVENT_CLEAVE,
-    EVENT_RAGE,
-};
-
-// Crystalspawn Giant AI
-class mob_crystalspawn_giant : public CreatureScript
-{
-public:
-    mob_crystalspawn_giant() : CreatureScript("mob_crystalspawn_giant") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_crystalspawn_giantAI(creature);
-    }
-
-    struct mob_crystalspawn_giantAI : public ScriptedAI
-    {
-        mob_crystalspawn_giantAI(Creature* creature) : ScriptedAI(creature) { }
-
-        EventMap events;
-
-        void Reset()
-        {
-            events.Reset();
-        }
-
-        void EnterCombat(Unit* /*who*/)
-        {
-            events.ScheduleEvent(EVENT_QUAKE, 5000 + rand()%5000);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            events.Update(diff);
-
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
-
-            while (uint32 eventId = events.ExecuteEvent())
-            {
-                switch (eventId)
-                {
-                    case EVENT_QUAKE:
-                        DoCast(me->getVictim(), SPELL_QUAKE);
-                        events.RescheduleEvent(EVENT_QUAKE, 5000 + rand()%5000);
-                        return;
-                }
-            }
-
-            DoMeleeAttackIfReady();
-        }
-    };
-};
-
-// Imp AI
-class mob_impp : public CreatureScript
-{
-public:
-    mob_impp() : CreatureScript("mob_impp") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_imppAI(creature);
-    }
-
-    struct mob_imppAI : public ScriptedAI
-    {
-        mob_imppAI(Creature* creature) : ScriptedAI(creature) {}
-
-        EventMap events;
-
-        void Reset()
-        {
-            events.Reset();
-        }
-
-        void EnterCombat(Unit* /*who*/)
-        {
-            events.ScheduleEvent(EVENT_FELL_FIREBALL, 1000);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            events.Update(diff);
-
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
-
-            while (uint32 eventId = events.ExecuteEvent())
-            {
-                switch (eventId)
-                {
-                    case EVENT_FELL_FIREBALL:
-                        if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                            DoCast(target, SPELL_FELL_FIREBALL);
-                        events.RescheduleEvent(EVENT_FELL_FIREBALL, 1000);
-                        return;
-                }
-            }
-
-            DoMeleeAttackIfReady();
-        }
-    };
-};
+EVENT_NONE,
+EVENT_BLUR,
+EVENT_TIGULE,
+EVENT_SCHARGE,
+EVENT_SPINNING_SLASH,
+EVENT_BODY_SLAM,
+EVENT_SHOCKWAVE,
+EVENT_DUST_STORM,
+EVENT_FORCE_OF_EARTH,
+EVENT_GROUND_SHOCK,
+EVENT_LAVA_BURST,
+EVENT_FLAY,
+EVENT_IGNITE,
+EVENT_MAGMA_ERUPTION,
+EVENT_DEMON_PORTAL,
+EVENT_CLEAVE,
+EVENT_RAGE,
+};*/
 
 // Rock Borer AI
 class mob_rock_borer : public CreatureScript
 {
+	enum
+	{
+		SPELL_ROCK_BORE = 80028,
+		SPELL_ROCK_BORE_HC = 92630,
+	};
 public:
-    mob_rock_borer() : CreatureScript("mob_rock_borer") { }
+	mob_rock_borer() : CreatureScript("mob_rock_borer") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_rock_borerAI(creature);
-    }
+	struct mob_rock_borerAI : public ScriptedAI
+	{
+		mob_rock_borerAI(Creature* creature) : ScriptedAI(creature) {}
 
-    struct mob_rock_borerAI : public ScriptedAI
-    {
-        mob_rock_borerAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = creature->GetInstanceScript();
-        }
+		void Reset()
+		{
+			rockboreTimer = urand(5000, 7000);
+		}
 
-        InstanceScript* instance;
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-        uint32 _SpellBoreTimer;
+			if (rockboreTimer <= diff)
+			{
+				if (Unit* victim = me->getVictim())
+				{
+					if (Aura* aur = victim->GetAura(IsHeroic() ? SPELL_ROCK_BORE_HC : SPELL_ROCK_BORE))
+					{
+						aur->ModStackAmount(1);
+						aur->RefreshDuration();
+					}
+					else
+						DoCastVictim(SPELL_ROCK_BORE);
+				}
+				rockboreTimer = urand(10000, 12000);
+			}
+			else rockboreTimer -= diff;
 
-        void Reset()
-        {
-            _SpellBoreTimer = 6000;
-        }
+			DoMeleeAttackIfReady();
+		}
+	private:
+		uint32 rockboreTimer;
+	};
 
-        void EnterCombar(Unit* ) { }
-
-        void MoveInLineOfSight(Unit* who) { }
-
-        void UpdateAI(const uint32 Diff)
-        {
-            if(instance->GetData(DATA_CORBORUS_EVENT) == DONE || instance->GetData(DATA_CORBORUS_EVENT) == NOT_STARTED)
-                me->DespawnOrUnsummon();
-            if (_SpellBoreTimer <= Diff)
-            {
-                if(!IsHeroic())
-                    DoCast(me->getVictim(),SPELL_ROCK_BORE);
-                if(IsHeroic())
-                    DoCast(me->getVictim(),H_SPELL_ROCK_BORE);
-                _SpellBoreTimer = 6000;
-            }
-            else
-                _SpellBoreTimer -= Diff;
-
-            DoMeleeAttackIfReady();
-        }
-    };
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new mob_rock_borerAI(creature);
+	}
 };
 
 // Millhouse Manastorm AI
 class mob_millhouse_manastorm : public CreatureScript
 {
+	enum
+	{
+		SPELL_BLUR = 81216,
+		SPELL_FEAR = 81442,
+		SPELL_FROSTBOLT_VOLLEY = 81440,
+		SPELL_IMPENDING_DOOM = 86830,
+		SPELL_SHADOW_BOLT = 81439,
+		SPELL_SHADOWFURY = 81441,
+		SPELL_TIGULE = 81220,
+		SPELL_IMPEMDING_DOOM_E = 86838,
+
+		EVENT_MILL_FEAR = 1,
+		EVENT_FROSTBOLT_VOLLEY,
+		EVENT_IMPENDING_DOOM,
+		EVENT_SHADOW_BOLT,
+		EVENT_SHADOWFURY
+	};
 public:
-    mob_millhouse_manastorm() : CreatureScript("mob_millhouse_manastorm") { }
+	mob_millhouse_manastorm() : CreatureScript("mob_millhouse_manastorm") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_millhouse_manastormAI(creature);
-    }
+	struct mob_millhouse_manastormAI : public ScriptedAI
+	{
+		mob_millhouse_manastormAI(Creature* creature) : ScriptedAI(creature) { }
 
-    struct mob_millhouse_manastormAI : public ScriptedAI
-    {
-        mob_millhouse_manastormAI(Creature* creature) : ScriptedAI(creature) {}
+		void Reset()
+		{
+			events.Reset();
+		}
 
-        EventMap events;
+		void EnterCombat(Unit* /*who*/)
+		{
+			events.ScheduleEvent(EVENT_MILL_FEAR, 10000);
+			events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, urand(7000, 17000));
+			events.ScheduleEvent(EVENT_IMPENDING_DOOM, urand(25000, 35000));
+			events.ScheduleEvent(EVENT_SHADOW_BOLT, 2000);
+			events.ScheduleEvent(EVENT_SHADOWFURY, urand(10000, 15000));
+		}
 
-        void Reset()
-        {
-            events.Reset();
-        }
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-        void EnterCombat(Unit* /*who*/)
-        {
-            events.ScheduleEvent(EVENT_MILL_FEAR, 10000);
-            events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, 7000 + rand()%10000);
-            events.ScheduleEvent(EVENT_IMPENDING_DOOM, 10000 + rand()%10000);
-            events.ScheduleEvent(EVENT_SHADOW_BOLT, 1000);
-            events.ScheduleEvent(EVENT_SHADOWFURY, 5000 + rand()%15000);
-        }
+			events.Update(diff);
 
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-            events.Update(diff);
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_MILL_FEAR:
+					DoCastRandom(SPELL_FEAR, 0.0f);
+					events.ScheduleEvent(EVENT_MILL_FEAR, 10000);
+					return;
+				case EVENT_SHADOW_BOLT:
+					DoCastVictim(SPELL_SHADOW_BOLT);
+					events.ScheduleEvent(EVENT_SHADOW_BOLT, 2000);
+					return;
+				case EVENT_FROSTBOLT_VOLLEY:
+					DoCast(SPELL_FROSTBOLT_VOLLEY);
+					events.ScheduleEvent(EVENT_FROSTBOLT_VOLLEY, urand(8000, 15000));
+					return;
+				case EVENT_IMPENDING_DOOM:
+					DoCast(SPELL_IMPENDING_DOOM);
+					DoCast(me, SPELL_IMPEMDING_DOOM_E, true);
+					events.ScheduleEvent(EVENT_IMPENDING_DOOM, urand(60000, 65000));
+					return;
+				case EVENT_SHADOWFURY:
+					DoCastRandom(SPELL_SHADOWFURY, 0.0f);
+					events.ScheduleEvent(EVENT_SHADOWFURY, urand(8000, 20000));
+					return;
+				}
+			}
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
+			DoMeleeAttackIfReady();
+		}
+	private:
+		EventMap events;
+	};
 
-            while (uint32 eventId = events.ExecuteEvent())
-            {
-                switch (eventId)
-                {
-                    case EVENT_MILL_FEAR:
-                        if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                            DoCast(target, SPELL_MILL_FEAR);
-                        events.RescheduleEvent(EVENT_MILL_FEAR, 10000);
-                        return;
-                    case EVENT_SHADOW_BOLT:
-                        DoCast(me->getVictim(), SPELL_SHADOW_BOLT);
-                        events.RescheduleEvent(EVENT_SHADOWBOLT, 1000);
-                        return;
-                    case EVENT_FROSTBOLT_VOLLEY:
-                        if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                            DoCast(target, SPELL_FROSTBOLT_VOLLEY);
-                        events.RescheduleEvent(EVENT_FROSTBOLT_VOLLEY, rand()%15000);
-                        return;
-                    case EVENT_IMPENDING_DOOM:
-                        if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                            DoCast(target, SPELL_IMPENDING_DOOM);
-                        events.RescheduleEvent(EVENT_IMPENDING_DOOM, rand()%15000);
-                        return;
-                    case EVENT_SHADOWFURY:
-                        if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 0))
-                            DoCast(target, SPELL_SHADOWFURY);
-                        events.RescheduleEvent(SPELL_SHADOWFURY, 5000 + rand()%15000);
-                        return;
-                }
-            }
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new mob_millhouse_manastormAI(creature);
+	}
+};
 
-            DoMeleeAttackIfReady();
-        }
-    };
+enum Teleporter
+{
+	SPELL_TELEPORT_VISUAL = 87459,
+};
+
+class stonecore_teleport : public CreatureScript
+{
+public:
+	stonecore_teleport() : CreatureScript("stonecore_teleport") { }
+
+	bool OnGossipHello(Player* player, Creature* me)
+	{
+		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Return to Entrance.", GOSSIP_SENDER_MAIN, 0);
+		if (InstanceScript* instance = me->GetInstanceScript())
+		{
+			if (instance->GetBossState(DATA_CORBORUS) == DONE)
+				player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport To Corborus", GOSSIP_SENDER_MAIN, 1);
+			if (instance->GetBossState(DATA_SLABHIDE) == DONE)
+				player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport To Slabhide", GOSSIP_SENDER_MAIN, 2);
+			if (instance->GetBossState(DATA_OZRUK) == DONE)
+				player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport To Ozruk", GOSSIP_SENDER_MAIN, 3);
+		}
+		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Nevermind.", GOSSIP_SENDER_MAIN, 5);
+
+		player->PlayerTalkClass->SendGossipMenu(9425, me->GetGUID());
+		return true;
+	}
+
+	bool OnGossipSelect(Player * player, Creature * Creature, uint32 sender, uint32 uiAction)
+	{
+		player->PlayerTalkClass->ClearMenus();
+		switch (uiAction)
+		{
+		case 0:
+			player->CastSpell(player, SPELL_TELEPORT_VISUAL);
+			player->TeleportTo(725, 853.70f, 999.90f, 317.33f, 0.29f); // Retorn To Base
+			break;
+		case 1:
+			player->CastSpell(player, SPELL_TELEPORT_VISUAL);
+			player->TeleportTo(725, 1152.48f, 897.27f, 285.03f, 1.30f); // Corborus
+			break;
+		case 2:
+			player->CastSpell(player, SPELL_TELEPORT_VISUAL);
+			player->TeleportTo(725, 1286.24f, 1217.99f, 246.95f, 6.19f); // Slabhide
+			break;
+		case 3:
+			player->CastSpell(player, SPELL_TELEPORT_VISUAL);
+			player->TeleportTo(725, 1467.99f, 1060.72f, 216.38f, 3.48f); // Ozruk
+			break;
+
+		case 5:
+		{
+			player->PlayerTalkClass->SendCloseGossip();
+		}
+		break;
+		}
+		return true;
+	}
 };
 
 void AddSC_the_stonecore()
 {
-    new mob_crystalspawn_giant();
-    new mob_impp();
-    new mob_millhouse_manastorm();
-    new mob_rock_borer();
+	new mob_rock_borer();
+	new mob_millhouse_manastorm();
+	new stonecore_teleport();
 }
