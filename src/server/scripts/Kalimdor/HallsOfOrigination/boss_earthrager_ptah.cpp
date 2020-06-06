@@ -90,14 +90,14 @@ protected:
 	InstanceScript* _instance;
 };
 
-class boss_earthrager_ptah : public CreatureScript
+class boss_ptah : public CreatureScript
 {
 public:
-	boss_earthrager_ptah() : CreatureScript("boss_earthrager_ptah") { }
+	boss_ptah() : CreatureScript("boss_ptah") { }
 
-	struct boss_earthrager_ptahAI : public BossAI
+	struct boss_ptahAI : public BossAI
 	{
-		boss_earthrager_ptahAI(Creature* creature) : BossAI(creature, DATA_EARTHRAGER_PTAH), _summonDeaths(0), _hasDispersed(false) { }
+		boss_ptahAI(Creature* creature) : BossAI(creature, DATA_EARTHRAGER_PTAH), _summonDeaths(0), _hasDispersed(false) { }
 
 		void Cleanup()
 		{
@@ -268,7 +268,7 @@ public:
 
 	CreatureAI* GetAI(Creature* creature) const
 	{
-		return new boss_earthrager_ptahAI(creature);
+		return new boss_ptahAI(creature);
 	}
 };
 
@@ -338,9 +338,9 @@ public:
 	}
 };
 
-void AddSC_boss_earthrager_ptah()
+void AddSC_boss_ptah()
 {
-	new boss_earthrager_ptah();
+	new boss_ptah();
 	new spell_earthrager_ptah_flame_bolt();
 	new spell_earthrager_ptah_explosion();
 }
