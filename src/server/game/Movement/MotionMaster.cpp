@@ -444,9 +444,8 @@ void MotionMaster::MoveCharge(float x, float y, float z, float speed, uint32 id)
     }
 }
 
-void MotionMaster::MoveCharge_NoPath(float x, float y, float z, float speed = SPEED_CHARGE, uint32 id = EVENT_CHARGE, bool generatePath)
+void MotionMaster::MoveCharge_NoPath(float x, float y, float z, float speed, uint32 id, bool generatePath)
 {
-	bool generatePath = false;
 	if (Impl[MOTION_SLOT_CONTROLLED] && Impl[MOTION_SLOT_CONTROLLED]->GetMovementGeneratorType() != DISTRACT_MOTION_TYPE)
 		return;
 
