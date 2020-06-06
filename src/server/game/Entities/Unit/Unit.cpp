@@ -259,6 +259,8 @@ Unit::Unit(bool isWorldObject): WorldObject(isWorldObject)
 
     _serverSideVisibility.SetValue(SERVERSIDE_VISIBILITY_GHOST, GHOST_VISIBILITY_ALIVE);
 
+	_hoverGroundTargetable = true;
+
     _focusSpell = NULL;
     _targetLocked = false;
 

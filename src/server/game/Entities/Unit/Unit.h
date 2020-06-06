@@ -716,7 +716,7 @@ enum MovementFlags
     MOVEMENTFLAG_PITCH_DOWN            = 0x00000080,
     MOVEMENTFLAG_WALKING               = 0x00000100,               // Walking
     MOVEMENTFLAG_ONTRANSPORT           = 0x00000200,               // Used for flying on some creatures
-    MOVEMENTFLAG_LEVITATING            = 0x00000400,
+    MOVEMENTFLAG_LEVITATING            = 0x00000400,				// Also MOVEMENTFLAG_DISABLE_GRAVITY ?
     MOVEMENTFLAG_ROOT                  = 0x00000800,               // Must not be set along with MOVEMENTFLAG_MASK_MOVING
     MOVEMENTFLAG_JUMPING               = 0x00001000,
     MOVEMENTFLAG_FALLING               = 0x00002000,               // damage dealt on that type of falling
@@ -1359,6 +1359,10 @@ class Unit : public WorldObject
         void SendMeleeAttackStop(Unit* victim = NULL);
         void SendMeleeAttackStart(Unit* victim);
         bool IsVisionObscured(Unit* victim);
+
+		// MOVEMENTFLAG_HOVER in some case will be targetable by ground creatures (like nucleus for blood prince council ICC)
+		inline void SetHoverGroundTargetable(bool s) { _hoverGroundTargetable = s; }
+		inline bool IsHoverGroundTargetable() { return _hoverGroundTargetable; }
 
         void AddUnitState(uint32 f) { m_state |= f; }
         bool HasUnitState(const uint32 f) const { return (m_state & f); }
@@ -2438,6 +2442,8 @@ class Unit : public WorldObject
 
         Spell const* _focusSpell;
         bool _targetLocked; // locks the target during spell cast for proper facing
+
+		bool _hoverGroundTargetable; // make hover creature targetable by ground player/creature
 
         std::map<uint32, uint32> _spellSwaps;
         float _healAbsorb;
