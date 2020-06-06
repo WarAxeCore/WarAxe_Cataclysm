@@ -128,6 +128,27 @@ void UnitAI::DoCastToAllHostilePlayers(uint32 spellid, bool triggered)
         return;
 }
 
+void UnitAI::DoCastDelayed(Unit* victim, uint32 spellId, uint32 delay, bool triggered)
+{
+	struct DelayedCast : public BasicEvent
+	{
+		DelayedCast(Unit *caster, Unit *target, uint32 spellId, bool triggered) : BasicEvent(),
+			_caster(caster), _target(target), _spellId(spellId), _triggered(triggered) {}
+
+		bool Execute(uint64, uint32)
+		{
+			_caster->CastSpell(_target, _spellId, _triggered);
+			return true;
+		}
+
+		Unit *_caster;
+		Unit *_target;
+		uint32 _spellId;
+		bool _triggered;
+	};
+	me->_Events.AddEvent(new DelayedCast(me, victim, spellId, triggered), me->_Events.CalculateTime(delay));
+}
+
 void UnitAI::DoCast(uint32 spellId)
 {
     Unit* target = NULL;

@@ -455,6 +455,27 @@ struct Position
     bool HasInArc(float arcangle, const Position* pos) const;
     bool HasInLine(WorldObject const* target, float width) const;
     std::string ToString() const;
+
+	void Add(Position a)
+	{
+		m_positionX += a.GetPositionX();
+		m_positionY += a.GetPositionY();
+		m_positionZ += a.GetPositionZ();
+	}
+
+	void Subtract(Position a)
+	{
+		m_positionX -= a.GetPositionX();
+		m_positionY -= a.GetPositionY();
+		m_positionZ -= a.GetPositionZ();
+	}
+
+	void Scale(float s)
+	{
+		m_positionX *= s;
+		m_positionY *= s;
+		m_positionZ *= s;
+	}
 };
 ByteBuffer& operator>>(ByteBuffer& buf, Position::PositionXYZOStreamer const& streamer);
 ByteBuffer& operator<<(ByteBuffer& buf, Position::PositionXYZStreamer const& streamer);

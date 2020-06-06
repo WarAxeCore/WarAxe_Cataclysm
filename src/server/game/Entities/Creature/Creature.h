@@ -636,6 +636,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
 
         void ForcedDespawn(uint32 timeMSToDespawn = 0);
         void DespawnOrUnsummon(uint32 msTimeToDespawn = 0);
+		void DespawnCreaturesInArea(uint32 entry, float range = 125.0f);
 
         time_t const& GetRespawnTime() const { return _respawnTime; }
         time_t GetRespawnTimeEx() const;

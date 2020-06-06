@@ -444,6 +444,30 @@ void MotionMaster::MoveCharge(float x, float y, float z, float speed, uint32 id)
     }
 }
 
+void MotionMaster::MoveCharge_NoPath(float x, float y, float z, float speed = SPEED_CHARGE, uint32 id = EVENT_CHARGE, bool generatePath)
+{
+	bool generatePath = false;
+	if (Impl[MOTION_SLOT_CONTROLLED] && Impl[MOTION_SLOT_CONTROLLED]->GetMovementGeneratorType() != DISTRACT_MOTION_TYPE)
+		return;
+
+	if (_owner->GetTypeId() == TYPEID_PLAYER)
+	{
+		sLog->outStaticDebug("Player (GUID: %u) charge point (X: %f Y: %f Z: %f)", _owner->GetGUIDLow(), x, y, z);
+		Mutate(new PointMovementGenerator<Player>(id, x, y, z, generatePath, speed), MOTION_SLOT_CONTROLLED);
+
+		//        sLog->outStaticDebug("Player (GUID: %u) charge point (X: %f Y: %f Z: %f)", _owner->GetGUIDLow(), x, y, z);
+		//        Mutate(new PointMovementGenerator<Player>(id, x, y, z, speed), MOTION_SLOT_CONTROLLED);
+	}
+	else
+	{
+		sLog->outStaticDebug("Creature (Entry: %u GUID: %u) charge point (X: %f Y: %f Z: %f)",
+			_owner->GetEntry(), _owner->GetGUIDLow(), x, y, z);
+		Mutate(new PointMovementGenerator<Creature>(id, x, y, z, generatePath, speed), MOTION_SLOT_CONTROLLED);
+		//    _owner->GetEntry(), _owner->GetGUIDLow(), x, y, z);
+		// Mutate(new PointMovementGenerator<Creature>(id, x, y, z, speed), MOTION_SLOT_CONTROLLED);
+	}
+}
+
 void MotionMaster::MoveSeekAssistance(float x, float y, float z)
 {
     if (_owner->GetTypeId() == TYPEID_PLAYER)

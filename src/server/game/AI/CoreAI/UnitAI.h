@@ -252,6 +252,7 @@ class UnitAI
         void DoCastToAllHostilePlayers(uint32 spellid, bool triggered = false);
         void DoCastVictim(uint32 spellId, bool triggered = false);
         void DoCastAOE(uint32 spellId, bool triggered = false);
+		void DoCastDelayed(Unit* victim, uint32 spellId, uint32 delay, bool triggered = false);
 
         float DoGetSpellMaxRange(uint32 spellId, bool positive = false);
 
