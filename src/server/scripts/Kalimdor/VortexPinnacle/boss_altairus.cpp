@@ -189,7 +189,7 @@ public:
 				}
 				case EVENT_CALL_THE_WIND_POST:
 				{
-					Talk(EMOTE_WINDS);
+					me->MonsterTextEmote("The wind abruptly shifts direction at Altairus' command!", NULL, true);
 					float orientation = 0.0f;
 					switch (rand() % 4)
 					{

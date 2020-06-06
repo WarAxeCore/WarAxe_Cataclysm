@@ -14,13 +14,6 @@
 
 using G3D::Vector3;
 
-enum AsaadTexts
-{
-	SAY_AGGRO = 0,
-	SAY_LIGHTNING = 1,
-	SAY_DEATH = 2,
-};
-
 enum AsaadSpells
 {
 	SPELL_SUPREMACY_OF_THE_STORM = 86930,
@@ -109,13 +102,15 @@ public:
 
 		void EnterCombat(Unit* /*who*/)
 		{
+			me->BossYell("YOU tread upon the sacrosanct! Mortals have no place amidst the clouds.", 20867);
 			_EnterCombat();
 		}
 
 		void JustDied(Unit* /*who*/)
 		{
+			me->BossYell("The winds take me!", 20870);
 			_JustDied();
-		}
+		}	
 
 		void JustReachedHome()
 		{
@@ -216,6 +211,7 @@ public:
 					events.ScheduleEvent(EVENT_STATIC_CLING, urand(12000, 15000));
 					break;
 				case EVENT_SUMMON_UNSTABLE_GROUND_FIELD:
+					me->BossYell("Al'Akir your servant calls for aid!", 20869);
 					me->GetRandomPoint(centerPos, 25, pos);
 					if (Creature *c = me->SummonCreature(46492, pos, TEMPSUMMON_MANUAL_DESPAWN))
 						stormTargetGUID = c->GetGUID();
