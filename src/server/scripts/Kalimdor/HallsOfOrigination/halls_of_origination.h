@@ -72,6 +72,8 @@ enum CreatureIds
     NPC_DUSTBONE_TORMENTOR      = 40311,
     NPC_DUSTBONE_HORROR         = 40787,
     NPC_JEWELED_SCARAB          = 40458,
+	NPC_BEETLE_STALKER = 40459, // Summons both Jeweled Scarab and Dustbone Horror
+	NPC_QUICKSAND = 40503, // Summoned by a spell not in dbc (75550)
     NPC_EARTH_WARDEN            = 39801,
     NPC_FLAME_WARDEN            = 39800,
     NPC_FLUX_ANIMATOR           = 40033,
@@ -90,6 +92,11 @@ enum CreatureIds
     NPC_PIT_SNAKE               = 39444,
     NPC_SEARING_FLAME           = 40283,
     NPC_LIGHT                   = 40183
+};
+
+enum AreaIds
+{
+	AREA_TOMB_OF_THE_EARTHRAGER = 5610,
 };
 
 /* // teleporters
