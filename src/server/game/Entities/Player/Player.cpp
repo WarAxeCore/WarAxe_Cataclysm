@@ -2690,6 +2690,8 @@ void Player::RegenerateHealth()
     uint32 curValue = GetHealth();
     uint32 maxValue = GetMaxHealth();
 
+	sLFGMgr->InitializeLockedDungeons(this); // This needs added somewhere else but this updates RDF item level.
+
     if (curValue >= maxValue)
         return;
 
