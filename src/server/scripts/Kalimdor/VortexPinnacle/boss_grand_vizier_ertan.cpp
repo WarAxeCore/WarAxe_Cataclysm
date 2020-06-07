@@ -186,6 +186,7 @@ public:
 			ScriptedAI::Reset();
 			events.Reset();
 			me->SetReactState(REACT_PASSIVE);
+			me->CastSpell(me, 86134, true); // Tornado Visual
 		}
 
 		void DoAction(int32 const action)

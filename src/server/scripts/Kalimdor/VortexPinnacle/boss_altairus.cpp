@@ -1,8 +1,8 @@
 /* Copyright (C) WoW Source 4.3.4 */
 
-/* Name: boss_grand_vizier_ertan
-* Progress: 100%
-* Comments:
+/* Name: boss_altairus
+* Progress: 85%
+* Comments: Down/Upshift of winds does not work.
 */
 
 #include "SpellScript.h"
@@ -129,7 +129,8 @@ public:
 					summoned->SetSpeed(MOVE_WALK, 0.4f, true);
 					summoned->AddUnitMovementFlag(MOVEMENTFLAG_WALKING);
 					summoned->Attack(target, true);
-					summoned->AddAura(88313, summoned);
+					//summoned->AddAura(88313, summoned);
+					summoned->CastSpell(summoned, 88313, true);
 					summoned->GetMotionMaster()->MoveChase(target, 1.0f, 1.0f);
 					summoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
 				}
@@ -327,6 +328,63 @@ public:
 		return new spell_wind_of_alth_AuraScript();
 	}
 };
+
+/*class npc_altairus_twister : public CreatureScript
+{
+public:
+	npc_altairus_twister() : CreatureScript("npc_altairus_twister") { }
+
+	struct npc_altairus_twisterAI : public ScriptedAI
+	{
+		npc_altairus_twisterAI(Creature* creature) : ScriptedAI(creature)
+		{
+			me->SetReactState(REACT_PASSIVE);
+			instance = me->GetInstanceScript();
+			DoCastAOE(SPELL_LURK);
+			if (Unit* Boss = me->FindNearestCreature(BOSS_GRAND_VIZIER_ERTAN, 100.0f))
+			{
+				BossGUID = Boss->GetGUID();
+				me->SetTarget(BossGUID);
+			}
+			Boo = urand(1000, 4000);
+		}
+
+		InstanceScript* instance;
+		uint32 Boo;
+		uint64 BossGUID;
+
+		void IsSummonedBy(Unit* summoner)
+		{
+			me->RemoveAllAuras();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (Boo <= diff)
+			{
+				if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, 0, 40.0f, true))
+				{
+					if (target->isInFrontInMap(me, 40.0f))
+						DoCastAOE(SPELL_LURK);
+					else
+					{
+						me->RemoveAurasDueToSpell(SPELL_LURK);
+						DoCast(target, SPELL_TEMPEST_LIGHTING_BOLT);
+					}
+				}
+				Boo = urand(1000, 4000);
+			}
+			else
+				Boo -= diff;
+		}
+
+	};
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_altairus_twisterAI(creature);
+	}
+}; */
 
 void AddSC_boss_altairus()
 {

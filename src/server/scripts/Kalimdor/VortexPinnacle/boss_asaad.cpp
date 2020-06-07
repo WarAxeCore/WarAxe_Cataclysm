@@ -14,6 +14,11 @@
 
 using G3D::Vector3;
 
+//Notes: Unstable Grounding Field does not work so it is hackfixed
+
+//Current Hackfix: If player is within 3 yds of the Storm Target damage is zero.
+// Mob: 46387 is storm target.
+
 enum AsaadSpells
 {
 	SPELL_SUPREMACY_OF_THE_STORM = 86930,
@@ -587,9 +592,19 @@ public:
 			}
 		}
 
+		void HandleScript()
+		{
+			if (!GetCaster() || !GetHitUnit())
+				return;
+
+			if (GetHitUnit()->FindNearestCreature(46387, 3.5f))
+				SetHitDamage(0);
+		}
+
 		void Register()
 		{
 			OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_asaad_supremacy_entry_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
+			BeforeHit += SpellHitFn(spell_asaad_supremacy_entry_SpellScript::HandleScript);
 		}
 	};
 
@@ -633,9 +648,19 @@ public:
 			}
 		}
 
+		void HandleScript()
+		{
+			if (!GetCaster() || !GetHitUnit())
+				return;
+
+			if (GetHitUnit()->FindNearestCreature(46387, 3.5f))
+				SetHitDamage(0);
+		}
+
 		void Register()
 		{
 			OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_asaad_supremacy_dummy_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+			BeforeHit += SpellHitFn(spell_asaad_supremacy_dummy_SpellScript::HandleScript);
 		}
 	};
 
