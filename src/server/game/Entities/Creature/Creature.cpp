@@ -300,7 +300,7 @@ bool Creature::InitEntry(uint32 Entry, uint32 /*team*/, const CreatureData* data
     // Cancel load if no model defined
     if (!(cinfo->GetFirstValidModelId()))
     {
-        sLog->outErrorDb("Creature (Entry: %u) has no model defined in table `creature_template`, can't load. ", Entry);
+        sLog->outErrorDb("Creature (Entry: %u) has no model defined in table `creature_template`, can't load. GFVMI", Entry);
         return false;
     }
 
@@ -308,7 +308,7 @@ bool Creature::InitEntry(uint32 Entry, uint32 /*team*/, const CreatureData* data
     CreatureModelInfo const* minfo = sObjectMgr->GetCreatureModelRandomGender(&displayID);
     if (!minfo)                                             // Cancel load if no model defined
     {
-        sLog->outErrorDb("Creature (Entry: %u) has no model defined in table `creature_template`, can't load. ", Entry);
+        sLog->outErrorDb("Creature (Entry: %u) has no model defined in table `creature_template`, can't load. CMI", Entry);
         return false;
     }
 

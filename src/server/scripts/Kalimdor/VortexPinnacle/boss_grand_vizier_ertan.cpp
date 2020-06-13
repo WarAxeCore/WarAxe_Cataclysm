@@ -95,8 +95,41 @@ public:
 			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
 		}
 
+		void HandleLoot()
+		{
+			uint32 lootChance = rand() % 100 + 1;
+			me->loot.clear();
+			if (IsHeroic())
+			{
+				if (lootChance >= 1 && lootChance <= 20) // 1-20
+				me->AddInstanceLoot(56357);
+				if (lootChance >= 21 && lootChance <= 40) // 21-40
+				me->AddInstanceLoot(56358);
+				if (lootChance >= 41 && lootChance <= 60) // 41-60
+				me->AddInstanceLoot(56360);
+				if (lootChance >= 61 && lootChance <= 80) // 61-80
+				me->AddInstanceLoot(56359);
+				if (lootChance >= 81 && lootChance <= 100) // 81-100
+				me->AddInstanceLoot(56356);
+			}
+			else
+			{
+				if (lootChance >= 1 && lootChance <= 20) // 1-20
+				me->AddInstanceLoot(55834);
+				if (lootChance >= 21 && lootChance <= 40)
+				me->AddInstanceLoot(55831);
+				if (lootChance >= 41 && lootChance <= 60)
+				me->AddInstanceLoot(55833);
+				if (lootChance >= 61 && lootChance <= 80)
+				me->AddInstanceLoot(55832);
+				if (lootChance >= 81 && lootChance <= 100)
+				me->AddInstanceLoot(55830);
+			}
+		}
+
 		void EnterCombat(Unit* who)
 		{
+			HandleLoot();
 			me->BossYell("Filthy Beasts! Your presence in Skywall will not be tolerated!", 20876);
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_ADD, me);
 			DoCast(SPELL_STORMS_EDGE_AURA);

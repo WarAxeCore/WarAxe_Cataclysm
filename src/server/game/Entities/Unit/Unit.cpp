@@ -16311,6 +16311,11 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
     }
 }
 
+void Unit::AddInstanceLoot(uint32 entryId)
+{
+	this->ToCreature()->loot.AddItem(entryId);
+}
+
 void Unit::SetControlled(bool apply, UnitState state)
 {
     if (apply)

@@ -275,7 +275,8 @@ bool LootStoreItem::IsValid(LootStore const& store, uint32 entry) const
         if (!proto)
         {
             sLog->outErrorDb("Table '%s' entry %d item %d: item entry not listed in `item_template` - skipped", store.GetName(), entry, itemid);
-            return false;
+			//WorldDatabase.PExecute("DELETE from %s where entry = %d and item = %d", store.GetName(), entry, itemid);
+			return false;
         }
 
         if (chance == 0 && group == 0)                      // Zero chance is allowed for grouped entries only
@@ -403,6 +404,15 @@ void Loot::AddItem(LootStoreItem const & item)
                 ++unlootedCount;
         }
     }
+}
+
+void Loot::AddItem(uint32 itemid)
+{
+	if (items.size() < MAX_NR_LOOT_ITEMS)
+	{
+		LootStoreItem* storeItem = new LootStoreItem(itemid, 100.0f, 1, 0, 1, 1);
+		AddItem(*storeItem);
+	}
 }
 
 // Calls processor of corresponding LootTemplate (which handles everything including references)

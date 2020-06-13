@@ -210,7 +210,8 @@ public:
 						orientation = M_PI;
 						break;
 					}
-					me->SummonCreature(NPC_WIND, -1213.83f, 62.99f, 734.2f, orientation, TEMPSUMMON_MANUAL_DESPAWN);
+					Creature * WIND = me->SummonCreature(NPC_WIND, -1213.83f, 62.99f, 734.2f, orientation, TEMPSUMMON_MANUAL_DESPAWN);
+					WIND->SetVisible(false);
 					WindOfAltairus();
 					events.CancelEvent(EVENT_CALL_THE_WIND_POST);
 					break;

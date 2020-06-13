@@ -145,7 +145,8 @@ public:
 					for (int i = 0; i < 40; i++)
 					{
 						me->GetRandomPoint(centerPos, 40, pos);
-						c->SummonCreature(46387, pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ() + 10, TEMPSUMMON_MANUAL_DESPAWN);
+						Creature * stormtarget = c->SummonCreature(46387, pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ() + 10, TEMPSUMMON_MANUAL_DESPAWN);
+						stormtarget->SetVisible(false);
 					}
 				}
 				me->CastSpell(me, SPELL_SUPREMACY_OF_THE_STORM, true);
