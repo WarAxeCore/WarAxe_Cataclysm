@@ -211,7 +211,8 @@ public:
 						break;
 					}
 					Creature * WIND = me->SummonCreature(NPC_WIND, -1213.83f, 62.99f, 734.2f, orientation, TEMPSUMMON_MANUAL_DESPAWN);
-					WIND->SetVisible(false);
+					WIND->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+					WIND->SetReactState(REACT_PASSIVE);
 					WindOfAltairus();
 					events.CancelEvent(EVENT_CALL_THE_WIND_POST);
 					break;

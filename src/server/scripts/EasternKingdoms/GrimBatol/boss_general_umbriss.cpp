@@ -109,6 +109,15 @@ public:
 			if (!pInstance)
 				return;
 
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+			else
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 30);
+			}
+
 			summons.DespawnAll();
 			pInstance->SetData(DATA_GENERAL_UMBRISS, DONE);
 		}

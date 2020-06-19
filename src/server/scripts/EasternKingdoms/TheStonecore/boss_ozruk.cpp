@@ -72,6 +72,7 @@ public:
 		{
 			if (summon->GetEntry() == NPC_RUPTURE_CONTROLLER)
 			{
+				summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 				summon->CastSpell(summon, SPELL_RUPTURE_PERIODIC, false);
 				summon->DespawnOrUnsummon(5000);
 			}
@@ -80,6 +81,10 @@ public:
 		void JustDied(Unit * /*killer*/)
 		{
 			me->BossYell("A protector has fallen. The World's Heart lies exposed!", 21922);
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
 			_JustDied();
 		}
 
@@ -191,7 +196,11 @@ public:
 					caster->MovePosition(pos, 6.0f, -M_PI / 2);
 
 				if (Creature * creature = caster->SummonCreature(NPC_RUPTURE, pos, TEMPSUMMON_TIMED_DESPAWN, 1000))
+				{
+					creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+					creature->SetReactState(REACT_PASSIVE);
 					creature->CastSpell(creature, SPELL_RUPTURE_DAM, false);
+				}
 			}
 
 		}

@@ -135,6 +135,11 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+
 			summons.DespawnAll();
 			if (pInstance)
 				pInstance->SetData(DATA_BEAUTY, DONE);

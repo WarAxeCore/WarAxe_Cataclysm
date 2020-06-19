@@ -22,6 +22,7 @@
 /*
 * TODO: in case the boss is done -  but we need for phase 2 a spline fix
 *       Achievements
+*		Stalagmite phase works but does not drop properly?
 */
 enum Spells
 {
@@ -93,6 +94,10 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
 			_JustDied();
 		}
 
@@ -133,7 +138,7 @@ public:
 				case EVENT_STALACTITE_CAST:
 					me->SetFlying(true);
 					//me->SetDisableGravity(true); // Not working
-					me->MonsterMoveWithSpeed(x, y, z + 10.0f, 0);
+					me->MonsterMoveWithSpeed(1278.503662f, 1216.695923f, 247.116806f + 10.0f, 0);
 					me->AddAura(SPELL_STALACTITE, me);
 					break;
 				case EVENT_STALACTITE_LAND:
@@ -179,8 +184,6 @@ public:
 
 			DoMeleeAttackIfReady();
 		}
-	private:
-		float x, y, z;
 	};
 
 	CreatureAI* GetAI(Creature* creature) const
@@ -214,7 +217,7 @@ public:
 		{
 			me->GetPosition(x, y, z);
 			me->GetMotionMaster()->Clear();
-			me->MonsterMoveWithSpeed(x, y, z + 50.0f, 20);
+			me->MonsterMoveWithSpeed(x, y, z - 30.0f, 20);
 			me->SendMovementFlagUpdate();
 		}
 
@@ -266,6 +269,8 @@ public:
 
 		void Reset()
 		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetReactState(REACT_PASSIVE);
 			active = false;
 			activeTimer = IsHeroic() ? 3000 : 5000;
 		}

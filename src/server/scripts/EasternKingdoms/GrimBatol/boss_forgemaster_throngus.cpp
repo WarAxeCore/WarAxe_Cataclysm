@@ -128,6 +128,15 @@ public:
 		void JustDied(Unit* killer)
 		{
 			me->BossYell("Death... Good choice. Not best choice maybe, but better than fail and live.", 18946);
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+			else
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 30);
+			}
+
 			if (pInstance)
 				pInstance->SetData(DATA_FORGEMASTER_THRONGUS, DONE);
 		}

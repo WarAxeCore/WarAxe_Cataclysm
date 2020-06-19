@@ -131,6 +131,15 @@ public:
 
 		void JustDied(Unit* killer)
 		{
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+			else
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 30);
+			}
+
 			me->BossYell("Valiona, finish them! Avenge me!", 18614);
 			summons.DespawnAll();
 			if (pInstance)

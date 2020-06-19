@@ -77,6 +77,11 @@ public:
 
 		void JustDied(Unit* /*Kill*/)
 		{
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+
 			me->BossYell("Rom'ogg sorry...", 18928);
 
 			if (instance)
