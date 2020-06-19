@@ -7666,17 +7666,20 @@ void Player::ModifyCurrency(uint32 id, int32 count)
         itr->second.weekCount = newWeekCount;
 
         // probably excessive checks
-        if (IsInWorld() && !GetSession()->PlayerLoading())
-        {
-            if (count > 0)
-               UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CURRENCY, id, count);
+       // if (IsInWorld() && !GetSession()->PlayerLoading())
+        //{
+			if (count > 0)
+			{
+				UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CURRENCY, id, count);
+				_SaveCurrency();
+			}
 
             WorldPacket packet(SMSG_UPDATE_CURRENCY, 12);
             packet << uint32(id);
             packet << uint32(weekCap ? (newWeekCount / PLAYER_CURRENCY_PRECISION) : 0);
             packet << uint32(newTotalCount / PLAYER_CURRENCY_PRECISION);
             GetSession()->SendPacket(&packet);
-        }
+        //}
     }
 }
 
@@ -20431,7 +20434,8 @@ void Player::_SaveCurrency()
         if (itr->second.state == PLAYERCURRENCY_CHANGED)
             CharacterDatabase.PExecute("UPDATE character_currency SET `count` = '%u', thisweek = '%u' WHERE guid = '%u' AND currency = '%u'", itr->second.totalCount, itr->second.weekCount, GetGUIDLow(), itr->first);
         else if (itr->second.state == PLAYERCURRENCY_NEW)
-            CharacterDatabase.PExecute("INSERT INTO character_currency (guid, currency, `count`, thisweek) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second.totalCount, itr->second.weekCount);
+			CharacterDatabase.PExecute("REPLACE INTO character_currency (guid, currency, `count`, thisweek) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second.totalCount, itr->second.weekCount);
+            //CharacterDatabase.PExecute("INSERT INTO character_currency (guid, currency, `count`, thisweek) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second.totalCount, itr->second.weekCount);
 
         if (itr->second.state == PLAYERCURRENCY_REMOVED)
             m_currencies.erase(itr++);

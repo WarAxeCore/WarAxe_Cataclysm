@@ -1528,6 +1528,19 @@ void Creature::setDeathState(DeathState s)
     }
 }
 
+//395 = Justice, 396 = Valor
+void Creature::RewardCurrency(uint32 currencyid, uint32 currencyamt)
+{
+	//Need a better way to do this it should give currency to players even if t
+	Map::PlayerList const& playerList = GetMap()->GetPlayers();
+	if (!playerList.isEmpty())
+		for (Map::PlayerList::const_iterator itr = playerList.begin(); itr != playerList.end(); ++itr)
+			if (Player* player = itr->getSource())
+			{
+				player->ModifyCurrency(currencyid, currencyamt * 100);
+			}
+}
+
 void Creature::Respawn(bool force)
 {
     DestroyForNearbyPlayers();

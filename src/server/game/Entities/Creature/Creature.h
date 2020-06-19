@@ -525,6 +525,8 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         bool SetWalk(bool enable);
         bool SetLevitate(bool enable);
 
+		void RewardCurrency(uint32 currencyid, uint32 currencyamt);
+
         uint32 GetShieldBlockValue() const                  //dunno mob block value
         {
             return (getLevel()/2 + uint32(GetStat(STAT_STRENGTH)/20));
