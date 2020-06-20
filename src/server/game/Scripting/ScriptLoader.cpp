@@ -360,6 +360,8 @@ void AddSC_lost_city_of_the_tolvir();        //Lost City of the Tol'vir
 void AddSC_instance_lost_city_of_the_tolvir();
 void AddSC_boss_lockmaw();
 void AddSC_boss_high_prophet_barim();
+void AddSC_boss_siamat();
+void AddSC_boss_general_husam();
 void AddSC_boss_celebras_the_cursed();       //Maraudon
 void AddSC_boss_landslide();
 void AddSC_boss_noxxion();
@@ -1060,6 +1062,8 @@ void AddKalimdorScripts()
     AddSC_instance_lost_city_of_the_tolvir();
     AddSC_boss_lockmaw();
     AddSC_boss_high_prophet_barim();
+	AddSC_boss_siamat();
+	AddSC_boss_general_husam();
     AddSC_boss_celebras_the_cursed();       //Maraudon
     AddSC_boss_landslide();
     AddSC_boss_noxxion();
