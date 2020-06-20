@@ -168,6 +168,11 @@ public:
             DoScriptText(SAY_DEATH, me);
             RemoveSummons();
 
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+
             if (instance)
                 instance->SetData(DATA_LADY_NAZJAR_EVENT, DONE);
         }

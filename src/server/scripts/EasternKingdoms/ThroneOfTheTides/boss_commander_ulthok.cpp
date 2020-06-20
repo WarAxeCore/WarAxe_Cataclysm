@@ -133,6 +133,11 @@ public:
             DoScriptText(SAY_DEATH, me);
             DoScriptText(SAY_DEATH_WHISP, me);
 
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+
             if (instance)
                 instance->SetData(DATA_COMMANDER_ULTHOK_EVENT, DONE);
         }

@@ -321,6 +321,11 @@ public:
         {
             if(me->HealthBelowPct(5) && Finished == false)
             {
+				if (IsHeroic())
+				{
+					me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+				}
+
                 me->setFaction(35);
                 me->SummonGameObject(DUNGEON_MODE(GO_OZUMAT_CHEST_NORMAL, GO_OZUMAT_CHEST_HEROIC), -125.950981f, 983.343201f, 230.335464f, 3.635565f, 0, 0, 0, 0, 9000000);
                 Neptulon->SetVisible(false);

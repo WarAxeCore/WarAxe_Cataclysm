@@ -440,6 +440,11 @@ public:
             RemoveSummons();
             erunak->setFaction(35);
 
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+
             if (instance)
                 instance->SetData(DATA_ERUNAK_STONESPEAKER_EVENT, DONE);
         }

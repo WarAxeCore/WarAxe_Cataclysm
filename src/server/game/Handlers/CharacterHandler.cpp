@@ -1007,9 +1007,6 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 	//Set Currencies that dissapear at logout for some reason
 	if (pCurrChar)
 	{
-		// Justice Points
-		//pCurrChar->ModifyCurrency
-
 		QueryResult result = CharacterDatabase.PQuery("SELECT currency, count, thisweek FROM character_currency WHERE guid = '%u'", GetGuidLow());
 
 		if (!result)
