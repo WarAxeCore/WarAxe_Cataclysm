@@ -19,6 +19,8 @@
 #ifndef DEF_THE_STONECORE_H
 #define DEF_THE_STONECORE_H
 
+#define TSScriptName "instance_the_stonecore"
+
 enum Data
 {
 	DATA_CORBORUS_EVENT,
