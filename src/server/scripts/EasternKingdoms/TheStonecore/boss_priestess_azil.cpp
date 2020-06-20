@@ -112,9 +112,9 @@ public:
 		void EnterCombat(Unit* who)
 		{
 			me->BossYell("The world will be reborn in flames!", 21634);
-			events.ScheduleEvent(EVENT_SHIELD, 35000);
-			events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, 3000);
-			events.ScheduleEvent(EVENT_SUMMON_ADDS, urand(5000, 7000));
+			events.ScheduleEvent(EVENT_SHIELD, 45000);
+			events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, urand(5000, 8000));
+			events.ScheduleEvent(EVENT_SUMMON_ADDS, urand(10000, 15000));
 			events.ScheduleEvent(EVENT_GRAVITY_WELL, 10000);
 			instance->SetBossState(DATA_HIGH_PRIESTESS_AZIL, IN_PROGRESS);
 		}
@@ -176,7 +176,7 @@ public:
 				case EVENT_GRAVITY_WELL:
 					if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
 						DoCast(target, SPELL_SUMMON_GRAVITY_WELL);
-					events.ScheduleEvent(EVENT_GRAVITY_WELL, 15000);
+					events.ScheduleEvent(EVENT_GRAVITY_WELL, urand(15000, 20000));
 					break;
 				case EVENT_SHIELD:
 					me->BossYell("Witness the power bestowed upon me by Deathwing! Feel the fury of earth!", 21628);
@@ -194,6 +194,7 @@ public:
 					if (me->getVictim())
 						me->GetMotionMaster()->MoveChase(me->getVictim());
 					events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, 3000);
+					events.ScheduleEvent(EVENT_SHIELD, urand(40000, 45000));
 					break;
 				}
 			}
