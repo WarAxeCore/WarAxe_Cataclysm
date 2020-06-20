@@ -149,6 +149,11 @@ public:
 
 		void JustDied(Unit* /*who*/)
 		{
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+
 			me->SendPlaySound(20878, false);
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_REMOVE, me);
 			me->DespawnCreaturesInArea(NPC_LURKING_TEMPEST, 120.0f);
