@@ -211,7 +211,8 @@ public:
 					{
 						DiscipleAmt = 0;
 					}
-					events.ScheduleEvent(EVENT_ROTTEN_TO_THE_CORE, 10000); // Check every 10 seconds
+					if (RottenToTheCore == false)
+						events.ScheduleEvent(EVENT_ROTTEN_TO_THE_CORE, 10000); // Check every 10 seconds
 					break;
 				}
 			}
