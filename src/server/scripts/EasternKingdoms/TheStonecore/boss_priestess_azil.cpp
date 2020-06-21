@@ -150,7 +150,6 @@ public:
 					}
 				}
 			}
-			}
 
 			if (IsHeroic())
 			{
