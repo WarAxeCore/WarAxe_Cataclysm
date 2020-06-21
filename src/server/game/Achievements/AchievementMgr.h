@@ -117,6 +117,7 @@ class AchievementGlobalMgr
         void LoadCompletedAchievements();
         void LoadRewards();
         void LoadRewardLocales();
+		AchievementEntry const* GetAchievement(uint32 achievementId) const;
     private:
         AchievementCriteriaDataMap m_criteriaDataMap;
 

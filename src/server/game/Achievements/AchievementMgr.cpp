@@ -586,6 +586,11 @@ void AchievementGlobalMgr::LoadAchievementCriteriaList()
     sLog->outString();
 }
 
+AchievementEntry const* AchievementGlobalMgr::GetAchievement(uint32 achievementId) const
+{
+	return sAchievementStore.LookupEntry(achievementId);
+}
+
 void AchievementGlobalMgr::LoadAchievementReferenceList()
 {
     uint32 oldMSTime = getMSTime();

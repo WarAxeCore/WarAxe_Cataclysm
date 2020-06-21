@@ -109,6 +109,17 @@ public:
 
 		void JustDied(Unit* /*Killer*/)
 		{
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+			else
+			{
+				// Patch 4.0.6
+				// * Level-85 dungeon bosses in Lost City of the Tol'vir, Grim Batol, and Halls of Origination now drop 30 Justice Points each when killed. 
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 30);
+			}
+
 			me->BossYell("Siamat must not be freed! Turn back before it is too late!", 21885);
 			summons.DespawnAll();
 			instance->SetData(DATA_GENERAL_HUSAM_EVENT, DONE);
