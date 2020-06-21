@@ -385,6 +385,12 @@ class EventMap : private std::map<uint32, uint32>
             insert(std::make_pair(time, eventId));
         }
 
+		// Returns wether the eventmap is in the given phase or not.
+		bool IsInPhase(uint32 phase)
+		{
+			return phase <= 8 && (!phase || _phase & (1 << (phase + 23)));
+		}
+
         // Removes first event
         void PopEvent()
         {
