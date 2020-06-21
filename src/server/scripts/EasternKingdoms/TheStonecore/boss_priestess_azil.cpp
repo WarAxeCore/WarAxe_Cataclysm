@@ -25,6 +25,7 @@ enum Events
 	EVENT_SUMMON_ADDS = 5,
 	EVENT_MOVE = 6,
 	EVENT_MOVE_2 = 7,
+	EVENT_ROTTEN_TO_THE_CORE = 8,
 };
 
 enum Adds
@@ -40,6 +41,8 @@ Position highpriestessazilAddsPos[2] =
 };
 
 Position highpriestessazilStandPos = { 1337.79f, 963.39f, 214.18f, 1.8f };
+uint32 DiscipleAmt;
+bool RottenToTheCore;
 
 class boss_priestess_azil : public CreatureScript
 {
@@ -84,6 +87,8 @@ public:
 		{
 			_Reset();
 
+			DiscipleAmt = 0;
+			RottenToTheCore = false;
 			summons.DespawnAll();
 			events.Reset();
 		}
@@ -116,6 +121,7 @@ public:
 			events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, urand(5000, 8000));
 			events.ScheduleEvent(EVENT_SUMMON_ADDS, urand(10000, 15000));
 			events.ScheduleEvent(EVENT_GRAVITY_WELL, 10000);
+			events.ScheduleEvent(EVENT_ROTTEN_TO_THE_CORE, 10000); // Achievement Check
 			instance->SetBossState(DATA_HIGH_PRIESTESS_AZIL, IN_PROGRESS);
 		}
 
@@ -196,11 +202,53 @@ public:
 					events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, 3000);
 					events.ScheduleEvent(EVENT_SHIELD, urand(40000, 45000));
 					break;
+				case EVENT_ROTTEN_TO_THE_CORE:
+					if (DiscipleAmt >= 60) // Check if players killed 60 or more disciples and grant achievement
+					{
+						RottenToTheCore = true;
+					}
+					else // Players didn't make it so reset the counter
+					{
+						DiscipleAmt = 0;
+					}
+					events.ScheduleEvent(EVENT_ROTTEN_TO_THE_CORE, 10000); // Check every 10 seconds
+					break;
 				}
 			}
 
 			DoMeleeAttackIfReady();
 		}
+	};
+};
+
+class npc_disciple_boss : public CreatureScript
+{
+public:
+	npc_disciple_boss() : CreatureScript("npc_disciple_boss") { }
+
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new npc_disciple_bossAI(pCreature);
+	}
+
+	struct npc_disciple_bossAI : public ScriptedAI
+	{
+		npc_disciple_bossAI(Creature *c) : ScriptedAI(c)
+		{
+		}
+
+		void JustDied(Unit* /*Kill*/)
+		{
+			Creature *azil = me->FindNearestCreature(BOSS_HIGH_PRIESTESS_AZIL, 200.0f);
+			if (azil)
+			{
+				if (azil->isInCombat())
+				{
+					++DiscipleAmt; // Add to the amount
+				}
+			}
+		}
+
 	};
 };
 
@@ -289,6 +337,7 @@ public:
 void AddSC_boss_priestess_azil()
 {
 	new boss_priestess_azil();
+	new npc_disciple_boss();
 	new npc_gravity_well();
 	new spell_priestess_azil_gravity_well_script();
 }
