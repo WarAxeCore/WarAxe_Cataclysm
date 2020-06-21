@@ -137,6 +137,21 @@ public:
 			summons.DespawnAll();
 			me->BossYell("For my death, countless more will fall. The burden is now yours to bear.", 21633);
 
+			if (RottenToTheCore == true && IsHeroic())
+			{
+				AchievementEntry const* RottenToThecore = sAchievementStore.LookupEntry(5287);
+				Map::PlayerList const& players = me->GetMap()->GetPlayers();
+				if (!players.isEmpty())
+				{
+					for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+					{
+						if (Player* player = itr->getSource())
+								player->CompletedAchievement(RottenToThecore);
+					}
+				}
+			}
+			}
+
 			if (IsHeroic())
 			{
 				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
