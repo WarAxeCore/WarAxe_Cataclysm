@@ -54,6 +54,67 @@ void BuildQuestReward(WorldPacket& data, Quest const* quest, Player* player)
 {
 	uint8 rewCount = quest->GetRewItemsCount() + quest->GetRewCurrencyCount();
 
+	data << uint32(quest->GetRewOrReqMoney());
+	data << uint32(quest->XPValue(player));
+	data << uint32(0); // Variable Money not used??
+	data << uint32(0); // Variable XP not used??
+	data << uint8(rewCount);
+	if (rewCount)
+	{
+		ItemTemplate const* iProto = NULL;
+		for (uint8 i = 0; i < quest->GetRewItemsCount(); ++i)
+		{
+			if (!quest->RewItemId[i])
+				continue;
+
+			iProto = sObjectMgr->GetItemTemplate(quest->RewItemId[i]);
+
+			data << uint32(quest->RewItemId[i]);
+			if (quest->RewItemId[i])
+			{
+				data << uint32(iProto ? iProto->DisplayInfoID : 0);
+				data << uint32(quest->RewItemCount[i]);
+			}
+			data << uint8(0);
+		}
+
+		CurrencyTypesEntry const* iCurr = NULL;
+		for (uint8 i = 0; i < quest->GetRewCurrencyCount(); ++i)
+		{
+			if (!quest->RewCurrencyId[i])
+				continue;
+
+			iCurr = sCurrencyTypesStore.LookupEntry(quest->RewCurrencyId[i]);
+
+			if (quest->GetQuestId() == 28907) // 1st Normal Dungeon Cata
+			{
+				data << uint32(395);
+				data << uint32(0);
+				data << uint32(140 * 100);
+			}
+			if (quest->GetQuestId() == 28908) // after 1st Normal Dungeon Cata
+			{
+				data << uint32(395);
+				data << uint32(0);
+				data << uint32(30 * 100);
+			}
+			if (quest->GetQuestId() == 28905) // 1st Heroic Dungeon Cata
+			{
+				data << uint32(396);
+				data << uint32(0);
+				data << uint32(70 * 100);
+			}
+			if (quest->GetQuestId() == 28906) // after 1st Heroic Dungeon Cata
+			{
+				data << uint32(395);
+				data << uint32(0);
+				data << uint32(70 * 100);
+			}
+			data << uint8(1);
+		}
+	}
+	/*uint8 rewCount = quest->GetRewItemsCount() + quest->GetRewCurrencyCount();
+
 	if (player->getLevel() < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
 	{
 		data << uint32(quest->GetRewOrReqMoney());
@@ -77,8 +138,8 @@ void BuildQuestReward(WorldPacket& data, Quest const* quest, Player* player)
 			{
 				data << uint32(currencyId);
 				data << uint32(0);
-				data << uint32(quest->RewCurrencyCount[i]);
-				data << uint8(1);                                           // Is currency
+				data << uint32(quest->RewCurrencyCount[i] * 100);
+				data << uint8(true);                                           // Is currency (1)
 			}
 		}
 
@@ -90,10 +151,10 @@ void BuildQuestReward(WorldPacket& data, Quest const* quest, Player* player)
 				data << uint32(itemId);
 				data << uint32(item ? item->DisplayInfoID : 0);
 				data << uint32(quest->RewItemCount[i]);
-				data << uint8(0);                                           // Is not currency
+				data << uint8(false);                                           // Is not currency (0)
 			}
 		}
-	}
+	}*/
 }
 
 void WorldSession::HandleLfgJoinOpcode(WorldPacket& recvData)
@@ -269,9 +330,10 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvData*
             }
         }
 
+		data << uint8(done);
         if (qRew)
         {
-			data << uint8(done);
+			//data << uint8(done);
 			BuildQuestReward(data, qRew, GetPlayer());
         }
         else // Should never happen unless incorrect DB data.
