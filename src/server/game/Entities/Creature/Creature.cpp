@@ -322,6 +322,12 @@ bool Creature::InitEntry(uint32 Entry, uint32 /*team*/, const CreatureData* data
     else if (data && data->equipmentId != -1)               // override, -1 means no equipment
         LoadEquipment(data->equipmentId);
 
+	if (data && data->equipmentId == 0 && cinfo->equipmentId == 0) // Both zero then try
+	{
+		// Load equipment from the creature_equip_template table if exists
+		LoadEquipment(GetEntry()); // Use creature id entry
+	}
+
     SetName(normalInfo->Name);                              // at normal entry always
 
     SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS, minfo->bounding_radius);

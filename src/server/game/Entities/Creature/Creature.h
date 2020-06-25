@@ -262,6 +262,7 @@ struct CreatureData
     uint32 unit_flags;                                      // enum UnitFlags mask values
     uint32 dynamicflags;
     bool dbData;
+	uint32 dbGuid;
 };
 
 // `creature_addon` table
