@@ -132,6 +132,7 @@ public:
 			{
 			case NPC_LAND_MINE_TARGET:
 				summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED | UNIT_FLAG_DISABLE_MOVE);
+				summon->SetReactState(REACT_PASSIVE);
 				DoCast(summon, SPELL_MYSTIC_TRAP_PLANT);
 				break;
 			default:
@@ -225,6 +226,7 @@ public:
 		npc_husam_mineAI(Creature *creature) : ScriptedAI(creature)
 		{
 			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED | UNIT_FLAG_DISABLE_MOVE);
+			me->SetReactState(REACT_PASSIVE);
 		}
 
 		void AttackStart(Unit* /*target*/) {}
@@ -288,6 +290,8 @@ public:
 		npc_bad_intentions_vehicleAI(Creature* creature) : PassiveAI(creature)
 		{
 			me->SetSpeed(MOVE_FLIGHT, 0.35f);
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetReactState(REACT_PASSIVE);
 		}
 
 		void PassengerBoarded(Unit* who, int8 seatId, bool apply)
@@ -454,6 +458,26 @@ public:
 	}
 };
 
+class npc_stalker_flags : public CreatureScript
+{
+public:
+	npc_stalker_flags() : CreatureScript("npc_stalker_flags") { }
+
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new npc_stalker_flagsAI(pCreature);
+	}
+
+	struct npc_stalker_flagsAI : public ScriptedAI
+	{
+		npc_stalker_flagsAI(Creature *c) : ScriptedAI(c)
+		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetReactState(REACT_PASSIVE);
+		}
+	};
+};
+
 void AddSC_boss_general_husam()
 {
 	new boss_general_husam();
@@ -463,4 +487,5 @@ void AddSC_boss_general_husam()
 	new spell_bad_intentions_effect();
 	new spell_husam_shockwave();
 	new spell_husam_shockwave_summon_search();
+	new npc_stalker_flags();
 }
