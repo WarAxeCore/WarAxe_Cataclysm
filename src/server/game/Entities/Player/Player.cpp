@@ -16232,9 +16232,9 @@ bool Player::SatisfyQuestSkillOrClass(Quest const* qInfo, bool msg)
     }
 
     // check class
-    if (skillOrClassMask < 0)
+    if (skillOrClassMask > 0)
     {
-        uint32 reqClassMask = -int32(skillOrClassMask);
+        uint32 reqClassMask = skillOrClassMask;
         if (!(reqClassMask & getClassMask()))
         {
             if (msg)
@@ -16243,7 +16243,7 @@ bool Player::SatisfyQuestSkillOrClass(Quest const* qInfo, bool msg)
         }
     }
     // check skill
-    else if (skillOrClassMask > 0)
+    else if (skillOrClassMask < 0)
     {
         uint32 reqSkill = skillOrClassMask;
         if (GetSkillValue(reqSkill) < qInfo->GetRequiredSkillValue())
