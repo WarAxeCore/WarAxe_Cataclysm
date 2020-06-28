@@ -69,92 +69,27 @@ void BuildQuestReward(WorldPacket& data, Quest const* quest, Player* player)
 
 			iProto = sObjectMgr->GetItemTemplate(quest->RewItemId[i]);
 
-			data << uint32(quest->RewItemId[i]);
 			if (quest->RewItemId[i])
 			{
+				data << uint32(quest->RewItemId[i]);
 				data << uint32(iProto ? iProto->DisplayInfoID : 0);
 				data << uint32(quest->RewItemCount[i]);
+				data << uint8(0);
 			}
-			data << uint8(0);
 		}
 
 		CurrencyTypesEntry const* iCurr = NULL;
 		for (uint8 i = 0; i < quest->GetRewCurrencyCount(); ++i)
-		{
-			if (!quest->RewCurrencyId[i])
-				continue;
-
-			iCurr = sCurrencyTypesStore.LookupEntry(quest->RewCurrencyId[i]);
-
-			if (quest->GetQuestId() == 28907) // 1st Normal Dungeon Cata
-			{
-				data << uint32(395);
-				data << uint32(0);
-				data << uint32(140 * 100);
-			}
-			if (quest->GetQuestId() == 28908) // after 1st Normal Dungeon Cata
-			{
-				data << uint32(395);
-				data << uint32(0);
-				data << uint32(30 * 100);
-			}
-			if (quest->GetQuestId() == 28905) // 1st Heroic Dungeon Cata
-			{
-				data << uint32(396);
-				data << uint32(0);
-				data << uint32(70 * 100);
-			}
-			if (quest->GetQuestId() == 28906) // after 1st Heroic Dungeon Cata
-			{
-				data << uint32(395);
-				data << uint32(0);
-				data << uint32(70 * 100);
-			}
-			data << uint8(1);
-		}
-	}
-	/*uint8 rewCount = quest->GetRewItemsCount() + quest->GetRewCurrencyCount();
-
-	if (player->getLevel() < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
-	{
-		data << uint32(quest->GetRewOrReqMoney());
-		data << uint32(quest->XPValue(player));
-	}
-	else
-	{
-		data << uint32(quest->GetRewOrReqMoney() + (quest->GetRewMoneyMaxLevel()));
-		data << uint32(0);
-	}
-
-	data << uint32(0); // Variable Money not used??
-	data << uint32(0); // Variable XP not used??
-
-	data << uint8(rewCount);
-	if (rewCount)
-	{
-		for (uint8 i = 0; i < QUEST_CURRENCY_COUNT; ++i)
 		{
 			if (uint32 currencyId = quest->RewCurrencyId[i])
 			{
 				data << uint32(currencyId);
 				data << uint32(0);
 				data << uint32(quest->RewCurrencyCount[i] * 100);
-				data << uint8(true);                                           // Is currency (1)
+				data << uint8(1);                                           // Is currency (1)
 			}
 		}
-
-		for (uint8 i = 0; i < QUEST_REWARDS_COUNT; ++i)
-		{
-			if (uint32 itemId = quest->RewItemId[i])
-			{
-				ItemTemplate const* item = sObjectMgr->GetItemTemplate(itemId);
-				data << uint32(itemId);
-				data << uint32(item ? item->DisplayInfoID : 0);
-				data << uint32(quest->RewItemCount[i]);
-				data << uint8(false);                                           // Is not currency (0)
-			}
-		}
-	}*/
+	}
 }
 
 void WorldSession::HandleLfgJoinOpcode(WorldPacket& recvData)
