@@ -17148,6 +17148,16 @@ void Unit::SetPhaseMask(uint32 newPhaseMask, bool update)
     if (newPhaseMask == GetPhaseMask())
         return;
 
+	//Some scripts have bool update as 1 which shouldn't happen but we'll hackfix here
+	if (update == 1)
+	{
+		update = true;
+	}
+	if (update == 0)
+	{
+		update = false;
+	}
+
     if (IsInWorld())
         RemoveNotOwnSingleTargetAuras(newPhaseMask);        // we can lost access to caster or target
 
