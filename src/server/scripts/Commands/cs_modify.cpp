@@ -1273,9 +1273,9 @@ public:
 
         if (target)
         {
-            if (target->GetTypeId() == TYPEID_PLAYER)
-                target->ToPlayer()->GetPhaseMgr().SetCustomPhase(phasemask);
-            else
+            //if (target->GetTypeId() == TYPEID_PLAYER)
+              //  target->ToPlayer()->GetPhaseMgr().SetCustomPhase(phasemask);
+           // else
                 target->SetPhaseMask(phasemask, true);
         }
         else

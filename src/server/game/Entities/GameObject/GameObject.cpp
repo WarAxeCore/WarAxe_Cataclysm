@@ -1942,9 +1942,9 @@ void GameObject::SetDisplayId(uint32 displayid)
 void GameObject::SetPhaseMask(uint32 newPhaseMask, bool update)
 {
     // Need to start implementing dyna_maps(vmap4), AND correct terrain swap phasing.
-    /*WorldObject::SetPhaseMask(newPhaseMask, update);
-    if (m_model && m_model->isEnabled())
-        EnableCollision(true);*/
+    WorldObject::SetPhaseMask(newPhaseMask, update);
+   // if (m_model && m_model->isEnabled())
+       // EnableCollision(true);
 }
 
 void GameObject::UpdateModel()
