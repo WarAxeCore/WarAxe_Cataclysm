@@ -517,16 +517,16 @@ public:
             {
                 if (Creature* spawnedCreature = go->SummonCreature(NPC_FRIGHTENED_CITIZEN_1, x, y, z, angle, TEMPSUMMON_TIMED_DESPAWN, SUMMON1_TTL))
                 {
-                    spawnedCreature->SetPhaseMask(6, 1);
-                    spawnedCreature->Respawn(1);
+                    spawnedCreature->SetPhaseMask(6, true);
+                    spawnedCreature->Respawn(true);
                 }
             }
             else
             {
                 if (Creature* spawnedCreature = go->SummonCreature(NPC_FRIGHTENED_CITIZEN_2, x, y, z, angle, TEMPSUMMON_TIMED_DESPAWN, SUMMON1_TTL))
                 {
-                    spawnedCreature->SetPhaseMask(6, 1);
-                    spawnedCreature->Respawn(1);
+                    spawnedCreature->SetPhaseMask(6, true);
+                    spawnedCreature->Respawn(true);
                 }
             }
             return true;
