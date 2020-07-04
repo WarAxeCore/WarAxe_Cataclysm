@@ -87,7 +87,7 @@ public:
 			if (instance)
 				instance->SetData(BOSS_ROMOGG_BONECRUSHER, DONE);
 
-			if (Creature * pRaz = GetClosestCreatureWithEntry(me, NPC_RAZ_THE_CRAZED, 100.0f))
+			if (Creature * pRaz = GetClosestCreatureWithEntry(me, NPC_RAZ_THE_CRAZED, 300.0f))
 			{
 				// Jump out of the prison
 				pRaz->GetMotionMaster()->MoveJump(227.6f, 949.8f, 192.6f, 12.0f, 15.0f);
@@ -97,7 +97,6 @@ public:
 		void EnterCombat(Unit* /*Ent*/)
 		{
 			me->BossYell("Boss Cho'gall not gonna be happy 'bout dis!", 18925);
-
 			me->CastSpell(me, SPELL_CALL_FOR_HELP, false);
 
 			if (instance)
@@ -143,7 +142,6 @@ public:
 			// Call nearby creatures to help
 			if (spell->Id == SPELL_CALL_FOR_HELP)
 				me->CallForHelp(30.0f);
-			me->MonsterTextEmote("Rom'ogg Bonecrusher calls for help!", NULL);
 		}
 
 		void UpdateAI(uint32 const Diff)
