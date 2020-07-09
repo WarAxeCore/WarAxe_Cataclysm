@@ -781,6 +781,7 @@ public:
                 who->AddThreat(me, 1.0f);
                 me->AddThreat(who, 1.0f);
                 me->AI()->AttackStart(who);
+				who->ToPlayer()->KilledMonsterCredit(44175, NULL);
             }
             else if (who->isPet())
             {
@@ -2218,44 +2219,6 @@ public:
 };
 
 /*######
-## npc_lord_darius_crowley_c3
-######*/
-
-class npc_lord_darius_crowley_c3 : public CreatureScript
-{
-public:
-    npc_lord_darius_crowley_c3() : CreatureScript("npc_lord_darius_crowley_c3") {}
-
-    bool OnQuestComplete(Player* player, Creature* /*creature*/, Quest const* quest)
-    {
-        if (quest->GetQuestId() == 14222)
-        {
-            player->SendMovieStart(21);
-            player->CastSpell(player, 93477, true);
-            player->RemoveAurasDueToSpell(72870);
-            player->CastSpell(player, 76642, true);
-            player->CastSpell(player, 68630, true);
-            player->CastSpell(player, 72788, true);
-            player->setInWorgenForm();
-
-            player->CastSpell(player, 69123, true);
-            player->CastSpell(player, 68632, true);
-            player->CastSpell(player, 68634, true);
-
-            WorldLocation loc;
-            loc.m_mapId       = 654;
-            loc.m_positionX   = -1818.4f;
-            loc.m_positionY   = 2294.25f;
-            loc.m_positionZ   = 42.2135f;
-            loc._orientation  = 3.14f;
-
-            player->SetHomebind(loc, 4786);
-        }
-        return true;
-    }
-};
-
-/*######
 ## npc_king_genn_greymane_c2
 ######*/
 
@@ -2268,6 +2231,7 @@ public:
     {
         player->RemoveAurasDueToSpell(68630);
         player->RemoveAurasDueToSpell(76642);
+		player->RemoveAurasDueToSpell(69196);
         player->CastSpell(player, 68481, true);
         return true;
     }
@@ -2923,7 +2887,8 @@ public:
 
                 if (caster->GetTypeId() == TYPEID_PLAYER && caster->ToPlayer()->GetQuestStatus(QUEST_SACRIFICES) == QUEST_STATUS_INCOMPLETE)
                 {
-                    caster->ToPlayer()->KilledMonsterCredit(NPC_BLOODFANG_STALKER_CREDIT, 0);
+                    caster->ToPlayer()->KilledMonsterCredit(NPC_BLOODFANG_STALKER_CREDIT, me->GetGUID());
+					me->DespawnOrUnsummon(5000);
                 }
             }
         }
@@ -2991,6 +2956,64 @@ public:
             }
         }
     };
+};
+
+/*######
+## npc_lord_darius_crowley_c3
+######*/
+class npc_lord_darius_crowley_c3 : public CreatureScript
+{
+public:
+	npc_lord_darius_crowley_c3() : CreatureScript("npc_lord_darius_crowley_c3") {}
+
+	bool OnQuestReward(Player* player, Creature* creature, const Quest *_Quest, uint32)
+	{
+		if (_Quest->GetQuestId() == 14222)
+		{
+			WorldLocation loc;
+			loc.m_mapId = 654;
+			loc.m_positionX = -1818.4f;
+			loc.m_positionY = 2294.25f;
+			loc.m_positionZ = 42.2135f;
+			loc._orientation = 3.14f;
+
+			player->SetHomebind(loc, 4786);
+
+			player->RemoveAura(72872);
+			player->RemoveAura(72870);
+			player->CastSpell(player, 93477, true);
+			player->CastSpell(player, 94293, true);
+			player->CastSpell(player, 68996, true);
+			player->CastSpell(player, 69196, true);
+			player->CastSpell(player, 72788, true);
+			player->CastSpell(player, 72857, true);
+			player->TeleportTo(loc);
+		}
+		return true;
+	}
+};
+
+// Duskhaven Start
+
+/*######
+## go_mandragore
+######*/
+class go_mandragore : public GameObjectScript
+{
+public:
+	go_mandragore() : GameObjectScript("go_mandragore") {}
+
+	bool OnQuestReward(Player* player, GameObject *, Quest const* _Quest, uint32)
+	{
+		if (_Quest->GetQuestId() == 14320)
+		{
+			player->SendCinematicStart(168);
+			WorldPacket data(SMSG_PLAY_SOUND, 4);
+			data << uint32(23676);
+			player->GetSession()->SendPacket(&data);
+		}
+		return true;
+	}
 };
 
 void AddSC_gilneas()
