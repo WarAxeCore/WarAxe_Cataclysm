@@ -2526,83 +2526,6 @@ public:
     }
 };
 
-/* ######
-## You Can't Take 'Em Alone - 14348
-###### */
-
-class npc_horrid_abomination : public CreatureScript
-{
-public:
-    npc_horrid_abomination() : CreatureScript("npc_horrid_abomination") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new npc_horrid_abominationAI(creature);
-    }
-
-    struct npc_horrid_abominationAI : public ScriptedAI
-    {
-        npc_horrid_abominationAI(Creature* creature) : ScriptedAI(creature) {}
-
-        uint32 DieTimer;
-
-        void Reset ()
-        {
-            me->ClearUnitState(UNIT_STATE_ROOT | UNIT_STATE_STUNNED);
-            DieTimer = 5000;
-        }
-
-        void SpellHit(Unit* caster, const SpellInfo* spell)
-        {
-            if (spell->Id == SPELL_BARREL_KEG && caster->GetTypeId() == TYPEID_PLAYER && caster->ToPlayer()->GetQuestStatus(QUEST_YOU_CANT_TAKE_EM_ALONE) == QUEST_STATUS_INCOMPLETE)
-            {
-                caster->ToPlayer()->KilledMonsterCredit(QUEST_14348_KILL_CREDIT, 0);
-                me->AddUnitState(UNIT_STATE_ROOT | UNIT_STATE_STUNNED);
-
-                switch (urand(0, 5))
-                {
-                    case 0:
-                        me->MonsterYell(SAY_BARREL_1, LANGUAGE_UNIVERSAL, 0);
-                        break;
-                    case 1:
-                        me->MonsterYell(SAY_BARREL_2, LANGUAGE_UNIVERSAL, 0);
-                        break;
-                    case 2:
-                        me->MonsterYell(SAY_BARREL_3, LANGUAGE_UNIVERSAL, 0);
-                        break;
-                    case 3:
-                        me->MonsterYell(SAY_BARREL_4, LANGUAGE_UNIVERSAL, 0);
-                        break;
-                    case 4:
-                        me->MonsterYell(SAY_BARREL_5, LANGUAGE_UNIVERSAL, 0);
-                        break;
-                    case 5:
-                        me->MonsterYell(SAY_BARREL_6, LANGUAGE_UNIVERSAL, 0);
-                        break;
-                }
-            }
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (DieTimer <= diff)
-            {
-                if (me->HasAura(SPELL_BARREL_KEG))
-                    me->DisappearAndDie();
-                else
-                    DieTimer = 1000;
-            }
-            else
-                DieTimer -= diff;
-
-            if (!UpdateVictim())
-                return;
-
-            DoMeleeAttackIfReady();
-        }
-    };
-};
-
 class spell_keg_placed : public SpellScriptLoader
 {
 public:
@@ -2994,6 +2917,18 @@ public:
 };
 
 // Duskhaven Start
+enum ZonePhasesDH
+{
+	SPELL_ZONE_SPECIFIC_01 = 59073, // Phase 2
+	SPELL_ZONE_SPECIFIC_06 = 68481, // Phase 4096
+	SPELL_ZONE_SPECIFIC_07 = 68482,// Phase 8192
+	SPELL_ZONE_SPECIFIC_08 = 68483,// Phase 16384
+	SPELL_ZONE_SPECIFIC_11 = 69484,// Phase 131072 (100 yds)
+	SPELL_ZONE_SPECIFIC_12 = 69485,// Phase 262144
+	SPELL_ZONE_SPECIFIC_13 = 69486,// Phase 524288
+	SPELL_ZONE_SPECIFIC_14 = 70695,// Phase 1048576
+	SPELL_ZONE_SPECIFIC_19 = 74096,// Phase 33554432
+};
 
 /*######
 ## go_mandragore
@@ -3008,13 +2943,1522 @@ public:
 		if (_Quest->GetQuestId() == 14320)
 		{
 			player->SendCinematicStart(168);
-			WorldPacket data(SMSG_PLAY_SOUND, 4);
-			data << uint32(23676);
-			player->GetSession()->SendPacket(&data);
 		}
 		return true;
 	}
 };
+
+/*######
+## Quest Invasion 14321
+######*/
+
+enum sWatchman
+{
+	QUEST_INVASION = 14321,
+	NPC_FORSAKEN_ASSASSIN = 36207,
+	SPELL_BACKSTAB = 75360,
+};
+
+class npc_slain_watchman : public CreatureScript
+{
+public:
+	npc_slain_watchman() : CreatureScript("npc_slain_watchman") { }
+
+	bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
+	{
+		enum
+		{
+			SPELL_FORCECAST_SUMMON_FORSAKEN_ASSASSIN = 68492,
+		};
+
+		if (quest->GetQuestId() == QUEST_INVASION)
+			creature->CastSpell(player, SPELL_FORCECAST_SUMMON_FORSAKEN_ASSASSIN, false, NULL, NULL, player->GetGUID());
+
+		return false;
+	}
+};
+
+class npc_gwen_armstead_phase_6 : public CreatureScript
+{
+public:
+	npc_gwen_armstead_phase_6() : CreatureScript("npc_gwen_armstead_phase_6") { }
+
+	bool OnQuestComplete(Player* player, Creature* armstead, Quest const* quest)
+	{
+		if (quest->GetQuestId() == QUEST_INVASION)
+		{
+			player->RemoveAurasByType(SPELL_AURA_PHASE);
+			player->SetPhaseMask(2, true);
+			player->SaveToDB();
+		}
+
+		return true;
+	}
+};
+
+enum greymane_dh
+{
+	NPC_FORSAKEN_INVADER = 34511,
+	SPELL_THROW_BOTTLE = 68552
+};
+
+class npc_prince_liam_greymane_dh : public CreatureScript
+{
+public:
+	npc_prince_liam_greymane_dh() : CreatureScript("npc_prince_liam_greymane_dh") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_prince_liam_greymane_dhAI(creature);
+	}
+
+	struct npc_prince_liam_greymane_dhAI : public ScriptedAI
+	{
+		npc_prince_liam_greymane_dhAI(Creature* creature) : ScriptedAI(creature)
+		{
+			SetCombatMovement(false);
+		}
+
+		uint32 uiShootTimer;
+		bool miss;
+
+		void Reset()
+		{
+			uiShootTimer = 1000;
+			miss = false;
+
+			if (Unit* target = me->FindNearestCreature(NPC_FORSAKEN_INVADER, 40.0f))
+				AttackStart(target);
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			if (me->getVictim()->GetTypeId() == TYPEID_UNIT)
+			{
+				if (me->getVictim()->GetHealthPct() < 90)
+					miss = true;
+				else
+					miss = false;
+			}
+
+			if (uiShootTimer <= diff)
+			{
+				uiShootTimer = 1500;
+
+				if (!me->IsWithinMeleeRange(me->getVictim(), 0.0f))
+					if (Unit* target = me->FindNearestCreature(NPC_FORSAKEN_INVADER, 40.0f))
+						if (target != me->getVictim())
+						{
+							me->getThreatManager().modifyThreatPercent(me->getVictim(), -100);
+							me->CastSpell(me->getVictim(), SPELL_THROW_BOTTLE, false);
+							me->CombatStart(target);
+							me->AddThreat(target, 1000);
+						}
+
+				if (!me->IsWithinMeleeRange(me->getVictim(), 0.0f))
+				{
+					if (me->HasUnitState(UNIT_STATE_MELEE_ATTACKING))
+					{
+						me->SetUInt32Value(UNIT_NPC_EMOTESTATE, 0);
+						me->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
+						me->SendMeleeAttackStop(me->getVictim());
+					}
+
+					me->CastSpell(me->getVictim(), SPELL_SHOOT, false);
+				}
+				else
+					if (!me->HasUnitState(UNIT_STATE_MELEE_ATTACKING))
+					{
+						me->AddUnitState(UNIT_STATE_MELEE_ATTACKING);
+						me->SendMeleeAttackStart(me->getVictim());
+					}
+			}
+			else
+				uiShootTimer -= diff;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+/* ######
+## You Can't Take 'Em Alone - 14348
+###### */
+
+enum eHorrid
+{
+	NPC_HORRID_ABOMINATION_KILL_CREDIT = 36233,
+	NPC_PRINCE_LIAM_GREYMANE_QYCTEA = 36140,
+
+	SAY_BARREL = 0,
+
+	SPELL_KEG_PLACED = 68555,
+	SPELL_SHOOT_QYCTEA = 68559,   // 68559
+	SPELL_RESTITCHING = 68864,
+	SPELL_EXPLOSION = 68560,
+	SPELL_EXPLOSION_POISON = 42266,
+	SPELL_EXPLOSION_BONE_TYPE_ONE = 42267,
+	SPELL_EXPLOSION_BONE_TYPE_TWO = 42274,
+};
+
+class npc_horrid_abomination : public CreatureScript
+{
+public:
+	npc_horrid_abomination() : CreatureScript("npc_horrid_abomination") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_horrid_abominationAI(creature);
+	}
+
+	struct npc_horrid_abominationAI : public ScriptedAI
+	{
+		npc_horrid_abominationAI(Creature* creature) : ScriptedAI(creature)
+		{
+			uiRestitchingTimer = 3000;
+			uiShootTimer = 3000;
+			uiPlayerGUID = 0;
+			shoot = false;
+			miss = false;
+			me->_SightDistance = 10.0f;
+		}
+
+		uint64 uiPlayerGUID;
+		uint32 uiShootTimer;
+		uint32 uiRestitchingTimer;
+		bool shoot;
+		bool miss;
+
+		void SpellHit(Unit* caster, const SpellInfo* spell)
+		{
+			if (spell->Id == SPELL_KEG_PLACED)
+			{
+				switch (urand(0, 5))
+				{
+				case 0:
+					me->MonsterSay(SAY_BARREL_1, LANGUAGE_UNIVERSAL, 0);
+					break;
+				case 1:
+					me->MonsterSay(SAY_BARREL_2, LANGUAGE_UNIVERSAL, 0);
+					break;
+				case 2:
+					me->MonsterSay(SAY_BARREL_3, LANGUAGE_UNIVERSAL, 0);
+					break;
+				case 3:
+					me->MonsterSay(SAY_BARREL_4, LANGUAGE_UNIVERSAL, 0);
+					break;
+				case 4:
+					me->MonsterSay(SAY_BARREL_5, LANGUAGE_UNIVERSAL, 0);
+					break;
+				case 5:
+					me->MonsterSay(SAY_BARREL_6, LANGUAGE_UNIVERSAL, 0);
+					break;
+				}
+				shoot = true;
+				uiPlayerGUID = caster->GetGUID();
+				me->SetReactState(REACT_PASSIVE);
+				me->GetMotionMaster()->MoveRandom(5.0f);
+				me->CombatStop();
+
+			}
+
+			if (spell->Id == SPELL_SHOOT_QYCTEA)
+				ShootEvent();
+		}
+
+		void ShootEvent()
+		{
+			me->RemoveAura(SPELL_KEG_PLACED);
+
+			for (int i = 0; i < 11; ++i)
+				DoCast(SPELL_EXPLOSION_POISON);
+
+			for (int i = 0; i < 6; ++i)
+				DoCast(SPELL_EXPLOSION_BONE_TYPE_ONE);
+
+			for (int i = 0; i < 4; ++i)
+				DoCast(SPELL_EXPLOSION_BONE_TYPE_TWO);
+
+			DoCast(SPELL_EXPLOSION);
+
+			if (Player* player = Unit::GetPlayer(*me, uiPlayerGUID))
+				player->KilledMonsterCredit(NPC_HORRID_ABOMINATION_KILL_CREDIT, 0);
+
+			me->DespawnOrUnsummon(1000);
+		}
+
+		void DamageTaken(Unit* attacker, uint32 &/*damage*/)
+		{
+			if (attacker->GetTypeId() != TYPEID_PLAYER)
+				return;
+
+			Unit* victim = NULL;
+
+			if (Unit* victim = me->getVictim())
+				if (victim->GetTypeId() == TYPEID_PLAYER)
+					return;
+
+			if (victim)
+				me->getThreatManager().modifyThreatPercent(victim, -100);
+
+			AttackStart(attacker);
+			me->AddThreat(attacker, 10005000);
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (shoot)
+			{
+				if (uiShootTimer <= diff)
+				{
+					shoot = false;
+					uiShootTimer = 3000;
+					std::list<Creature*> liamList;
+					GetCreatureListWithEntryInGrid(liamList, me, NPC_PRINCE_LIAM_GREYMANE_QYCTEA, 50.0f);
+
+					if (liamList.empty())
+						ShootEvent();
+					else
+						(*liamList.begin())->CastSpell(me, SPELL_SHOOT_QYCTEA, false);
+				}
+				else
+					uiShootTimer -= diff;
+			}
+
+			if (!UpdateVictim())
+				return;
+
+			if (me->getVictim() && me->getVictim()->GetTypeId() == TYPEID_UNIT)
+			{
+				if (me->getVictim()->GetHealthPct() < 90)
+					miss = true;
+				else
+					miss = false;
+			}
+
+			if (uiRestitchingTimer <= diff)
+			{
+				uiRestitchingTimer = 8000;
+				DoCast(SPELL_RESTITCHING);
+			}
+			else
+				uiRestitchingTimer -= diff;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+/*######
+## Quest Two By Sea 14382
+######*/
+
+enum qTBS
+{
+	NPC_FORSACEN_CATAPILT = 36283,
+
+};
+
+class npc_forsaken_catapult_qtbs : public CreatureScript
+{
+public:
+	npc_forsaken_catapult_qtbs() : CreatureScript("npc_forsaken_catapult_qtbs") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_forsaken_catapult_qtbsAI(creature);
+	}
+
+	struct npc_forsaken_catapult_qtbsAI : public ScriptedAI
+	{
+		npc_forsaken_catapult_qtbsAI(Creature* creature) : ScriptedAI(creature)
+		{
+			me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+			me->setActive(true);
+			speedXY = 10.0f;
+			speedZ = 10.0f;
+			creature->GetPosition(x, y, z);
+			uiCastTimer = urand(5000, 10000);
+			uiRespawnTimer = 10000;
+			CanCast = true;
+			respawn = false;
+		}
+
+		float speedXY, speedZ, x, y, z;
+		uint32 uiCastTimer;
+		uint32 uiRespawnTimer;
+		bool CanCast;
+		bool respawn;
+
+		void PassengerBoarded(Unit* /*who*/, int8 seatId, bool apply)
+		{
+			if (!apply)
+			{
+				respawn = true;
+				CanCast = false;
+
+				if (seatId == 2)
+					me->setFaction(35);
+			}
+			else
+			{
+				respawn = false;
+
+				if (seatId == 2)
+					CanCast = true;
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+
+			if (respawn)
+			{
+				if (uiRespawnTimer <= diff)
+				{
+					respawn = false;
+					uiRespawnTimer = 10000;
+					me->DespawnOrUnsummon();
+				}
+				else
+					uiRespawnTimer -= diff;
+			}
+
+			if (CanCast)
+			{
+				if (uiCastTimer <= diff)
+				{
+					uiCastTimer = urand(7000, 20000);
+					float x, y, z;
+					me->GetNearPoint2D(x, y, urand(100, 150), me->GetOrientation());
+					z = me->GetBaseMap()->GetHeight(x, y, MAX_HEIGHT);
+					me->CastSpell(x, y, z, 89697, false); // this = 68591 the correct spell but needs scripting
+				}
+				else
+					uiCastTimer -= diff;
+			}
+
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+/*######
+## Quest Save the Children! 14368
+######*/
+
+enum qSTC
+{
+	QUEST_SAVE_THE_CHILDREN = 14368,
+
+	NPC_CYNTHIA = 36287,
+	NPC_ASHLEY = 36288,
+	NPC_JAMES = 36289,
+
+	SPELL_SAVE_CYNTHIA = 68597,
+	SPELL_SAVE_ASHLEY = 68598,
+	SPELL_SAVE_JAMES = 68596,
+
+	GO_DOOR_TO_THE_BASEMENT = 206693,
+};
+
+#define    PLAYER_SAY_CYNTHIA    "Its not safe here. Go to the Allens basment."
+#define    PLAYER_SAY_ASHLEY     "Join the others inside the basement next door. Hurry!"
+#define    PLAYER_SAY_JAMES      "Your mothers in the basement next door. Get to her now!"
+
+class npc_james : public CreatureScript
+{
+public:
+	npc_james() : CreatureScript("npc_james") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_jamesAI(creature);
+	}
+
+	struct npc_jamesAI : public npc_escortAI
+	{
+		npc_jamesAI(Creature* creature) : npc_escortAI(creature)
+		{
+			uiEventTimer = 3500;
+			uiPlayerGUID = 0;
+			Event = false;
+		}
+
+		uint64 uiPlayerGUID;
+		uint32 uiEventTimer;
+		bool Event;
+
+		void Reset()
+		{
+			me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+
+		}
+
+		void SpellHit(Unit* caster, const SpellInfo* spell)
+		{
+			if (spell->Id == SPELL_SAVE_JAMES)
+				if (Player* player = caster->ToPlayer())
+				{
+					Event = true;
+					uiPlayerGUID = player->GetGUID();
+					player->Say(PLAYER_SAY_JAMES, LANGUAGE_UNIVERSAL);
+					caster->ToPlayer()->KilledMonsterCredit(me->GetEntry(), me->GetGUID());
+				}
+		}
+
+		void WaypointReached(uint32 point)
+		{
+			if (point == 7)
+				if (GameObject* door = me->FindNearestGameObject(GO_DOOR_TO_THE_BASEMENT, 10.0f))
+					door->UseDoorOrButton();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			npc_escortAI::UpdateAI(diff);
+
+			if (Event)
+			{
+				if (uiEventTimer <= diff)
+				{
+					Event = false;
+					uiEventTimer = 3500;
+
+					if (Unit::GetPlayer(*me, uiPlayerGUID))
+					{
+						me->MonsterSay("Don't hurt me! I was just looking for my sisters! I think Ashley's inside that house!", 0, 0);
+					}
+				}
+				else
+					uiEventTimer -= diff;
+			}
+		}
+	};
+};
+
+class npc_ashley : public CreatureScript
+{
+public:
+	npc_ashley() : CreatureScript("npc_ashley") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_ashleyAI(creature);
+	}
+
+	struct npc_ashleyAI : public npc_escortAI
+	{
+		npc_ashleyAI(Creature* creature) : npc_escortAI(creature)
+		{
+			uiEventTimer = 3500;
+			uiPlayerGUID = 0;
+			Event = false;
+		}
+
+		uint64 uiPlayerGUID;
+		uint32 uiEventTimer;
+		bool Event;
+
+		void Reset()
+		{
+			me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+
+		}
+
+		void SpellHit(Unit* caster, const SpellInfo* spell)
+		{
+			if (spell->Id == SPELL_SAVE_ASHLEY)
+				if (Player* player = caster->ToPlayer())
+				{
+					Event = true;
+					uiPlayerGUID = player->GetGUID();
+					player->Say(PLAYER_SAY_ASHLEY, LANGUAGE_UNIVERSAL);
+					caster->ToPlayer()->KilledMonsterCredit(me->GetEntry(), me->GetGUID());
+				}
+		}
+
+		void WaypointReached(uint32 point)
+		{
+			if (point == 16)
+				if (GameObject* door = me->FindNearestGameObject(GO_DOOR_TO_THE_BASEMENT, 10.0f))
+					door->UseDoorOrButton();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			npc_escortAI::UpdateAI(diff);
+
+			if (Event)
+			{
+				if (uiEventTimer <= diff)
+				{
+					Event = false;
+					uiEventTimer = 3500;
+
+					if (Unit::GetPlayer(*me, uiPlayerGUID))
+					{
+						me->MonsterSay("Are you one of the good worgen, mister? Did you see Cynthia hiding in the sheds outside?", 0, 0);
+					}
+				}
+				else
+					uiEventTimer -= diff;
+			}
+		}
+	};
+};
+
+class npc_cynthia : public CreatureScript
+{
+public:
+	npc_cynthia() : CreatureScript("npc_cynthia") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_cynthiaAI(creature);
+	}
+
+	struct npc_cynthiaAI : public npc_escortAI
+	{
+		npc_cynthiaAI(Creature* creature) : npc_escortAI(creature)
+		{
+			uiEventTimer = 3500;
+			uiPlayerGUID = 0;
+			Event = false;
+		}
+
+		uint64 uiPlayerGUID;
+		uint32 uiEventTimer;
+		bool Event;
+
+		void Reset()
+		{
+			me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+
+		}
+
+		void SpellHit(Unit* caster, const SpellInfo* spell)
+		{
+			if (spell->Id == SPELL_SAVE_CYNTHIA)
+				if (Player* player = caster->ToPlayer())
+				{
+					Event = true;
+					uiPlayerGUID = player->GetGUID();
+					player->Say(PLAYER_SAY_CYNTHIA, LANGUAGE_UNIVERSAL);
+					caster->ToPlayer()->KilledMonsterCredit(me->GetEntry(), me->GetGUID());
+				}
+		}
+
+		void WaypointReached(uint32 point)
+		{
+			if (point == 8)
+				if (GameObject* door = me->FindNearestGameObject(GO_DOOR_TO_THE_BASEMENT, 10.0f))
+					door->UseDoorOrButton();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			npc_escortAI::UpdateAI(diff);
+
+			if (Event)
+			{
+				if (uiEventTimer <= diff)
+				{
+					Event = false;
+					uiEventTimer = 3500;
+
+					if (/*Player* player = */Unit::GetPlayer(*me, uiPlayerGUID))
+					{
+						me->MonsterSay("You are scary! I just want my mommy!", 0, 0);
+					}
+				}
+				else
+					uiEventTimer -= diff;
+			}
+		}
+	};
+};
+
+// Quest Leader of the Pack 14386
+class npc_dark_ranger_thyala : public CreatureScript
+{
+public:
+	npc_dark_ranger_thyala() : CreatureScript("npc_dark_ranger_thyala") { }
+
+private:
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new creature_script_impl(creature);
+	}
+
+	struct creature_script_impl : public ScriptedAI
+	{
+		creature_script_impl(Creature* creature)
+			: ScriptedAI(creature)
+			, summons(creature)
+		{ }
+
+		enum
+		{
+			EVENT_KNOCKBACK = 1,
+
+			SPELL_SHOOT = 16100,
+			SPELL_KNOCKBACK = 68683,
+
+			NPC_ATTACK_MASTIFF = 36409,
+		};
+
+		EventMap events;
+		SummonList summons;
+
+		void InitializeAI()
+		{
+			Reset();
+			SetCombatMovement(false);
+			me->_CombatDistance = 45.0f;
+		}
+
+		void Reset()
+		{
+			events.Reset();
+
+			events.ScheduleEvent(EVENT_KNOCKBACK, urand(2500, 5000));
+		}
+
+		void DamageTaken(Unit* attacker, uint32 &damage)
+		{
+			if (me->GetHealth() < damage)
+			{
+				std::list<HostileReference*> threatList = me->getThreatManager().getThreatList();
+				for (std::list<HostileReference*>::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+					if (Player* player = ObjectAccessor::GetPlayer((*me), (*itr)->getUnitGuid()))
+						player->KilledMonsterCredit(me->GetEntry(), me->GetGUID());
+			}
+		}
+
+		void JustSummoned(Creature* summoned)
+		{
+			summons.Summon(summoned);
+		}
+
+		void JustDied(Unit* /*who*/)
+		{
+			summons.DespawnAll();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			events.Update(diff);
+
+			if (events.ExecuteEvent() == EVENT_KNOCKBACK)
+			{
+				me->CastSpell((Unit*)NULL, SPELL_KNOCKBACK, false);
+				events.ScheduleEvent(EVENT_KNOCKBACK, urand(7500, 15000));
+			}
+		}
+	};
+};
+
+class npc_attack_mastiff : public CreatureScript
+{
+public:
+	npc_attack_mastiff() : CreatureScript("npc_attack_mastiff") { }
+
+private:
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new creature_script_impl(creature);
+	}
+
+	struct creature_script_impl : public ScriptedAI
+	{
+		creature_script_impl(Creature* creature) : ScriptedAI(creature) { }
+
+		enum
+		{
+			EVENT_DEMORALIZING_ROAR = 1,
+			EVENT_LEAP = 2,
+			EVENT_TAUNT = 3,
+
+			SPELL_DEMORALIZING_ROAR = 15971,
+			SPELL_LEAP = 68687,
+			SPELL_TAUNT = 26281,
+		};
+
+		EventMap events;
+
+		void Reset()
+		{
+			events.Reset();
+		}
+
+		void EnterCombat(Unit* who)
+		{
+			events.ScheduleEvent(EVENT_DEMORALIZING_ROAR, urand(2500, 5000));
+			events.ScheduleEvent(SPELL_TAUNT, urand(2500, 5000));
+			events.ScheduleEvent(SPELL_LEAP, urand(5000, 10000));
+		}
+
+		void JustDied(Unit* /*killer*/)
+		{
+			events.Reset();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			events.Update(diff);
+
+			if (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_DEMORALIZING_ROAR:
+					me->CastSpell((Unit*)NULL, SPELL_DEMORALIZING_ROAR, false);
+					events.ScheduleEvent(EVENT_DEMORALIZING_ROAR, urand(5000, 15000));
+					break;
+				case SPELL_TAUNT:
+					me->CastSpell(me->getVictim(), SPELL_TAUNT, false);
+					events.ScheduleEvent(SPELL_TAUNT, urand(5000, 10000));
+					break;
+				case SPELL_LEAP:
+					me->CastSpell(me->getVictim(), SPELL_LEAP, false);
+					events.ScheduleEvent(SPELL_LEAP, urand(5000, 10000));
+					break;
+				}
+			}
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+class spell_call_attack_mastiffs : public SpellScriptLoader
+{
+public:
+	spell_call_attack_mastiffs() : SpellScriptLoader("spell_call_attack_mastiffs") { }
+
+private:
+	class spell_script_impl : public SpellScript
+	{
+		PrepareSpellScript(spell_script_impl)
+
+			void SummonMastiffs(SpellEffIndex effIndex)
+		{
+			PreventHitDefaultEffect(effIndex);
+
+			enum
+			{
+				NPC_ATTACK_MASTIFF = 36409,
+			};
+
+			Unit* caster = GetCaster();
+			Creature* target = GetHitCreature();
+
+			if (!(caster && target && target->isAlive()))
+				return;
+
+			float angle = target->GetHomePosition().GetOrientation();
+
+			for (int i = 0; i < 12; ++i)
+			{
+				float x, y;
+				float dist = urand(20.f, 40.f);
+				float angleOffset = frand(-M_PI / 4, M_PI / 4);
+				target->GetNearPoint2D(x, y, dist, angle + angleOffset);
+				float z = 1;
+				float summonAngle = target->GetAngle(x, y);
+
+				if (Creature* mastiff = target->SummonCreature(NPC_ATTACK_MASTIFF, x, y, z, M_PI + summonAngle, TEMPSUMMON_TIMED_DESPAWN, 60000))
+				{
+					mastiff->Attack(target, true);
+					mastiff->AddThreat(target, std::numeric_limits<float>::max());
+					mastiff->GetMotionMaster()->MoveChase(target);
+				}
+				if (Creature* mastiff2 = target->SummonCreature(NPC_ATTACK_MASTIFF, x, y, z, M_PI + summonAngle, TEMPSUMMON_TIMED_DESPAWN, 60000))
+				{
+					mastiff2->Attack(target, true);
+					mastiff2->AddThreat(target, std::numeric_limits<float>::max());
+					mastiff2->GetMotionMaster()->MoveChase(target);
+				}
+				if (Creature* mastiff3 = target->SummonCreature(NPC_ATTACK_MASTIFF, x, y, z, M_PI + summonAngle, TEMPSUMMON_TIMED_DESPAWN, 60000))
+				{
+					mastiff3->Attack(target, true);
+					mastiff3->AddThreat(target, std::numeric_limits<float>::max());
+					mastiff3->GetMotionMaster()->MoveChase(target);
+				}
+				if (Creature* mastiff4 = target->SummonCreature(NPC_ATTACK_MASTIFF, x, y, z, M_PI + summonAngle, TEMPSUMMON_TIMED_DESPAWN, 60000))
+				{
+					mastiff4->Attack(target, true);
+					mastiff4->AddThreat(target, std::numeric_limits<float>::max());
+					mastiff4->GetMotionMaster()->MoveChase(target);
+				}
+				if (Creature* mastiff5 = target->SummonCreature(NPC_ATTACK_MASTIFF, x, y, z, M_PI + summonAngle, TEMPSUMMON_TIMED_DESPAWN, 60000))
+				{
+					mastiff5->Attack(target, true);
+					mastiff5->AddThreat(target, std::numeric_limits<float>::max());
+					mastiff5->GetMotionMaster()->MoveChase(target);
+				}
+			}
+		}
+
+		void Register()
+		{
+			OnEffectHitTarget += SpellEffectFn(spell_script_impl::SummonMastiffs, EFFECT_0, SPELL_EFFECT_DUMMY);
+		}
+	};
+
+	SpellScript *GetSpellScript() const
+	{
+		return new spell_script_impl();
+	}
+};
+
+class npc_lord_godfrey_phase_7 : public CreatureScript
+{
+public:
+	npc_lord_godfrey_phase_7() : CreatureScript("npc_lord_godfrey_phase_7") { }
+
+private:
+	bool OnQuestReward(Player* player, Creature* creature, Quest const* quest, uint32 /*opt*/)
+	{
+		if (quest->GetQuestId() == 14386)
+		{
+			// Map phase shift works however world map doesn't update need to look into it.
+			player->GetSession()->SendPhaseShift_Override(0, 655);
+			creature->BossYell("Hold your positions, men!", 0);
+			Creature* Melinda = creature->FindNearestCreature(36291, 100.0f);
+			if (Melinda)
+			{
+				Melinda->MonsterSay("What's happening?!", 0, 0);
+			}
+			player->RemoveAurasByType(SPELL_AURA_PHASE);
+			player->SetPhaseMask(1, true);
+			player->SaveToDB();
+		}
+
+		return false;
+	}
+};
+
+/*###### Quest Gasping for Breath  ######*/
+
+enum qGFB
+{
+	QUEST_GASPING_FOR_BREATH = 14395,
+
+	NPC_QGFB_KILL_CREDIT = 36450,
+	NPC_DROWNING_WATCHMAN = 36440,
+
+	SPELL_RESCUE_DROWNING_WATCHMAN = 68735,
+	SPELL_SUMMON_SPARKLES = 69253,
+	SPELL_DROWNING = 68730,
+
+	GO_SPARKLES = 197333,
+};
+
+class npc_drowning_watchman : public CreatureScript
+{
+public:
+	npc_drowning_watchman() : CreatureScript("npc_drowning_watchman") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_drowning_watchmanAI(creature);
+	}
+
+	struct npc_drowning_watchmanAI : public ScriptedAI
+	{
+		npc_drowning_watchmanAI(Creature* creature) : ScriptedAI(creature)
+		{
+			reset = true;
+			despawn = false;
+			exit = false;
+			uiDespawnTimer = 10000;
+		}
+
+		uint32 uiDespawnTimer;
+		bool reset;
+		bool despawn;
+		bool exit;
+
+		void SpellHit(Unit* caster, const SpellInfo* spell)
+		{
+			if (spell->Id == SPELL_RESCUE_DROWNING_WATCHMAN)
+			{
+				despawn = false;
+				uiDespawnTimer = 10000;
+				me->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+				me->RemoveAura(SPELL_DROWNING);
+				me->EnterVehicle(caster);
+
+				if (GameObject* go = me->FindNearestGameObject(GO_SPARKLES, 10.0f))
+					go->Delete();
+			}
+		}
+
+		void OnExitVehicle(Unit* /*vehicle*/, uint32 /*seatId*/)
+		{
+			if (!exit)
+			{
+				float x, y, z, o;
+				me->GetPosition(x, y, z, o);
+				me->SetHomePosition(x, y, z, o);
+				me->Relocate(x, y, z, o);
+				reset = true;
+				despawn = true;
+				Reset();
+			}
+		}
+
+		void Reset()
+		{
+			exit = false;
+
+			if (reset)
+			{
+				DoCast(SPELL_DROWNING);
+				me->SetVisible(true);
+				DoCast(SPELL_SUMMON_SPARKLES);
+				me->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
+				reset = false;
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (despawn)
+			{
+				if (uiDespawnTimer <= diff)
+				{
+					if (GameObject* go = me->FindNearestGameObject(GO_SPARKLES, 10.0f))
+						go->Delete();
+
+					reset = true;
+					despawn = false;
+					uiDespawnTimer = 10000;
+					me->DespawnOrUnsummon();
+				}
+				else
+					uiDespawnTimer -= diff;
+			}
+		}
+	};
+};
+
+class npc_prince_liam_greymane : public CreatureScript
+{
+public:
+	npc_prince_liam_greymane() : CreatureScript("npc_prince_liam_greymane") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_prince_liam_greymaneAI(creature);
+	}
+
+	struct npc_prince_liam_greymaneAI : public ScriptedAI
+	{
+		npc_prince_liam_greymaneAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void MoveInLineOfSight(Unit* who)
+		{
+			if (who->GetEntry() == NPC_DROWNING_WATCHMAN)
+			{
+				if (who->IsInWater() || !who->GetVehicle())
+					return;
+
+				if (who->GetDistance(-1897.0f, 2519.97f, 1.50667f) < 5.0f)
+					if (Unit* unit = who->GetVehicleBase())
+					{
+						if (Creature* watchman = who->ToCreature())
+						{
+							watchman->MonsterSay("Thank you... *gasp* I owe you my life.", 0, 0);
+							watchman->DespawnOrUnsummon(15000);
+							watchman->SetStandState(UNIT_STAND_STATE_KNEEL);
+							CAST_AI(npc_drowning_watchman::npc_drowning_watchmanAI, watchman->AI())->exit = true;
+							CAST_AI(npc_drowning_watchman::npc_drowning_watchmanAI, watchman->AI())->reset = true;
+							who->ExitVehicle();
+							unit->RemoveAura(SPELL_RESCUE_DROWNING_WATCHMAN);
+						}
+
+						if (Player* player = unit->ToPlayer())
+							player->KilledMonsterCredit(NPC_QGFB_KILL_CREDIT, 0);
+					}
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+/*###### Quest Gasping for Breath END  ######*/
+
+/*######
+## spell_round_up_horse
+######*/
+
+class spell_round_up_horse : public SpellScriptLoader
+{
+public:
+	spell_round_up_horse() : SpellScriptLoader("spell_round_up_horse") { }
+
+	class spell_round_up_horse_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_round_up_horse_SpellScript)
+
+			void Trigger(SpellEffIndex effIndex)
+		{
+			Unit* target = GetExplTargetUnit();
+
+			if (Creature* horse = target->ToCreature())
+				if (horse->GetEntry() == 36540)
+					if (Vehicle* vehicle = target->GetVehicleKit())
+						if (vehicle->HasEmptySeat(0))
+							return;
+
+			PreventHitDefaultEffect(effIndex);
+		}
+
+		void Register()
+		{
+			OnEffectLaunch += SpellEffectFn(spell_round_up_horse_SpellScript::Trigger, EFFECT_0, SPELL_EFFECT_TRIGGER_SPELL);
+		}
+	};
+
+	SpellScript *GetSpellScript() const
+	{
+		return new spell_round_up_horse_SpellScript();
+	}
+};
+
+enum qTHE
+{
+	NPC_MOUNTAIN_HORSE_VEHICLE = 36540,
+	NPC_MOUNTAIN_HORSE_KILL_CREDIT = 36560,
+	SPELL_ROPE_CHANNEL = 68940,
+	SPELL_ROPE_IN_HORSE = 68908,
+};
+
+class npc_round_up_horse : public CreatureScript
+{
+public:
+	npc_round_up_horse() : CreatureScript("npc_round_up_horse") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_round_up_horseAI(creature);
+	}
+
+	struct npc_round_up_horseAI : public ScriptedAI
+	{
+		npc_round_up_horseAI(Creature* creature) : ScriptedAI(creature)
+		{
+			//me->SetReactState(REACT_PASSIVE);
+
+			if (me->isSummon())
+				if (Unit* summoner = me->ToTempSummon()->GetSummoner())
+					if (Player* player = summoner->ToPlayer())
+					{
+						me->GetMotionMaster()->MoveFollow(player, 1.0f, 0.0f);
+						me->SetUInt64Value(UNIT_FIELD_CHANNEL_OBJECT, player->GetGUID());
+						me->SetUInt32Value(UNIT_CHANNEL_SPELL, SPELL_ROPE_CHANNEL);
+
+						if (Creature* horse = player->GetVehicleCreatureBase())
+							horse->AI()->JustSummoned(me);
+					}
+		}
+	};
+};
+
+class npc_mountain_horse_vehicle : public CreatureScript
+{
+public:
+	npc_mountain_horse_vehicle() : CreatureScript("npc_mountain_horse_vehicle") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_mountain_horse_vehicleAI(creature);
+	}
+
+	struct npc_mountain_horse_vehicleAI : public ScriptedAI
+	{
+		npc_mountain_horse_vehicleAI(Creature* creature) : ScriptedAI(creature)
+		{
+			creature->SetReactState(REACT_PASSIVE);
+			lSummons.clear();
+			uiDespawnTimer = 10000;
+			despawn = false;
+		}
+
+		std::vector<Creature*> lSummons;
+		uint32 uiDespawnTimer;
+		uint64 PlayerGUID;
+		bool despawn;
+
+		void OnCharmed(bool /*charm*/)
+		{
+
+		}
+
+		void SpellHit(Unit* /*caster*/, const SpellInfo* spell)
+		{
+			if (spell->Id == SPELL_ROPE_IN_HORSE)
+				me->DespawnOrUnsummon();
+		}
+
+		void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply)
+		{
+			if (apply)
+			{
+				despawn = false;
+
+				if (lSummons.empty())
+					return;
+
+				for (std::vector<Creature*>::const_iterator itr = lSummons.begin(); itr != lSummons.end(); ++itr)
+					if (*itr)
+						(*itr)->DespawnOrUnsummon();
+
+				lSummons.clear();
+			}
+			else
+			{
+				uiDespawnTimer = 10000;
+				despawn = true;
+
+				if (me->FindNearestCreature(36457, 30.0f))
+				{
+					if (lSummons.empty())
+						return;
+
+					Player* player = who->ToPlayer();
+
+					if (!player)
+						return;
+
+					for (std::vector<Creature*>::const_iterator itr = lSummons.begin(); itr != lSummons.end(); ++itr)
+						if (*itr)
+						{
+							player->KilledMonsterCredit(NPC_MOUNTAIN_HORSE_KILL_CREDIT, 0);
+							(*itr)->SetUInt64Value(UNIT_FIELD_CHANNEL_OBJECT, 0);
+							(*itr)->SetUInt32Value(UNIT_CHANNEL_SPELL, 0);
+							(*itr)->DespawnOrUnsummon();
+						}
+
+					lSummons.clear();
+				}
+				else
+				{
+					if (lSummons.empty())
+						return;
+
+					for (std::vector<Creature*>::const_iterator itr = lSummons.begin(); itr != lSummons.end(); ++itr)
+						if (*itr)
+							(*itr)->DespawnOrUnsummon();
+
+					lSummons.clear();
+				}
+			}
+		}
+
+		void JustSummoned(Creature* summoned)
+		{
+			if (summoned->GetEntry() == 36540)
+				lSummons.push_back(summoned);
+		}
+
+		void DespawnAllSummons()
+		{
+			for (std::vector<Creature*>::const_iterator itr = lSummons.begin(); itr != lSummons.end(); ++itr)
+				if (*itr)
+				{
+					(*itr)->DespawnOrUnsummon();
+				}
+			lSummons.clear();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (me->GetVehicleBase() && me->GetVehicleBase()->ToPlayer()->GetQuestStatus(14416) == QUEST_STATUS_COMPLETE) // Player has completed quest so dismount
+			{
+				me->DespawnOrUnsummon();
+			}
+
+			if (me->FindNearestCreature(36457, 10.0f))
+			{
+				if (lSummons.empty())
+					return;
+
+				for (std::vector<Creature*>::const_iterator itr = lSummons.begin(); itr != lSummons.end(); ++itr)
+					if (*itr)
+					{
+						if ((*itr)->ToTempSummon()->GetSummoner())
+						{
+							(*itr)->ToTempSummon()->GetSummoner()->ToPlayer()->KilledMonsterCredit(NPC_MOUNTAIN_HORSE_KILL_CREDIT, 0);
+						}
+						(*itr)->SetUInt64Value(UNIT_FIELD_CHANNEL_OBJECT, 0);
+						(*itr)->SetUInt32Value(UNIT_CHANNEL_SPELL, 0);
+						(*itr)->DespawnOrUnsummon();
+					}
+
+				lSummons.clear();
+			}
+
+			if (despawn)
+			{
+				if (uiDespawnTimer <= diff)
+				{
+					despawn = false;
+					uiDespawnTimer = 10000;
+					me->DespawnOrUnsummon();
+				}
+				else
+					uiDespawnTimer -= diff;
+			}
+		}
+	};
+};
+
+class npc_lorna_ettins : public CreatureScript
+{
+public:
+	npc_lorna_ettins() : CreatureScript("npc_lorna_ettins") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_lorna_ettinsAI(creature);
+	}
+
+	struct npc_lorna_ettinsAI : public ScriptedAI
+	{
+		npc_lorna_ettinsAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void MoveInLineOfSight(Unit* who)
+		{
+			if (who->GetEntry() == 36555)
+			{
+				if (!who->isSummon())
+					return;
+
+				if (who->GetDistance(-2060.90f, 2254.909f, 22.44f) < 7.0f)
+				{
+					if (who->ToTempSummon()->GetSummoner())
+					{
+						who->ToTempSummon()->GetSummoner()->ToPlayer()->KilledMonsterCredit(36555, 0);
+						who->ToTempSummon()->DespawnOrUnsummon();
+					}
+				}
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+enum qTGM
+{
+	QUEST_TO_GREYMANE_MANOR = 14465,
+
+	NPC_SWIFT_MOUNTAIN_HORSE = 36741,
+
+	GO_FIRST_GATE = 196399,
+	GO_SECOND_GATE = 196401,
+
+};
+
+class npc_swift_mountain_horse : public CreatureScript
+{
+public:
+	npc_swift_mountain_horse() : CreatureScript("npc_swift_mountain_horse") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_swift_mountain_horseAI(creature);
+	}
+
+	struct npc_swift_mountain_horseAI : public npc_escortAI
+	{
+		npc_swift_mountain_horseAI(Creature* creature) : npc_escortAI(creature)
+		{
+			//me->SetReactState(REACT_PASSIVE);
+		}
+
+		bool PlayerOn;
+
+		void Reset()
+		{
+			PlayerOn = false;
+		}
+
+		void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply)
+		{
+			if (who->GetTypeId() == TYPEID_PLAYER)
+			{
+				PlayerOn = true;
+				if (apply)
+				{
+					Start(false, true, who->GetGUID());
+				}
+			}
+		}
+
+		void WaypointReached(uint32 point)
+		{
+			Player* player = GetPlayerForEscort();
+
+			switch (point)
+			{
+			case 4:
+				if (GameObject* go = me->FindNearestGameObject(GO_FIRST_GATE, 30.0f))
+					go->UseDoorOrButton();
+				break;
+			case 8:
+				if (GameObject* go = me->FindNearestGameObject(GO_SECOND_GATE, 30.0f))
+					go->UseDoorOrButton();
+				break;
+			case 9:
+				if (me->isSummon())
+					if (Unit* summoner = me->ToTempSummon()->GetSummoner())
+						if (Player* player = summoner->ToPlayer())
+						{
+							WorldLocation loc;
+							loc.m_mapId = 654;
+							loc.m_positionX = -1586.57f;
+							loc.m_positionY = 2551.24f;
+							loc.m_positionZ = 130.218f;
+							player->SetHomebind(loc, 817);
+							player->CompleteQuest(14465);
+							player->SetPhaseMask(6, true);
+							player->SaveToDB();
+						}
+				me->DespawnOrUnsummon();
+				break;
+			}
+		}
+
+		void OnCharmed(bool /*apply*/)
+		{
+		}
+
+		void UpdateAI(const uint32 diff)
+		{
+			npc_escortAI::UpdateAI(diff);
+			Player* player = GetPlayerForEscort();
+
+			if (PlayerOn)
+			{
+				player->SetClientControl(me, 0);
+				PlayerOn = false;
+			}
+		}
+	};
+};
+
+class npc_gwen_armstead : public CreatureScript
+{
+public:
+	npc_gwen_armstead() : CreatureScript("npc_gwen_armstead") { }
+
+	bool OnQuestAccept(Player* player, Creature* /*creature*/, Quest const* quest)
+	{
+		if (quest->GetQuestId() == 14465)
+		{
+			if (Creature* horse = player->SummonCreature(36741, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetOrientation(), TEMPSUMMON_MANUAL_DESPAWN))
+			{
+				if (player->GetShapeshiftForm() == FORM_CAT || FORM_BEAR)
+				{
+					player->RemoveAura(768); // Cat Form
+					player->RemoveAura(5487);
+				}
+				horse->SetPhaseMask(6, true);
+				player->SetPhaseMask(6, true);
+				player->EnterVehicle(horse, 0);
+				player->CastCustomSpell(VEHICLE_SPELL_RIDE_HARDCODED, SPELLVALUE_BASE_POINT0, 1, horse, false);
+				CAST_AI(npc_escortAI, (horse->AI()))->Start(false, true, player->GetGUID(), quest);
+				player->SaveToDB();
+			}
+		}
+		return true;
+	}
+};
+
+/*######
+## Quest The King's Observatory 14466, Alas, Gilneas! 14467
+######*/
+
+enum qTKO_AG
+{
+	QUEST_THE_KINGS_OBSERVATORY = 14466,
+	QUEST_ALAS_GILNEAS = 14467,
+	QUEST_EXODUS = 24438,
+
+	SPELL_CATACLYSM_TYPE_1 = 80133,
+	SPELL_CATACLYSM_TYPE_2 = 68953,
+	SPELL_CATACLYSM_TYPE_3 = 80134,
+
+	CINEMATIC_TELESCOPE = 167,
+};
+
+class npc_king_genn_greymane_c3 : public CreatureScript
+{
+public:
+	npc_king_genn_greymane_c3() : CreatureScript("npc_king_genn_greymane_c3") { }
+
+	bool OnQuestComplete(Player* player, Creature* /*creature*/, Quest const* quest)
+	{
+		if (quest->GetQuestId() == QUEST_THE_KINGS_OBSERVATORY)
+		{
+			player->CastSpell(player, SPELL_CATACLYSM_TYPE_3, true);
+			player->GetSession()->SendPhaseShift_Override(0, 656);
+			player->SaveToDB();
+		}
+
+		if (quest->GetQuestId() == QUEST_ALAS_GILNEAS)
+			player->SendCinematicStart(CINEMATIC_TELESCOPE);
+
+		return true;
+	}
+
+	bool OnQuestAccept(Player* player, Creature* /*creature*/, Quest const* quest)
+	{
+		if (quest->GetQuestId() == QUEST_EXODUS)
+		{
+			//player->RemoveAura(SPELL_ZONE_SPECIFIC_19);
+			player->RemoveAura(99488);
+			player->RemoveAura(69484);
+			player->RemoveAura(68481);
+			player->RemoveAura(68243);
+			player->RemoveAura(59087);
+			player->RemoveAura(59074);
+			player->RemoveAura(59073);
+			//player->CastSpell(player, SPELL_ZONE_SPECIFIC_11, true);
+			player->SaveToDB();
+		}
+
+		return true;
+	}
+};
+
 
 void AddSC_gilneas()
 {
@@ -3049,11 +4493,33 @@ void AddSC_gilneas()
     new npc_king_genn_greymane_c2();
     new npc_crowley_horse();
     new spell_keg_placed();
-    new npc_horrid_abomination();
     new npc_greymane_horse();
     new npc_krennan_aranas_c2();
     new npc_lord_godfrey_p4_8();
     new npc_commandeered_cannon();
     new npc_bloodfang_stalker_c1();
     new npc_gilnean_crow();
+	//Duskhaven
+	new go_mandragore();
+	new npc_slain_watchman();
+	new npc_gwen_armstead_phase_6();
+	new npc_horrid_abomination();
+	new npc_prince_liam_greymane_dh();
+	new npc_forsaken_catapult_qtbs();
+	new npc_james();
+	new npc_ashley();
+	new npc_cynthia();
+	new npc_dark_ranger_thyala();
+    new spell_call_attack_mastiffs();
+	new npc_attack_mastiff();
+	new npc_lord_godfrey_phase_7();
+	new npc_drowning_watchman();
+	new npc_prince_liam_greymane();
+	new npc_round_up_horse();
+	new npc_mountain_horse_vehicle();
+	new spell_round_up_horse();
+	new npc_lorna_ettins();
+	new npc_gwen_armstead();
+	new npc_swift_mountain_horse();
+	new npc_king_genn_greymane_c3();
 }

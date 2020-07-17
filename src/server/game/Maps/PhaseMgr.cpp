@@ -259,6 +259,7 @@ void PhaseData::SendPhaseshiftToPlayer()
     // Client side update
     std::set<uint32> phaseIds;
     std::set<uint32> terrainswaps;
+	std::set<uint32> worldmapareas;
 
     for (PhaseInfoContainer::const_iterator itr = spellPhaseInfo.begin(); itr != spellPhaseInfo.end(); ++itr)
     {
@@ -279,7 +280,7 @@ void PhaseData::SendPhaseshiftToPlayer()
             terrainswaps.insert((*itr)->terrainswapmap);
     }
 
-    player->GetSession()->SendSetPhaseShift(phaseIds, terrainswaps);
+    player->GetSession()->SendSetPhaseShift(phaseIds, terrainswaps, worldmapareas);
 }
 
 void PhaseData::AddPhaseDefinition(PhaseDefinition const* phaseDefinition)

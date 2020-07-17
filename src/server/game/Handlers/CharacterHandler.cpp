@@ -1158,6 +1158,43 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     pCurrChar->CastMasterySpells(pCurrChar);
 
+	if (pCurrChar)
+	{
+		QueryResult result = CharacterDatabase.PQuery("SELECT phaseMask FROM character_phase WHERE guid = '%u'", GetGuidLow());
+
+		if (result)
+		{
+			do
+			{
+				Field* fields = result->Fetch();
+
+				uint32 phaseMaskId = fields[0].GetUInt32();
+
+				if (phaseMaskId > 0)
+				{
+					pCurrChar->SetPhaseMask(phaseMaskId, true);
+				}
+				else
+				{
+					pCurrChar->SetPhaseMask(1, true);
+				}
+			} while (result->NextRow());
+		}
+	}
+
+	//Set terrainswaps
+	if (pCurrChar->GetMapId() == 654) // Gilneas
+	{
+		if (pCurrChar->GetQuestStatus(14386) == QUEST_STATUS_REWARDED)
+		{
+			pCurrChar->GetSession()->SendPhaseShift_Override(0, 655);
+		}
+		if (pCurrChar->GetQuestStatus(14466) == QUEST_STATUS_REWARDED)
+		{
+			pCurrChar->GetSession()->SendPhaseShift_Override(0, 656);
+		}
+	}
+
     sScriptMgr->OnPlayerLogin(pCurrChar);
     delete holder;
 }

@@ -396,6 +396,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recvData*/)
     if (GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) || GetPlayer()->isInFlight() ||
         GetSecurity() >= AccountTypes(sWorld->getIntConfig(CONFIG_INSTANT_LOGOUT)))
     {
+		GetPlayer()->_SaveCurrentPhase();
         WorldPacket data(SMSG_LOGOUT_RESPONSE, 1+4);
         data << uint8(0);
         data << uint32(16777216);
@@ -416,6 +417,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recvData*/)
         GetPlayer()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
     }
 
+	GetPlayer()->_SaveCurrentPhase();
     WorldPacket data(SMSG_LOGOUT_RESPONSE, 1+4);
     data << uint8(0);
     data << uint32(0);
@@ -1717,51 +1719,110 @@ void WorldSession::HandleReadyForAccountDataTimes(WorldPacket& /*recvData*/)
     SendAccountDataTimes(GLOBAL_CACHE_MASK);
 }
 
-void WorldSession::SendSetPhaseShift(std::set<uint32> const& phaseIds, std::set<uint32> const& terrainswaps)
+void WorldSession::SendSetPhaseShift(std::set<uint32> const& phaseIds, std::set<uint32> const& terrainswaps, std::set<uint32> const& worldmaps)
 {
-    WorldPacket data(SMSG_SET_PHASE_SHIFT, 1 + 8 + 4 + 4 + 4 + 4 + 2 * phaseIds.size() + 4 + terrainswaps.size() * 2);
-    data << uint64(_player->GetGUID());
-    data.WriteBit(2);
-    data.WriteBit(3);
-    data.WriteBit(1);
-    data.WriteBit(6);
-    data.WriteBit(4);
-    data.WriteBit(5);
-    data.WriteBit(0);
-    data.WriteBit(7);
+    uint64 guid = _player->GetGUID();
 
-    data.WriteByteSeq(7);
-    data.WriteByteSeq(4);
+    // Note: As the actual values are sent as uint16, just remember to not set any of the 4 over 65535 (uint16 maximum), even if the DB table allows it.
+    // Note 2:     // In sniffs these phase ID's are seen like this:
+  /*| PhaseMask | PhaseID |
+    |         1 |     169 |
+    |         2 |     170 |
+    |         4 |     171 |
+    |         8 |     172 |
+    |        16 |     173 |
+    |        32 |     174 |
+    |        64 |     175 |
+    |       128 |     176 |
+    |       256 |     177 | */
 
-    data << uint32(0);
-    //for (uint8 i = 0; i < worldMapAreaCount; ++i)
-    //    data << uint16(0);                    // WorldMapArea.dbc id (controls map display)
+    bool hasPhases = phaseIds.empty() ? false : true;
 
-    data.WriteByteSeq(1);
+    uint32 phaseFlags         = hasPhases ? 0x10 : 0x8;  // In sniffs, if phasesCount is 0 (player in default / all - map phase), 0x8. Specific: 0x10.
 
-    data << uint32(phaseIds.size() ? 0 : 8);  // flags (not phasemask)
+    uint32 phasesCount        = hasPhases ? phaseIds.size() : 0;
+    uint32 activeSwapsCount   = terrainswaps.empty() ? 0 : terrainswaps.size();
+    uint32 worldMapAreas      = worldmaps.empty() ? 0 : worldmaps.size();
+    uint32 inactiveSwapsCount = 0; // Not implemented yet. These and Active swaps "shift" on off based on player zoning (in / out).
 
-    data.WriteByteSeq(2);
-    data.WriteByteSeq(6);
+    WorldPacket data(SMSG_SET_PHASE_SHIFT, 1 + 8 + 4 + 4 + 4 + 4 + phaseIds.size() * 2 + 2 + terrainswaps.size() * 2 + 2 + worldmaps.size() * 2 + 2);
 
-    data << uint32(0);                          // Inactive terrain swaps
-    //for (uint8 i = 0; i < inactiveSwapsCount; ++i)
-    //    data << uint16(0);
+    // Phase flags - Flags 0x8 and 0x10 are related to areatriggers and affected areas.
+    data << uint32(phaseFlags);     // Flags.
 
-    data << uint32(phaseIds.size()) * 2;        // Phase.dbc ids
-    for (std::set<uint32>::const_iterator itr = phaseIds.begin(); itr != phaseIds.end(); ++itr)
-        data << uint16(*itr);
+    // Phases the player is in - Phase.dbc IDs.
+    data << uint32(phasesCount * 2);
+    if (hasPhases)    
+        for (std::set<uint32>::const_iterator itr = phaseIds.begin(); itr != phaseIds.end(); ++itr)
+            data << uint16(*itr);
 
-    data.WriteByteSeq(3);
-    data.WriteByteSeq(0);
+    // Map (M) display control - WorldMapArea.dbc IDs.
+    data << uint32(worldMapAreas * 2);
+    if (worldMapAreas > 0)
+        for (std::set<uint32>::const_iterator itr = worldmaps.begin(); itr != worldmaps.end(); ++itr)
+            data << uint16(*itr);
 
-    data << uint32(terrainswaps.size()) * 2;    // Active terrain swaps
-    for (std::set<uint32>::const_iterator itr = terrainswaps.begin(); itr != terrainswaps.end(); ++itr)
-        data << uint16(*itr);
+    // Active terrain swaps.
+    data << uint32(activeSwapsCount * 2);
+    if (activeSwapsCount > 0)
+        for (std::set<uint32>::const_iterator itr = terrainswaps.begin(); itr != terrainswaps.end(); ++itr)
+            data << uint16(*itr);
 
-    data.WriteByteSeq(5);
+    // Inactive terrain swaps.
+    data << uint32(inactiveSwapsCount);
+    // if (inactiveSwapsCount > 0)
+        // for (uint8 i = 0; i < inactiveSwapsCount; ++i)
+            // data << uint16(0);
+
+	data.WriteBit(4);
+	data.WriteBit(6);
+	data.WriteBit(1);
+	data.WriteBit(7);
+	data.WriteBit(2);
+	data.WriteBit(0);
+	data.WriteBit(5);
+	data.WriteBit(3);
+
+    data.FlushBits();
+
+	data.WriteByteSeq(0);
+	data.WriteByteSeq(4);
+	data.WriteByteSeq(7);
+	data.WriteByteSeq(6);
+	data.WriteByteSeq(3);
+	data.WriteByteSeq(5);
+	data.WriteByteSeq(1);
+	data.WriteByteSeq(2);
 
     SendPacket(&data);
+}
+
+void WorldSession::SendPhaseShift_Override(uint32 PhaseShift, uint32 MapID)
+{
+	if (!_player)
+		return;
+
+	WorldPacket data(SMSG_SET_PHASE_SHIFT, 4);
+	data << uint64(_player->GetGUID());
+	data << uint32(0);          // Count of bytes - Array1 - Unused
+	data << uint32(0);          // Count of bytes - Array2 - TerrainSwap, unused.
+
+	data << uint32(2);          // Count of bytes - Array3 - Phases
+	data << uint16(PhaseShift);
+
+	if (MapID)
+	{
+		data << uint32(2);          // Count of bytes - Array4 - TerrainSwap
+		data << uint16(MapID);
+	}
+	else
+		data << uint32(0);
+
+	if (!PhaseShift)
+		data << uint32(0x08);
+	else
+		data << uint32(0);          // Flags (seem to be from Phase.dbc, not really sure)
+	SendPacket(&data);
 }
 
 //Battlefield and Battleground

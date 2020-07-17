@@ -61,6 +61,7 @@ public:
             { "qinvalidmsg",   SEC_ADMINISTRATOR,  false, &HandleDebugSendQuestInvalidMsgCommand, "", NULL },
             { "sellerror",     SEC_ADMINISTRATOR,  false, &HandleDebugSendSellErrorCommand,      "", NULL },
             { "setphaseshift", SEC_ADMINISTRATOR,  false, &HandleDebugSendSetPhaseShiftCommand,  "", NULL },
+			{ "phaseshift",	   SEC_ADMINISTRATOR,  false, &HandleDebugSendPhaseShiftCommand,  "", NULL },
             { "spellfail",     SEC_ADMINISTRATOR,  false, &HandleDebugSendSpellFailCommand,      "", NULL },
             { NULL,             0,                  false, NULL,                                  "", NULL }
         };
@@ -949,21 +950,47 @@ public:
 
         char* t = strtok((char*)args, " ");
         char* p = strtok(NULL, " ");
+		char* w = strtok(NULL, " ");
 
         if (!t)
             return false;
 
         std::set<uint32> terrainswap;
         std::set<uint32> phaseId;
+		std::set<uint32> worldmap;
 
         terrainswap.insert((uint32)atoi(t));
 
         if (p)
             phaseId.insert((uint32)atoi(p));
 
-        handler->GetSession()->SendSetPhaseShift(phaseId, terrainswap);
+		if (w)
+			worldmap.insert((uint32)atoi(w));
+
+        handler->GetSession()->SendSetPhaseShift(phaseId, terrainswap, worldmap);
         return true;
     }
+
+	static bool HandleDebugSendPhaseShiftCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
+
+		char* t = strtok((char*)args, " ");
+		char* p = strtok(NULL, " ");
+
+		if (!t)
+			return false;
+
+		if (!p)
+			return false;
+
+		uint32 phaseId = (uint32)atoi(t);
+		uint32 mapId = (uint32)atoi(p);
+
+		handler->GetSession()->SendPhaseShift_Override(phaseId, mapId);
+		return true;
+	}
 
     static bool HandleDebugGetItemValueCommand(ChatHandler* handler, char const* args)
     {

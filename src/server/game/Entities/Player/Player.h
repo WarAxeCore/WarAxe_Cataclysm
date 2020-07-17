@@ -1356,6 +1356,7 @@ class Player : public Unit, public GridObject<Player>
 
         time_t GetTimeInnEnter() const { return time_inn_enter; }
         void UpdateInnerTime (time_t time) { time_inn_enter = time; }
+		void CheckPhaseShift();
 
         Pet* GetPet() const;
         Pet* SummonPet(uint32 entry, float x, float y, float z, float ang, PetType petType, uint32 despwtime, PetSlot slotID = PET_SLOT_UNK_SLOT);
@@ -1456,11 +1457,14 @@ class Player : public Unit, public GridObject<Player>
 
         void SendCurrencies() const;
         uint32 GetCurrency(uint32 id) const;
+		void GetReturnPhaseDB();
         bool HasCurrency(uint32 id, uint32 count) const;
         void SetCurrency(uint32 id, uint32 count);
         void ModifyCurrency(uint32 id, int32 count);
 
         void ApplyEquipCooldown(Item* pItem);
+
+		uint32 _realPhase;
 
         void QuickEquipItem(uint16 pos, Item *pItem);
         void VisualizeItem(uint8 slot, Item *pItem);
@@ -2836,6 +2840,7 @@ class Player : public Unit, public GridObject<Player>
         void _SaveTalents(SQLTransaction& trans);
         void _SaveTalentBranchSpecs(SQLTransaction& trans);
         void _SaveCurrency();
+		void _SaveCurrentPhase();
         void _SaveConquestPointsWeekCap();
         void _SaveStats(SQLTransaction& trans);
         void _SaveInstanceTimeRestrictions(SQLTransaction& trans);

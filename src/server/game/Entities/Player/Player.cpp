@@ -7848,6 +7848,196 @@ void Player::UpdateArea(uint32 newArea)
 
     UpdateAreaDependentAuras(newArea);
 
+	if (newArea != 5428)
+	{
+		if (GetPhaseMask() == 14482 || GetPhaseMask() == 14484 || GetPhaseMask() == 14486 || GetPhaseMask() == 14488
+			|| GetPhaseMask() == 14490 || GetPhaseMask() == 14492 || GetPhaseMask() == 14494 || GetPhaseMask() == 14496
+			|| GetPhaseMask() == 14498)
+		{
+			SetPhaseMask(1, true); // Set back to normal phase
+		}
+	}
+	if (newArea != 5429)
+	{
+		if (GetPhaseMask() == 14482 || GetPhaseMask() == 14484 || GetPhaseMask() == 14486 || GetPhaseMask() == 14488
+			|| GetPhaseMask() == 14490 || GetPhaseMask() == 14492 || GetPhaseMask() == 14494 || GetPhaseMask() == 14496
+			|| GetPhaseMask() == 14498)
+		{
+			SetPhaseMask(1, true); // Set back to normal phase
+		}
+	}
+
+	//Set Player Phases for Portals that are open for players in Eastern/Western Shrines
+	// Phase Information:
+	// Phase 14482 = No quest completion, no portals
+	// Phase 14484 = Vashj'ir quest completed no others, Vashj'ir portal only in this phase
+	// Phase 14486 = Vashj'ir, HYJAL quest completed no others
+	// Phase 14488 = Vashj'ir, HYJAL, deepholm quest completed no others
+	// Phase 14490 = Vashj'ir, HYJAL, deepholm, uldum quest completed no others
+	// Phase 1 = Vashj'ir, HYJAL, deepholm, uldum, twilight highlands quest completed no others
+	enum PortalIDs
+	{
+		A_PORTAL_TO_VASHJIR = 207691,
+		A_PORTAL_TO_HIGHLANDS = 402330,
+		PORTAL_TO_HYJAL = 207688,
+		PORTAL_TO_ULDUM = 402329,
+		PORTAL_TO_DEEPHOLM = 207689,
+		H_PORTAL_TO_VASHJIR = 207692,
+		H_PORTAL_TO_HIGHLANDS = 402328
+	};
+	if (newArea == 5428) // Eastern Earthshrine
+	{
+		//Player has no portals open
+		// Phase 14482
+		if (GetQuestStatus(14482) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14482, true);
+		}
+		// Phase 14484 - Vashj'ir portal open
+		if (GetQuestStatus(14482) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14484, true);
+		}
+		// Phase 14486 - Vashj'ir, Hyjal portal open
+		if (GetQuestStatus(14482) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14486, true);
+		}
+		// Phase 14488 - Vashj'ir, Hyjal, Deepholm, portal open
+		if (GetQuestStatus(14482) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14488, true);
+		}
+		// Phase 14490 - Vashj'ir, Hyjal, Deepholm, uldum portal open
+		if (GetQuestStatus(14482) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14490, true);
+		}
+		// Phase 1 - Vashj'ir, Hyjal, Deepholm, uldum, twilight highlands portal open
+		if (GetQuestStatus(14482) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27537) == QUEST_STATUS_REWARDED)
+		{
+			SetPhaseMask(1, true);
+		}
+		//
+		//
+		// Phase 14492 - Hyjal Open
+		if (GetQuestStatus(14482) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14492, true);
+		}
+		// Phase 14494 - Hyjal, Deepholm Open
+		if (GetQuestStatus(14482) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14494, true);
+		}
+		// Phase 14496 - Hyjal, Deepholm, Uldum Open
+		if (GetQuestStatus(14482) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27537) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14496, true);
+		}
+		// Phase 14498 - Hyjal, Deepholm, Uldum, Twilight Highlands Open
+		if (GetQuestStatus(14482) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27537) == QUEST_STATUS_REWARDED)
+		{
+			SetPhaseMask(14498, true);
+		}
+	}
+	if (newArea == 5429) // Western Earthshrine
+	{
+		//Player has no portals open
+		// Phase 14482
+		if (GetQuestStatus(25924) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14482, true);
+		}
+		// Phase 14484 - Vashj'ir portal open
+		if (GetQuestStatus(25924) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_NONE
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14484, true);
+		}
+		// Phase 14486 - Vashj'ir, Hyjal portal open
+		if (GetQuestStatus(25924) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14486, true);
+		}
+		// Phase 14488 - Vashj'ir, Hyjal, Deepholm, portal open
+		if (GetQuestStatus(25924) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14488, true);
+		}
+		// Phase 14490 - Vashj'ir, Hyjal, Deepholm, uldum portal open
+		if (GetQuestStatus(25924) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14490, true);
+		}
+		// Phase 1 - Vashj'ir, Hyjal, Deepholm, uldum, twilight highlands portal open
+		if (GetQuestStatus(25924) == QUEST_STATUS_REWARDED && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(26784) == QUEST_STATUS_REWARDED)
+		{
+			SetPhaseMask(1, true);
+		}
+		//
+		//
+		// Phase 14492 - Hyjal Open
+		if (GetQuestStatus(25924) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_NONE && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14492, true);
+		}
+		// Phase 14494 - Hyjal, Deepholm Open
+		if (GetQuestStatus(25924) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_NONE
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14494, true);
+		}
+		// Phase 14496 - Hyjal, Deepholm, Uldum Open
+		if (GetQuestStatus(25924) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(26784) == QUEST_STATUS_NONE)
+		{
+			SetPhaseMask(14496, true);
+		}
+		// Phase 14498 - Hyjal, Deepholm, Uldum, Twilight Highlands Open
+		if (GetQuestStatus(25924) == QUEST_STATUS_NONE && GetQuestStatus(25316) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(27123) == QUEST_STATUS_REWARDED && GetQuestStatus(28112) == QUEST_STATUS_REWARDED
+			&& GetQuestStatus(26784) == QUEST_STATUS_REWARDED)
+		{
+			SetPhaseMask(14498, true);
+		}
+	}
+
     // previously this was in UpdateZone (but after UpdateArea) so nothing will break
     pvpInfo.inNoPvPArea = false;
     if (area && area->IsSanctuary())    // in sanctuary
@@ -20454,6 +20644,34 @@ void Player::_SaveConquestPointsWeekCap()
     {
         CharacterDatabase.PExecute("INSERT INTO character_cp_weekcap (guid, source, maxWeekRating, weekCap) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), source, _maxWeekRating[source], _conquestPointsWeekCap[source]);
     }
+}
+
+void Player::GetReturnPhaseDB()
+{
+	uint32 playerGUID = GetGUIDLow();
+	_realPhase = 1;
+
+	QueryResult result2 = CharacterDatabase.PQuery("SELECT phaseMask FROM character_phase WHERE guid = '%u'", playerGUID);
+	if (!result2)
+	{
+		_realPhase = 1;
+	}
+
+	do
+	{
+		Field *fields = result2->Fetch();
+		uint32 phaseMask = fields[0].GetUInt32();
+		_realPhase = phaseMask;
+	} while (result2->NextRow());
+}
+
+void Player::_SaveCurrentPhase()
+{
+	// Delete any phases from this previous guid
+	CharacterDatabase.PExecute("DELETE FROM character_phase WHERE guid = '%u'", GetGUIDLow());
+
+	//Now Insert it into the DB
+	CharacterDatabase.PExecute("REPLACE INTO character_phase SET guid = '%u', phaseMask = '%u'", GetGUIDLow(), GetPhaseMask());
 }
 
 // save player stats -- only for external usage
