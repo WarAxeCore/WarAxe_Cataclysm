@@ -2906,7 +2906,7 @@ public:
 			player->RemoveAura(72870);
 			player->CastSpell(player, 93477, true);
 			player->CastSpell(player, 94293, true);
-			player->CastSpell(player, 68996, true);
+			//player->CastSpell(player, 68996, true);
 			player->CastSpell(player, 69196, true);
 			player->CastSpell(player, 72788, true);
 			player->CastSpell(player, 72857, true);
@@ -4452,6 +4452,8 @@ public:
 			player->RemoveAura(59074);
 			player->RemoveAura(59073);
 			//player->CastSpell(player, SPELL_ZONE_SPECIFIC_11, true);
+			player->GetSession()->SendPhaseShift_Override(0, 656);
+			player->TeleportTo(654, -2224.82f, 1826.68f, 13.20f, 5.0f);
 			player->SaveToDB();
 		}
 
@@ -4459,6 +4461,544 @@ public:
 	}
 };
 
+/*######
+## Quest Introductions Are in Order 24472
+######*/
+
+enum qIAO
+{
+	QUEST_INTRODUCTIONS_ARE_IN_ORDER = 24472,
+
+	NPC_KOROTH_THE_HILLBREAKER_QIAO = 36294,
+	NPC_KOROTH_THE_HILLBREAKER_QIAO_FRIEND = 37808,
+	NPC_CAPTAIN_ASTHER_QIAO = 37806,
+	NPC_FORSAKEN_SOLDIER_QIAO = 37805,
+	NPC_FORSAKEN_CATAPULT_QIAO = 37807,
+
+	KOROTH_YELL_WHO_STEAL_BANNER = 0,
+	KOROTH_YELL_FIND_YOU = 1,
+	LIAN_SAY_HERE_FORSAKEN = 0,
+	LIAM_YELL_YOU_CANT = 1,
+	CAPITAN_YELL_WILL_ORDER = -1977089,
+	KOROTH_YELL_MY_BANNER = 0,
+
+	SPELL_PUSH_BANNER = 70511,
+	SPELL_CLEAVE = 16044,
+	SPELL_DEMORALIZING_SHOUT_QIAO = 16244,
+
+	POINT_BANNER = 1,
+	ACTION_KOROTH_ATTACK = 2,
+};
+
+struct Psc_qiao
+{
+	uint64 uiPlayerGUID;
+	uint64 uiCapitanGUID;
+	uint32 uiEventTimer;
+	uint8 uiPhase;
+};
+
+struct sSoldier
+{
+	Creature* soldier;
+	float follow_angle;
+	float follow_dist;
+};
+
+const float AstherWP[18][3] =
+{
+	{ -2129.99f, 1824.12f, 25.234f }, { -2132.93f, 1822.23f, 23.984f }, { -2135.81f, 1820.23f, 22.770f },
+	{ -2138.72f, 1818.29f, 21.595f }, { -2141.77f, 1816.57f, 20.445f }, { -2144.88f, 1814.96f, 19.380f },
+	{ -2147.19f, 1813.85f, 18.645f }, { -2150.51f, 1812.73f, 17.760f }, { -2153.88f, 1811.80f, 16.954f },
+	{ -2157.28f, 1810.95f, 16.194f }, { -2160.69f, 1810.20f, 15.432f }, { -2164.12f, 1809.46f, 14.688f },
+	{ -2167.55f, 1808.81f, 13.961f }, { -2171.01f, 1808.27f, 13.316f }, { -2174.32f, 1808.00f, 12.935f },
+	{ -2177.11f, 1807.75f, 12.717f }, { -2179.79f, 1807.67f, 12.573f }, { -2183.06f, 1807.59f, 12.504f },
+};
+
+const float KorothWP[14][3] =
+{
+	{ -2213.64f, 1863.51f, 15.404f }, { -2212.69f, 1860.14f, 15.302f }, { -2211.15f, 1853.31f, 15.078f },
+	{ -2210.39f, 1849.90f, 15.070f }, { -2209.11f, 1845.65f, 15.377f }, { -2206.19f, 1839.29f, 15.147f },
+	{ -2204.92f, 1836.03f, 14.420f }, { -2203.76f, 1832.73f, 13.432f }, { -2201.68f, 1826.04f, 12.296f },
+	{ -2200.68f, 1822.69f, 12.194f }, { -2199.22f, 1818.77f, 12.175f }, { -2196.29f, 1813.86f, 12.253f },
+	{ -2192.46f, 1811.06f, 12.445f }, { -2186.79f, 1808.90f, 12.513f },
+};
+
+
+class npc_koroth_the_hillbreaker_qiao_friend : public CreatureScript
+{
+public:
+	npc_koroth_the_hillbreaker_qiao_friend() : CreatureScript("npc_koroth_the_hillbreaker_qiao_friend") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_koroth_the_hillbreaker_qiao_friendAI(creature);
+	}
+
+	struct npc_koroth_the_hillbreaker_qiao_friendAI : public npc_escortAI
+	{
+		npc_koroth_the_hillbreaker_qiao_friendAI(Creature* creature) : npc_escortAI(creature)
+		{
+			me->setActive(true);
+			me->SetReactState(REACT_PASSIVE);
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+			uiCleaveTimer = 250;
+			uiDemoralizingShoutTimer = 500;
+
+			if (me->isSummon())
+			{
+				for (int i = 0; i < 14; ++i)
+					AddWaypoint(i, KorothWP[i][0], KorothWP[i][1], KorothWP[i][2]);
+
+				Start();
+				SetRun(true);
+			}
+		}
+
+		uint32 uiCleaveTimer;
+		uint32 uiDemoralizingShoutTimer;
+
+		void FinishEscort()
+		{
+			if (me->isSummon())
+				if (Unit* summoner = me->ToTempSummon()->GetSummoner())
+				{
+					me->SetReactState(REACT_AGGRESSIVE);
+					me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+					if (Creature* capitan = summoner->ToCreature())
+						capitan->AI()->DoAction(ACTION_KOROTH_ATTACK);
+
+					/*  if (summoner->isSummon())
+					if (Unit* _summoner = summoner->ToTempSummon()->GetSummoner())
+					if (Player* player = _summoner->ToPlayer())*/
+					me->MonsterYell("Corpse-men take Koroth's banner! Corpse-men get smashed to bitses!!!!", 0, 0);
+				}
+		}
+		void WaypointReached(uint32 /*point*/) { }
+
+		void UpdateAI(uint32 const diff)
+		{
+			npc_escortAI::UpdateAI(diff);
+
+			if (!UpdateVictim())
+				return;
+
+			if (uiCleaveTimer <= diff)
+			{
+				uiCleaveTimer = urand(2500, 15000);
+				DoCastVictim(SPELL_CLEAVE);
+			}
+			else
+				uiCleaveTimer -= diff;
+
+			if (uiDemoralizingShoutTimer <= diff)
+			{
+				uiDemoralizingShoutTimer = 5000;
+				DoCast(SPELL_DEMORALIZING_SHOUT_QIAO);
+			}
+			else
+				uiDemoralizingShoutTimer -= diff;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+class npc_captain_asther_qiao : public CreatureScript
+{
+public:
+	npc_captain_asther_qiao() : CreatureScript("npc_captain_asther_qiao") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_captain_asther_qiaoAI(creature);
+	}
+
+	struct npc_captain_asther_qiaoAI : public npc_escortAI
+	{
+		npc_captain_asther_qiaoAI(Creature* creature) : npc_escortAI(creature)
+		{
+			me->setActive(true);
+			uiKorothGUID = 0;
+			lSoldiers.clear();
+			me->SetReactState(REACT_PASSIVE);
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+
+			if (me->isSummon())
+				StartEvent();
+		}
+
+		std::list<sSoldier> lSoldiers;
+		uint64 uiKorothGUID;
+
+		void JustDied(Unit* /*who*/)
+		{
+			me->DespawnOrUnsummon(15000);
+
+			if (Creature* koroth = Unit::GetCreature(*me, uiKorothGUID))
+				koroth->DespawnOrUnsummon(15000);
+
+			if (lSoldiers.empty())
+				return;
+
+			for (std::list<sSoldier>::iterator itr = lSoldiers.begin(); itr != lSoldiers.end(); ++itr)
+			{
+				Creature* soldier = itr->soldier;
+				soldier->DespawnOrUnsummon(15000);
+			}
+		}
+
+		void DoAction(int32 const action)
+		{
+			if (action == ACTION_KOROTH_ATTACK)
+				if (Creature* koroth = Unit::GetCreature(*me, uiKorothGUID))
+				{
+					me->SetReactState(REACT_AGGRESSIVE);
+					me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+					AttackStart(koroth);
+					me->AddThreat(koroth, 100500);
+					koroth->AddThreat(me, 100500);
+					float x, y, z;
+					koroth->GetNearPoint(koroth, x, y, z, 0.0f, 1.0f, koroth->GetOrientation() + M_PI);
+					me->GetMotionMaster()->MoveCharge(x, y, z);
+
+					if (lSoldiers.empty())
+						return;
+
+					for (std::list<sSoldier>::iterator itr = lSoldiers.begin(); itr != lSoldiers.end(); ++itr)
+					{
+						Creature* soldier = itr->soldier;
+						soldier->SetReactState(REACT_AGGRESSIVE);
+						soldier->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+						soldier->AI()->AttackStart(koroth);
+						soldier->AddThreat(koroth, 100500);
+
+						if (soldier->GetEntry() == NPC_FORSAKEN_CATAPULT_QIAO)
+						{
+							koroth->AddThreat(soldier, 200500);
+							koroth->AI()->AttackStart(soldier);
+							continue;
+						}
+
+						koroth->AddThreat(soldier, 10000);
+						soldier->GetMotionMaster()->MoveCharge(x, y, z);
+					}
+				}
+		}
+
+		void StartMoveTo(float x, float y, float z)
+		{
+			if (lSoldiers.empty())
+				return;
+
+			float pathangle = atan2(me->GetPositionY() - y, me->GetPositionX() - x);
+
+			for (std::list<sSoldier>::iterator itr = lSoldiers.begin(); itr != lSoldiers.end(); ++itr)
+			{
+				Creature* member = itr->soldier;
+
+				if (!member->isAlive() || member->getVictim())
+					continue;
+
+				float angle = itr->follow_angle;
+				float dist = itr->follow_dist;
+
+				float dx = x - std::cos(angle + pathangle) * dist;
+				float dy = y - std::sin(angle + pathangle) * dist;
+				float dz = z;
+
+				SkyFire::NormalizeMapCoord(dx);
+				SkyFire::NormalizeMapCoord(dy);
+
+				member->UpdateGroundPositionZ(dx, dy, dz);
+
+				if (member->IsWithinDist(me, dist + 5.0f))
+					member->SetUnitMovementFlags(me->GetUnitMovementFlags());
+				else
+					member->RemoveUnitMovementFlag(MOVEMENTFLAG_WALKING);
+
+				member->GetMotionMaster()->MovePoint(0, dx, dy, dz);
+				member->SetHomePosition(dx, dy, dz, pathangle);
+			}
+		}
+
+		void SummonSoldier(uint64 guid, uint32 SoldierEntry, float dist, float angle)
+		{
+			float x, y;
+			me->GetNearPoint2D(x, y, dist, me->GetOrientation() + angle);
+			float z = me->GetBaseMap()->GetHeight(x, y, MAX_HEIGHT);
+
+			if (Creature* soldier = me->SummonCreature(SoldierEntry, x, y, z))
+			{
+				soldier->SetReactState(REACT_PASSIVE);
+				soldier->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+				//soldier->SetSeerGUID(guid);
+				soldier->SetVisible(false);
+				soldier->setActive(true);
+				sSoldier new_soldier;
+				new_soldier.soldier = soldier;
+				new_soldier.follow_angle = angle;
+				new_soldier.follow_dist = dist;
+				lSoldiers.push_back(new_soldier);
+			}
+		}
+
+		void StartEvent()
+		{
+			if (Unit* summoner = me->ToTempSummon()->GetSummoner())
+				if (Player* player = summoner->ToPlayer())
+				{
+					uint64 uiPlayerGUID = player->GetGUID();
+
+					for (int i = 1; i < 4; ++i)
+					{
+						SummonSoldier(uiPlayerGUID, NPC_FORSAKEN_SOLDIER_QIAO, i * 2, M_PI);
+						SummonSoldier(uiPlayerGUID, NPC_FORSAKEN_SOLDIER_QIAO, i * 2, M_PI - M_PI / (2 * i));
+						SummonSoldier(uiPlayerGUID, NPC_FORSAKEN_SOLDIER_QIAO, i * 2, M_PI + M_PI / (2 * i));
+					}
+
+					SummonSoldier(uiPlayerGUID, NPC_FORSAKEN_CATAPULT_QIAO, 8.0f, M_PI);
+
+					for (int i = 0; i < 18; ++i)
+						AddWaypoint(i, AstherWP[i][0], AstherWP[i][1], AstherWP[i][2]);
+
+					Start();
+				}
+		}
+
+		void WaypointReached(uint32 point)
+		{
+			if (point == 15)
+				if (Creature* koroth = me->SummonCreature(NPC_KOROTH_THE_HILLBREAKER_QIAO_FRIEND, -2213.64f, 1863.51f, 15.404f))
+					uiKorothGUID = koroth->GetGUID();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			npc_escortAI::UpdateAI(diff);
+
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+class npc_prince_liam_greymane_qiao : public CreatureScript
+{
+public:
+	npc_prince_liam_greymane_qiao() : CreatureScript("npc_prince_liam_greymane_qiao") { }
+
+	bool OnQuestComplete(Player* player, Creature* creature, Quest const* quest)
+	{
+		if (quest->GetQuestId() == QUEST_INTRODUCTIONS_ARE_IN_ORDER)
+			CAST_AI(npc_prince_liam_greymane_qiaoAI, creature->AI())->StartEvent(player);
+
+		if (quest->GetQuestId() == QUEST_EXODUS)
+		{
+			WorldLocation loc;
+			loc.m_mapId = 654;
+			loc.m_positionX = -245.84f;
+			loc.m_positionY = 1550.56f;
+			loc.m_positionZ = 18.6917f;
+			player->SetHomebind(loc, 4731);
+			player->SaveToDB();
+		}
+
+		return true;
+	}
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_prince_liam_greymane_qiaoAI(creature);
+	}
+
+	struct npc_prince_liam_greymane_qiaoAI : public ScriptedAI
+	{
+		npc_prince_liam_greymane_qiaoAI(Creature* creature) : ScriptedAI(creature)
+		{
+			lPlayerList.clear();
+		}
+
+		std::list<Psc_qiao> lPlayerList;
+
+		void StartEvent(Player* player)
+		{
+			if (!player)
+				return;
+
+			uint64 uiPlayerGUID = player->GetGUID();
+			Psc_qiao new_player;
+			new_player.uiPlayerGUID = uiPlayerGUID;
+			new_player.uiCapitanGUID = 0;
+			new_player.uiEventTimer = 0;
+			new_player.uiPhase = 0;
+			Creature* capitan = NULL;
+
+			if (Creature* capitan = player->SummonCreature(NPC_CAPTAIN_ASTHER_QIAO, -2120.19f, 1833.06f, 30.1510f, 3.87363f))
+			{
+				//capitan->SetSeerGUID(player->GetGUID());
+				capitan->SetVisible(false);
+				new_player.uiCapitanGUID = capitan->GetGUID();
+			}
+
+			if (!capitan)
+				return;
+
+			lPlayerList.push_back(new_player);
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!lPlayerList.empty())
+				for (std::list<Psc_qiao>::iterator itr = lPlayerList.begin(); itr != lPlayerList.end();)
+				{
+					if (itr->uiEventTimer <= diff)
+					{
+						++itr->uiPhase;
+
+						if (/*Player* player = */Unit::GetPlayer(*me, itr->uiPlayerGUID))
+							switch (itr->uiPhase)
+							{
+							case 1:
+								itr->uiEventTimer = 8000;
+								Talk(LIAN_SAY_HERE_FORSAKEN);
+								break;
+							case 2:
+								itr->uiEventTimer = 5000;
+								me->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+								Talk(LIAM_YELL_YOU_CANT);
+								break;
+							case 3:
+								itr->uiEventTimer = 3000;
+								me->CastSpell(me, SPELL_PUSH_BANNER/*, false*/);
+								break;
+							case 4:
+								if (Unit::GetCreature(*me, itr->uiCapitanGUID))
+									if (Creature* capitan = me->FindNearestCreature(NPC_CAPTAIN_ASTHER_QIAO, 20.0f, true))
+										capitan->MonsterYell("Worthless mongrel. I will order our outhouses cleaned with this rag you call a banner.", 0, 0);
+								itr = lPlayerList.erase(itr);
+								break;
+							}
+					}
+					else
+					{
+						itr->uiEventTimer -= diff;
+						++itr;
+					}
+				}
+
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+class npc_koroth_the_hillbreaker_qiao : public CreatureScript
+{
+public:
+	npc_koroth_the_hillbreaker_qiao() : CreatureScript("npc_koroth_the_hillbreaker_qiao") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_koroth_the_hillbreaker_qiaoAI(creature);
+	}
+
+	struct npc_koroth_the_hillbreaker_qiaoAI : public ScriptedAI
+	{
+		npc_koroth_the_hillbreaker_qiaoAI(Creature* creature) : ScriptedAI(creature)
+		{
+			uiEventTimer = 5000;
+			Event = false;
+		}
+
+		uint32 uiEventTimer;
+		bool Event;
+
+		void Reset()
+		{
+			me->SetReactState(REACT_PASSIVE);
+		}
+
+		void MovementInform(uint32 type, uint32 id)
+		{
+			if (type != POINT_MOTION_TYPE)
+				return;
+
+			if (id == POINT_BANNER)
+				me->GetMotionMaster()->MoveTargetedHome();
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (Event)
+			{
+				if (uiEventTimer <= diff)
+				{
+					Event = false;
+					uiEventTimer = 8000;
+					me->MonsterYell("You puny thief! Koroth find you! Koroth smash your face in!", 0, 0);
+				}
+				else
+					uiEventTimer -= diff;
+			}
+
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+class go_koroth_banner : public GameObjectScript
+{
+public:
+	go_koroth_banner() : GameObjectScript("go_koroth_banner") { }
+
+	bool OnGossipHello(Player* player, GameObject* go)
+	{
+		if (player->GetQuestStatus(QUEST_INTRODUCTIONS_ARE_IN_ORDER) == QUEST_STATUS_INCOMPLETE)
+			if (Creature* koroth = go->FindNearestCreature(NPC_KOROTH_THE_HILLBREAKER_QIAO, 30.0f))
+			{
+				koroth->MonsterYell("Who dares to touch Koroth's banner!?!", 0, 0);
+				float x, y;
+				go->GetNearPoint2D(x, y, 5.0f, go->GetOrientation() + M_PI / 2);
+				koroth->GetMotionMaster()->MovePoint(POINT_BANNER, x, y, go->GetPositionZ());
+				CAST_AI(npc_koroth_the_hillbreaker_qiao::npc_koroth_the_hillbreaker_qiaoAI, koroth->AI())->Event = true;
+			}
+
+		return false;
+	}
+};
+
+class npc_koroth_the_hillbreaker : public CreatureScript
+{
+public:
+	npc_koroth_the_hillbreaker() : CreatureScript("npc_koroth_the_hillbreaker") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_koroth_the_hillbreakerAI(creature);
+	}
+
+	struct npc_koroth_the_hillbreakerAI : public ScriptedAI
+	{
+		npc_koroth_the_hillbreakerAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void UpdateAI(const uint32 /*diff*/)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
 
 void AddSC_gilneas()
 {
@@ -4522,4 +5062,10 @@ void AddSC_gilneas()
 	new npc_gwen_armstead();
 	new npc_swift_mountain_horse();
 	new npc_king_genn_greymane_c3();
+	new npc_koroth_the_hillbreaker();
+	new go_koroth_banner();
+	new npc_koroth_the_hillbreaker_qiao();
+	new npc_prince_liam_greymane_qiao();
+	new npc_captain_asther_qiao();
+	new npc_koroth_the_hillbreaker_qiao_friend();
 }
