@@ -1185,7 +1185,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 	//Set terrainswaps
 	if (pCurrChar->GetMapId() == 654) // Gilneas
 	{
-		if (pCurrChar->GetQuestStatus(14386) == QUEST_STATUS_REWARDED)
+		if (pCurrChar->GetQuestStatus(14386) == QUEST_STATUS_REWARDED && pCurrChar->GetQuestStatus(14466) != QUEST_STATUS_REWARDED)
 		{
 			pCurrChar->GetSession()->SendPhaseShift_Override(0, 655);
 		}

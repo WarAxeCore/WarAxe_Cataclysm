@@ -62,6 +62,7 @@ public:
             { "sellerror",     SEC_ADMINISTRATOR,  false, &HandleDebugSendSellErrorCommand,      "", NULL },
             { "setphaseshift", SEC_ADMINISTRATOR,  false, &HandleDebugSendSetPhaseShiftCommand,  "", NULL },
 			{ "phaseshift",	   SEC_ADMINISTRATOR,  false, &HandleDebugSendPhaseShiftCommand,  "", NULL },
+			{ "overshift",	   SEC_ADMINISTRATOR,  false, &HandleDebugSendOverShiftCommand,  "", NULL },
             { "spellfail",     SEC_ADMINISTRATOR,  false, &HandleDebugSendSpellFailCommand,      "", NULL },
             { NULL,             0,                  false, NULL,                                  "", NULL }
         };
@@ -989,6 +990,32 @@ public:
 		uint32 mapId = (uint32)atoi(p);
 
 		handler->GetSession()->SendPhaseShift_Override(phaseId, mapId);
+		return true;
+	}
+
+	static bool HandleDebugSendOverShiftCommand(ChatHandler* handler, char const* args)
+	{
+		if (!*args)
+			return false;
+
+		char* t = strtok((char*)args, " ");
+		char* p = strtok(NULL, " ");
+		char* w = strtok(NULL, " ");
+
+		if (!t)
+			return false;
+
+		if (!p)
+			return false;
+
+		if (!w)
+			return false;
+
+		uint32 phaseId = (uint32)atoi(t);
+		uint32 mapId = (uint32)atoi(p);
+		uint32 worldmapId = (uint32)atoi(w);
+
+		handler->GetSession()->SendPhaseShift_Override_Maps(phaseId, mapId, worldmapId);
 		return true;
 	}
 

@@ -5000,6 +5000,51 @@ public:
 	};
 };
 
+//Liberation Day
+// HACK! Gameobject does not work..
+class npc_liberations_day : public CreatureScript
+{
+public:
+	npc_liberations_day() : CreatureScript("npc_liberations_day") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_liberations_dayAI(creature);
+	}
+
+	struct npc_liberations_dayAI : public ScriptedAI
+	{
+		npc_liberations_dayAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void MoveInLineOfSight(Unit* who)
+		{
+			if (who->GetTypeId() == TYPEID_PLAYER)
+			{
+				if (who->GetDistance(me->GetPositionX(), me->GetPositionY(), me->GetPositionZ()) < 4.0f)
+				{
+					if (who->ToPlayer()->HasItemCount(49881, 1)) // Check for a slaver key
+					{
+						if (who->ToPlayer()->GetQuestStatus(24575) != QUEST_STATUS_COMPLETE)
+						{
+							who->ToPlayer()->KilledMonsterCredit(37694, 0);
+							me->MonsterSay("The forsaken will pay for what they've done!", 0, 0);
+							me->DespawnOrUnsummon();
+						}
+					}
+				}
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
 void AddSC_gilneas()
 {
     new npc_gilneas_city_guard_phase1();
@@ -5068,4 +5113,5 @@ void AddSC_gilneas()
 	new npc_prince_liam_greymane_qiao();
 	new npc_captain_asther_qiao();
 	new npc_koroth_the_hillbreaker_qiao_friend();
+	new npc_liberations_day();
 }

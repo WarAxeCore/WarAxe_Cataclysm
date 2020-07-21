@@ -244,6 +244,7 @@ class WorldSession
         void SendAreaTriggerMessage(const char* Text, ...) ATTR_PRINTF(2, 3);
         void SendSetPhaseShift(std::set<uint32> const& phaseIds, std::set<uint32> const& terrainswaps, std::set<uint32> const& worldmaps);
 		void SendPhaseShift_Override(uint32 PhaseShift, uint32 MapID);
+		void SendPhaseShift_Override_Maps(uint32 PhaseShift, uint32 MapID, uint32 worldmapId);
         void SendQueryTimeResponse();
 
         void SendAuthResponse(uint8 code, bool shortForm, uint32 queuePos = 0);
