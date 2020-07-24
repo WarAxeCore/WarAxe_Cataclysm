@@ -5014,7 +5014,12 @@ public:
 
 	struct npc_liberations_dayAI : public ScriptedAI
 	{
-		npc_liberations_dayAI(Creature* creature) : ScriptedAI(creature) { }
+		npc_liberations_dayAI(Creature* creature) : ScriptedAI(creature) 
+		{ 
+			uiEventTimer = 3000;
+		}
+
+		uint32 uiEventTimer;
 
 		void MoveInLineOfSight(Unit* who)
 		{
@@ -5027,8 +5032,7 @@ public:
 						if (who->ToPlayer()->GetQuestStatus(24575) != QUEST_STATUS_COMPLETE)
 						{
 							who->ToPlayer()->KilledMonsterCredit(37694, 0);
-							me->MonsterSay("The forsaken will pay for what they've done!", 0, 0);
-							me->DespawnOrUnsummon();
+							uiEventTimer = urand(3000, 5000);
 						}
 					}
 				}
@@ -5039,6 +5043,14 @@ public:
 		{
 			if (!UpdateVictim())
 				return;
+
+			if (uiEventTimer <= diff)
+			{
+				me->MonsterSay("The forsaken will pay for what they've done!", 0, 0);
+				me->DespawnOrUnsummon();
+			}
+			else
+				uiEventTimer -= diff;
 
 			DoMeleeAttackIfReady();
 		}
