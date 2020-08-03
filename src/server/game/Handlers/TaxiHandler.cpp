@@ -129,6 +129,11 @@ void WorldSession::SendDoFlight(uint32 mountDisplayId, uint32 path, uint32 pathN
     if (mountDisplayId)
         GetPlayer()->Mount(mountDisplayId);
 
+	if (path == 102) // Rut'theran Village to Lor'danel Worgen Quest Complete on fly
+	{
+		GetPlayer()->KilledMonsterCredit(3838, 0);
+	}
+
     GetPlayer()->GetMotionMaster()->MoveTaxiFlight(path, pathNode);
 }
 

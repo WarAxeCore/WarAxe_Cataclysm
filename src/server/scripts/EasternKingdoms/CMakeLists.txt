@@ -286,6 +286,7 @@ set(scripts_STAT_SRCS
   EasternKingdoms/Zones/elwynnforest.cpp
   EasternKingdoms/Zones/dun_morogh.cpp 
   EasternKingdoms/Zones/tirisfal_glades.cpp
+  EasternKingdoms/Zones/vashjir.cpp
 )
 
 message("  -> Prepared: Eastern Kingdoms")

@@ -966,6 +966,38 @@ public:
     }
 };
 
+class npc_recruiter_burns_cod : public CreatureScript
+{
+public:
+	npc_recruiter_burns_cod() : CreatureScript("npc_recruiter_burns_cod") { }
+
+private:
+	bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
+	{
+		if (quest->GetQuestId() == 14482) // Call of Duty (Alliance)
+		{
+			player->TeleportTo(0, -4462.328f, 3807.49f, -82.95f, 0.46f);
+			QueryResult result = CharacterDatabase.PQuery("SELECT vashjir FROM character_portal_status WHERE guid = '%u'", player->GetGUIDLow());
+
+			if (!result) // No entry in DB so REPLACE INTO
+			{
+				QueryResult result = CharacterDatabase.PQuery("REPLACE INTO character_portal_status(guid, vashjir) VALUES ('%u', 1)", player->GetGUIDLow());
+			}
+
+			if (result) // Has other portals so UPDATE
+			{
+				do
+				{
+				    QueryResult result = CharacterDatabase.PQuery("UPDATE character_portal_status SET vashjir = 1 WHERE guid = '%u'", player->GetGUIDLow());
+				} while (result->NextRow());
+			}
+			player->SaveToDB();
+		}
+
+		return false;
+	}
+};
+
 void AddSC_stormwind_city()
 {
     new npc_archmage_malin();
@@ -981,4 +1013,5 @@ void AddSC_stormwind_city()
     new npc_stormwind_harbor_guard();
     new npc_stormwind_city_patroller();
     new npc_stormwind_royal_guard();
+	new npc_recruiter_burns_cod();
 }
