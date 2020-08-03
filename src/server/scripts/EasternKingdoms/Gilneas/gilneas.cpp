@@ -5057,6 +5057,35 @@ public:
 	};
 };
 
+class npc_lorna_crowley_livery_outpost : public CreatureScript
+{
+public:
+	npc_lorna_crowley_livery_outpost() : CreatureScript("npc_lorna_crowley_livery_outpost") { }
+
+private:
+	bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest)
+	{
+		enum
+		{
+			NPC_KRENNAN_ARANAS = 38553,
+			TALK_TIME_TO_START_BATTLE = 1,
+		};
+
+		if (quest->GetQuestId() == 24904)
+		{
+			// Temp Fix so worgens can complete there area
+			player->TeleportTo(1, 10286.23f, 2440.69f, 1330.24f, 3.7f);
+			player->AddQuest(sObjectMgr->GetQuestTemplate(26385), NULL);
+			player->SetPhaseMask(1, true);
+			player->RemoveActiveQuest(24904);
+			player->UpdateForQuestWorldObjects();
+			player->SaveToDB();
+		}
+
+		return false;
+	}
+};
+
 void AddSC_gilneas()
 {
     new npc_gilneas_city_guard_phase1();
@@ -5126,4 +5155,5 @@ void AddSC_gilneas()
 	new npc_captain_asther_qiao();
 	new npc_koroth_the_hillbreaker_qiao_friend();
 	new npc_liberations_day();
+	new npc_lorna_crowley_livery_outpost();
 }
