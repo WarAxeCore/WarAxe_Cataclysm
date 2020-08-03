@@ -315,6 +315,7 @@ void AddSC_westfall();
 void AddSC_wetlands();
 void AddSC_elwynn_forest();
 void AddSC_dun_morogh();
+void AddSC_vashjir();
 
 //kalimdor
 void AddSC_blackfathom_deeps();              //Blackfathom Depths
@@ -1013,6 +1014,7 @@ void AddEasternKingdomsScripts()
     AddSC_wetlands();
     AddSC_elwynn_forest();
     AddSC_dun_morogh();
+	AddSC_vashjir();
 #endif
 }
 
