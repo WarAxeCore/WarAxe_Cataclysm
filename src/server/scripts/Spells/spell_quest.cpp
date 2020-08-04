@@ -25,6 +25,41 @@
 #include "ScriptPCH.h"
 #include "Vehicle.h"
 
+class spell_enchanted_conch : public SpellScriptLoader
+{
+public:
+	spell_enchanted_conch() : SpellScriptLoader("spell_enchanted_conch") { }
+
+	class spell_enchanted_conch_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_enchanted_conch_SpellScript)
+		void HandleDummy()
+		{
+			Unit* caster = GetCaster();
+
+			if (caster->GetTypeId() != TYPEID_PLAYER)
+				return;
+
+			// If target is Drowning Soldier give quest credit
+			if (GetHitUnit() && GetHitUnit()->GetEntry() == 39663)
+			{
+				caster->ToPlayer()->KilledMonsterCredit(39663, 0);
+				GetHitUnit()->ToCreature()->DespawnOrUnsummon(3000);
+			}
+		}
+
+		void Register()
+		{
+			AfterHit += SpellHitFn(spell_enchanted_conch_SpellScript::HandleDummy);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_enchanted_conch_SpellScript();
+	}
+};
+
 class spell_generic_quest_update_entry_SpellScript : public SpellScript
 {
     PrepareSpellScript(spell_generic_quest_update_entry_SpellScript)
@@ -1133,4 +1168,5 @@ void AddSC_quest_spell_scripts()
     new spell_q14112_14145_chum_the_water();
     new spell_q9452_cast_net();
     new spell_worgen_last_stand_movie();
+	new spell_enchanted_conch();
 }
