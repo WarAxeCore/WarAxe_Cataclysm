@@ -976,6 +976,7 @@ private:
 	{
 		if (quest->GetQuestId() == 14482) // Call of Duty (Alliance)
 		{
+			player->SetPhaseMask(2, true);
 			player->TeleportTo(0, -4462.328f, 3807.49f, -82.95f, 0.46f);
 			QueryResult result = CharacterDatabase.PQuery("SELECT vashjir FROM character_portal_status WHERE guid = '%u'", player->GetGUIDLow());
 
