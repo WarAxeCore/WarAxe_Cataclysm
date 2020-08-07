@@ -16234,6 +16234,12 @@ void Unit::Kill(Unit* victim, bool durabilityLoss)
                 if (summoner->ToCreature() && summoner->IsAIEnabled)
                     summoner->ToCreature()->AI()->SummonedCreatureDies(creature, this);
 
+		if (creature && creature->GetZoneId() == 4815 || creature->GetZoneId() == 5146 || creature->GetZoneId() == 5144 || creature->GetZoneId() == 5145)
+		{
+			if (victim)
+			creature->NearTeleportTo(creature->GetPositionX(), creature->GetPositionY(), victim->GetPositionZ(), creature->GetOrientation());
+		}
+
         // Dungeon specific stuff, only applies to players killing creatures
         if (creature->GetInstanceId())
         {
