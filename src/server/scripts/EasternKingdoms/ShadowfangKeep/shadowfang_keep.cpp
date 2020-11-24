@@ -80,7 +80,95 @@ public:
 	}
 };
 
+class npc_vet_forsaken_trooper : public CreatureScript
+{
+public:
+	npc_vet_forsaken_trooper() : CreatureScript("npc_vet_forsaken_trooper") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_vet_forsaken_trooperAI(creature);
+	}
+
+	struct npc_vet_forsaken_trooperAI : public ScriptedAI
+	{
+		npc_vet_forsaken_trooperAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void MoveInLineOfSight(Unit* who)
+		{
+			if (me->GetMapId() == 33)
+			{
+				if (who->GetTypeId() == TYPEID_PLAYER)
+				{
+					if (who->ToPlayer()->GetTeam() == ALLIANCE)
+					{
+						me->SummonCreature(47027, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
+						me->DespawnOrUnsummon();
+					}
+				}
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
+class npc_dcbelmont : public CreatureScript
+{
+public:
+	npc_dcbelmont() : CreatureScript("npc_dcbelmont") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_dcbelmontAI(creature);
+	}
+
+	struct npc_dcbelmontAI : public ScriptedAI
+	{
+		npc_dcbelmontAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void MoveInLineOfSight(Unit* who)
+		{
+			if (me->GetMapId() == 33)
+			{
+				if (who->GetTypeId() == TYPEID_PLAYER)
+				{
+					if (who->ToPlayer()->GetTeam() == ALLIANCE)
+					{
+						me->SummonCreature(47006, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
+						if (Creature* temp = Unit::GetCreature(*me, 10509093))
+						{
+							temp->DespawnOrUnsummon();
+						}
+						if (Creature* temp2 = Unit::GetCreature(*me, 10509095))
+						{
+							temp2->DespawnOrUnsummon();
+						}
+						me->DespawnOrUnsummon();
+					}
+				}
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
 void AddSC_shadowfang_keep()
 {
 	new npc_haunted_stable_hand();
+	new npc_vet_forsaken_trooper();
+	new npc_dcbelmont();
 }
