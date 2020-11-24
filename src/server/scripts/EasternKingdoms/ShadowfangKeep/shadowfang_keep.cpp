@@ -32,171 +32,55 @@ EndContentData */
 #include "ScriptedEscortAI.h"
 #include "shadowfang_keep.h"
 
-/*######
-## npc_shadowfang_prisoner
-######*/
-
-enum eEnums
-{
-    SAY_FREE_AS             = -1033000,
-    SAY_OPEN_DOOR_AS        = -1033001,
-    SAY_POST_DOOR_AS        = -1033002,
-    SAY_FREE_AD             = -1033003,
-    SAY_OPEN_DOOR_AD        = -1033004,
-    SAY_POST1_DOOR_AD       = -1033005,
-    SAY_POST2_DOOR_AD       = -1033006,
-
-    SPELL_UNLOCK            = 6421,
-    NPC_ASH                 = 3850,
-
-    SPELL_DARK_OFFERING     = 7154
-};
-
-#define GOSSIP_ITEM_DOOR        "Thanks, I'll follow you to the door."
-
-class npc_shadowfang_prisoner : public CreatureScript
+class npc_haunted_stable_hand : public CreatureScript
 {
 public:
-    npc_shadowfang_prisoner() : CreatureScript("npc_shadowfang_prisoner") { }
+	npc_haunted_stable_hand() : CreatureScript("npc_haunted_stable_hand") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new npc_shadowfang_prisonerAI(creature);
-    }
+	bool OnGossipSelect(Player* player, Creature* /*creature*/, uint32 Sender, uint32 action) override
+	{
+		player->PlayerTalkClass->ClearMenus();
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*Sender*/, uint32 Action)
-    {
-        player->PlayerTalkClass->ClearMenus();
-        if (Action == GOSSIP_ACTION_INFO_DEF+1)
-        {
-            player->CLOSE_GOSSIP_MENU();
+		if (Sender != GOSSIP_SENDER_MAIN)
+			return true;
+		if (!player->getAttackers().empty())
+			return true;
 
-            if (npc_escortAI* escortAI = CAST_AI(npc_shadowfang_prisoner::npc_shadowfang_prisonerAI, creature->AI()))
-                escortAI->Start(false, false);
-        }
-        return true;
-    }
+		switch (action)
+		{
+		case GOSSIP_ACTION_INFO_DEF + 1:
+			player->TeleportTo(33, -225.70f, 2269.67f, 74.999f, 2.76f);
+			player->CLOSE_GOSSIP_MENU();
+			break;
+		case GOSSIP_ACTION_INFO_DEF + 2:
+			player->TeleportTo(33, -260.66f, 2246.97f, 100.89f, 2.43f);
+			player->CLOSE_GOSSIP_MENU();
+			break;
+		case GOSSIP_ACTION_INFO_DEF + 3:
+			player->TeleportTo(33, -171.28f, 2182.020f, 129.255f, 5.92f);
+			player->CLOSE_GOSSIP_MENU();
+			break;
+		}
+		return true;
+	}
 
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        InstanceScript* instance = creature->GetInstanceScript();
+	bool OnGossipHello(Player* player, Creature* creature) override
+	{
+		InstanceScript* instance = creature->GetInstanceScript();
 
-        if (instance && instance->GetData(TYPE_FREE_NPC) != DONE && instance->GetData(TYPE_RETHILGORE) == DONE)
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_DOOR, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+1);
+		if (instance && instance->GetData(DATA_BARON_SILVERLAINE_EVENT) == DONE)
+			player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport me to Baron Silverlaine", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+		if (instance && instance->GetData(DATA_COMMANDER_SPRINGVALE_EVENT) == DONE)
+			player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport me to Commander Springvale", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+		if (instance && instance->GetData(DATA_LORD_WALDEN_EVENT) == DONE)
+			player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport me to Lord Walden", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
 
-        player->SEND_GOSSIP_MENU(player->GetGossipTextId(creature), creature->GetGUID());
-
-        return true;
-    }
-
-    struct npc_shadowfang_prisonerAI : public npc_escortAI
-    {
-        npc_shadowfang_prisonerAI(Creature* creature) : npc_escortAI(creature)
-        {
-            instance = creature->GetInstanceScript();
-            NpcEntry = creature->GetEntry();
-        }
-
-        InstanceScript* instance;
-        uint32 NpcEntry;
-
-        void WaypointReached(uint32 Point)
-        {
-            switch (Point)
-            {
-                case 0:
-                    if (NpcEntry == NPC_ASH)
-                        DoScriptText(SAY_FREE_AS, me);
-                    else
-                        DoScriptText(SAY_FREE_AD, me);
-                    break;
-                case 10:
-                    if (NpcEntry == NPC_ASH)
-                        DoScriptText(SAY_OPEN_DOOR_AS, me);
-                    else
-                        DoScriptText(SAY_OPEN_DOOR_AD, me);
-                    break;
-                case 11:
-                    if (NpcEntry == NPC_ASH)
-                        DoCast(me, SPELL_UNLOCK);
-                    break;
-                case 12:
-                    if (NpcEntry == NPC_ASH)
-                        DoScriptText(SAY_POST_DOOR_AS, me);
-                    else
-                        DoScriptText(SAY_POST1_DOOR_AD, me);
-
-                    if (instance)
-                        instance->SetData(TYPE_FREE_NPC, DONE);
-                    break;
-                case 13:
-                    if (NpcEntry != NPC_ASH)
-                        DoScriptText(SAY_POST2_DOOR_AD, me);
-                    break;
-            }
-        }
-
-        void Reset() {}
-        void EnterCombat(Unit* /*who*/) {}
-    };
-};
-
-class npc_arugal_voidwalker : public CreatureScript
-{
-public:
-    npc_arugal_voidwalker() : CreatureScript("npc_arugal_voidwalker") { }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new npc_arugal_voidwalkerAI(creature);
-    }
-
-    struct npc_arugal_voidwalkerAI : public ScriptedAI
-    {
-        npc_arugal_voidwalkerAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = creature->GetInstanceScript();
-        }
-
-        InstanceScript* instance;
-
-        uint32 DarkOffering;
-
-        void Reset()
-        {
-            DarkOffering = urand(200, 1000);
-        }
-
-        void UpdateAI(uint32 const Diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (DarkOffering <= Diff)
-            {
-                if (Creature* pFriend = me->FindNearestCreature(me->GetEntry(), 25.0f, true))
-                {
-                    if (pFriend)
-                        DoCast(pFriend, SPELL_DARK_OFFERING);
-                }
-                else
-                    DoCast(me, SPELL_DARK_OFFERING);
-                DarkOffering = urand(4400, 12500);
-            } else DarkOffering -= Diff;
-
-            DoMeleeAttackIfReady();
-        }
-
-        void JustDied(Unit* /*killer*/)
-        {
-            if (instance)
-                instance->SetData(TYPE_FENRUS, instance->GetData(TYPE_FENRUS) + 1);
-        }
-    };
+		player->SEND_GOSSIP_MENU(2475, creature->GetGUID());
+		return true;
+	}
 };
 
 void AddSC_shadowfang_keep()
 {
-    new npc_shadowfang_prisoner();
-    new npc_arugal_voidwalker();
+	new npc_haunted_stable_hand();
 }

@@ -316,6 +316,11 @@ void AddSC_wetlands();
 void AddSC_elwynn_forest();
 void AddSC_dun_morogh();
 void AddSC_vashjir();
+void AddSC_boss_baron_ashbury();
+void AddSC_boss_baron_silverlaine();
+void AddSC_boss_commander_springvale();
+void AddSC_boss_lord_godfrey();
+void AddSC_boss_lord_walden();
 
 //kalimdor
 void AddSC_blackfathom_deeps();              //Blackfathom Depths
@@ -986,6 +991,12 @@ void AddEasternKingdomsScripts()
     AddSC_boss_renataki();
     AddSC_boss_wushoolay();
     AddSC_instance_zulgurub();
+
+	AddSC_boss_baron_ashbury();
+	AddSC_boss_baron_silverlaine();
+	AddSC_boss_commander_springvale();
+	AddSC_boss_lord_godfrey();
+	AddSC_boss_lord_walden();
 
     //AddSC_alterac_mountains();
     AddSC_arathi_highlands();
