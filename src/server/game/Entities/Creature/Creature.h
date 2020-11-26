@@ -663,6 +663,8 @@ class Creature : public Unit, public GridObject<Creature>, public MapCreature
         bool hasQuest(uint32 quest_id) const;
         bool hasInvolvedQuest(uint32 quest_id)  const;
 
+		void setRegeneratingHealth(bool regenHealth) { _regenHealth = regenHealth; }
+
         bool isRegeneratingHealth() { return _regenHealth; }
         virtual uint8 GetPetAutoSpellSize() const { return MAX_SPELL_CHARM; }
         virtual uint32 GetPetAutoSpellOnPos(uint8 pos) const

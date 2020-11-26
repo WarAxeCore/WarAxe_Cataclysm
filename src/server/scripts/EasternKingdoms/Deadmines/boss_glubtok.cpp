@@ -1,249 +1,203 @@
-/*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2019 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2019 MaNGOS <https://getmangos.com/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-/* Script Data Start
-SFName: Boss Glubtok
-SFAuthor: JeanClaude
-SF%Complete: 30
-SFComment: TODO: clean up door events and 2 fix warnings@lines(140,146,184)
-SFCategory: dungeon script
-Script Data End */
-
-#include "ScriptPCH.h"
-#include "SpellScript.h"
-#include "SpellAuraEffects.h"
-#include "GameObject.h"
 #include "deadmines.h"
 
+enum ScriptTexts
+{
+	SAY_DEATH = 0,
+	SAY_ARCANE_POWER = 1,
+	SAY_AGGRO = 2,
+	SAY_KILL = 3,
+	SAY_FIRE = 4,
+	SAY_HEAD1 = 5,
+	SAY_FROST = 6,
+	SAY_HEAD2 = 7
+};
 enum Spells
 {
-    //Glubtok    these need checked http://www.wowhead.com/npc=47162#abilities
-    SPELL_FIRE_BLOSSOM          = 88129, // Fireball explodes on the ground
-    SPELL_FROST_BLOSSOM         = 88169, // Iceball explodes on the ground
-    SPELL_ARCANE_POWER          = 88009, // Spell Phase 2
-    SPELL_FIST_OF_FLAME         = 87859, // elemental_fists
-    SPELL_FIST_OF_FROST         = 87861, // elemental_fists
-    SPELL_BLINK                 = 87925  // correct Blink spell
+	SPELL_ARCANE_POWER = 88009,
+	SPELL_FIST_OF_FLAME = 87859,
+	SPELL_FIST_OF_FLAME_0 = 87896,
+	SPELL_FIST_OF_FROST = 87861,
+	SPELL_FIST_OF_FROST_0 = 87901,
+	SPELL_FIRE_BLOSSOM = 88129,
+	SPELL_FROST_BLOSSOM = 88169,
+	SPELL_FROST_BLOSSOM_0 = 88177,
+	SPELL_BLINK = 38932
 };
 
-// Aggro start
-#define SAY_AGGRO               "Glubtok show you da power of de Arcane."
-#define SOUND_AGGRO             21151
-// Aggro End
-
-// On Kill Start
-#define SAY_KILL                "Ha..Ha..Ha..Ha..Ah!"
-#define SOUND_KILL              21152
-// On Kill End
-
-// Fist of Flame
-#define SAY_FISTS_OF_FLAME       "Fists of Flame!"
-#define SOUND_FISTS_OF_FLAME     21153
-// End Flames
-
-// Fist Of Frost!!!!! :D
-#define SAY_FISTS_OF_FROST      "Fists of Frost!"
-#define SOUND_FISTS_OF_FROST    21156
-// Phase 2 Sounds And Texts
-
-// "Glubtok ready?"
-#define SAY_READY               "Glubtok ready?"
-#define SOUND_READY             21154
-//
-#define SAY_LETS_DO_IT          "Let's do it!"
-#define SOUND_LETS_DO_IT        21157
-// ARCANE POWER!!!!!!!!!! :D
-#define SAY_ARCANE_POWER        "ARCANE POWER"
-#define SOUND_ARCANE_POWER      21146
-
-// On Death!
-#define SAY_TOO_MUCH_POWER      "TOO... MUCH... POWER"
-#define SOUND_TOO_MUCH_POWER    21145
-#define SAY_FLAME               "Elemental Fists!"
-
-/*
-#define SAY_AGGRO               "Let's do it!"
-
-#define SAY_DIED                "'Sploded dat one!"
-#define SAY_FLAME               "Elemental Fists!"
-#define SAY_ARCANE              "Glubtok show you da power of arcane!"
-*/
-
-#define spell_elemental_fists RAND(87859, 91273)
-
-const Position pos[1] =
+enum Events
 {
-    {-192.328003f, -450.244995f, 54.521500f, 0.00f}
+	EVENT_FIST_OF_FLAME = 1,
+	EVENT_FIST_OF_FROST = 2,
+	EVENT_BLINK = 3,
+	EVENT_BLOSSOM = 4,
+	EVENT_ARCANE_POWER1 = 5,
+	EVENT_ARCANE_POWER2 = 6,
+	EVENT_ARCANE_POWER3 = 7
 };
 
-enum Phases
+enum Adds
 {
-    PHASE_NORMAL        = 1,
-    PHASE_50_PERCENT    = 2,
+	NPC_FIRE_BLOSSOM = 48957,
+	NPC_FROST_BLOSSOM = 48958,
+	NPC_FIREWALL_2A = 48976,
+	NPC_FIREWALL_1A = 48975,
+	NPC_FIREWALL_1B = 49039,
+	NPC_FIREWALL_2B = 49041,
+	NPC_FIREWALL_2C = 49042
 };
 
 class boss_glubtok : public CreatureScript
 {
 public:
-    boss_glubtok() : CreatureScript("boss_glubtok") {}
+	boss_glubtok() : CreatureScript("boss_glubtok") {}
 
-    struct boss_glubtokAI : public ScriptedAI
-    {
-        boss_glubtokAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = me->GetInstanceScript();
-        }
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new boss_glubtokAI(pCreature);
+	}
 
-        InstanceScript* instance;
+	struct boss_glubtokAI : public BossAI
+	{
+		boss_glubtokAI(Creature* pCreature) : BossAI(pCreature, DATA_GLUBTOK)
+		{
+			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+			me->setActive(true);
+		}
 
-        uint8 Phase;
-        uint32 phase;
-        uint32 SpellTimer;
+		uint8 stage;
 
-        uint32 elemental_fists;
-        uint32 ArcanePowerTimer;
-        uint32 blinkTimer;
-        uint32 PhaseChangeTimer;
-        uint32 NormalCastTimer;
-        uint8 BlossomSpell;
+		void Reset() override
+		{
+			_Reset();
 
-        bool Phased;
+			stage = 0;
+			me->SetReactState(REACT_AGGRESSIVE);
+		}
 
-        void Reset()
-        {
-            Phased                  = false;
-            Phase                   = PHASE_NORMAL;
+		void InitializeAI()
+		{
+			if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != sObjectMgr->GetScriptId(DMScriptName))
+				me->IsAIEnabled = false;
+			else if (!me->isDead())
+				Reset();
+		}
 
-            phase = 1;
-            SpellTimer = urand(10*IN_MILLISECONDS, 25*IN_MILLISECONDS);
+		void EnterCombat(Unit* /*who*/) override
+		{
+			stage = 0;
+			me->BossYell("Glubtok show you da power of de arcane!", 21151);
+			events.RescheduleEvent(EVENT_FIST_OF_FLAME, 10000);
+			DoZoneInCombat();
+			instance->SetBossState(DATA_GLUBTOK, IN_PROGRESS);
+		}
 
-            elemental_fists         = 20000;
-            blinkTimer              = 12000;
+		void KilledUnit(Unit* /*victim*/) override
+		{
+			me->BossYell("'Sploded dat one!", 21155);
+		}
 
-            NormalCastTimer         = 3000;
-        }
+		void JustDied(Unit* /*killer*/) override
+		{
+			_JustDied();
+			me->BossYell("TOO...MUCH...POWER!!!", 21145);
 
-        void EnterCombat(Unit* /*who*/)
-        {
-         me->MonsterYell(SAY_AGGRO, LANGUAGE_UNIVERSAL, 0);
-         DoPlaySoundToSet(me, SOUND_AGGRO);
-        }
+			GameObject* go_door = me->FindNearestGameObject(GO_FACTORY_DOOR, 250.0f);
+			if (go_door)
+			{
+				go_door->SetGoState(GO_STATE_ACTIVE);
+			}
 
-        void JustDied(Unit* /*Killer*/)
-        {
-            me->MonsterYell(SAY_TOO_MUCH_POWER, LANGUAGE_UNIVERSAL, 0);
-            DoPlaySoundToSet(me, SOUND_TOO_MUCH_POWER);
-        }
+			if (IsHeroic())
+			{
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
+		}
 
-        void KilledUnit(Unit* Victim)
-        {
-            me->MonsterYell(SAY_KILL, LANGUAGE_UNIVERSAL, 0);
-            DoPlaySoundToSet(me, SOUND_KILL);
-        }
+		void UpdateAI(uint32 diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
+			if (me->GetHealthPct() <= 50 && stage == 0)
+			{
+				stage = 1;
+				events.Reset();
+				me->SetReactState(REACT_PASSIVE);
+				me->BossYell("Glubtok ready?", 21154);
+				events.RescheduleEvent(EVENT_ARCANE_POWER1, 1800);
+				return;
+			}
 
-            if (phase == 1)
-            {
-                if (SpellTimer <= diff)
-                {
-                    switch(urand(0, 1))
-                    {
-                        case 0:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                            DoCast(me, SPELL_FIST_OF_FLAME);
-                            me->MonsterYell(SAY_FISTS_OF_FLAME, LANGUAGE_UNIVERSAL, 0);
-                            DoPlaySoundToSet(me, SOUND_FISTS_OF_FLAME);
-                            break;
+			events.Update(diff);
 
-                        case 1:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                            DoCast(me, SPELL_FIST_OF_FROST);
-                            me->MonsterYell(SAY_FISTS_OF_FROST, LANGUAGE_UNIVERSAL, 0);
-                            DoPlaySoundToSet(me, SOUND_FISTS_OF_FROST);
-                            break;
-                    }
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-                    SpellTimer = urand(10*IN_MILLISECONDS, 25*IN_MILLISECONDS);
-                } else SpellTimer -= diff;
-
-                if (HealthBelowPct(50))
-                {
-                    phase = 2;
-                    DoCast(me, SPELL_ARCANE_POWER);
-                    me->MonsterYell(SAY_ARCANE_POWER, LANGUAGE_UNIVERSAL, 0);
-                    DoPlaySoundToSet(me, SOUND_ARCANE_POWER);
-                }
-
-                DoMeleeAttackIfReady();
-            }
-            else
-            {
-                if (SpellTimer <= diff)
-                {
-                    DoCast(me, urand(1, 2) == 1 ? SPELL_FROST_BLOSSOM : SPELL_FIRE_BLOSSOM);
-                    SpellTimer = urand(10*IN_MILLISECONDS, 25*IN_MILLISECONDS);
-                } else SpellTimer -= diff;
-            }
-
-            if (PhaseChangeTimer <= diff && Phase == PHASE_NORMAL)
-            {
-                if (PhaseChangeTimer<= diff)
-                {
-                    me->SetReactState(REACT_AGGRESSIVE);
-                    elemental_fists     = 20000;
-                    blinkTimer          = 12000;
-                    Phase               = PHASE_NORMAL;
-                } else PhaseChangeTimer -= diff;
-
-                if (elemental_fists <= diff && Phase == PHASE_NORMAL)
-                {
-                    if (elemental_fists<= diff)
-                    {
-                        DoCast(me, elemental_fists);
-                        me->MonsterYell(SAY_FLAME, LANGUAGE_UNIVERSAL, NULL);
-                        elemental_fists = 20000;
-                    } else elemental_fists -= diff;
-                }
-
-                if (blinkTimer <= diff && Phase == PHASE_NORMAL)
-                {
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1,10.0f, true))
-                    DoCast(me, SPELL_BLINK);
-                    blinkTimer = 12000;
-                } else blinkTimer -= diff;
-
-                DoMeleeAttackIfReady();
-            }
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new boss_glubtokAI(creature);
-    }
+			if (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_ARCANE_POWER1:
+					me->BossYell("Let's do it!", 21157);
+					events.RescheduleEvent(EVENT_ARCANE_POWER2, 2200);
+					break;
+				case EVENT_ARCANE_POWER2:
+					me->NearTeleportTo(-193.43f, -437.86f, 54.38f, 4.88f, true);
+					SetCombatMovement(false);
+					me->AttackStop();
+					me->RemoveAllAuras();
+					events.RescheduleEvent(EVENT_ARCANE_POWER3, 1000);
+					break;
+				case EVENT_ARCANE_POWER3:
+					SetCombatMovement(false);
+					DoCast(me, SPELL_ARCANE_POWER, true);
+					me->BossYell("ARCANE POWER!!!", 21146);
+					events.RescheduleEvent(EVENT_BLOSSOM, 5000);
+					break;
+				case EVENT_BLOSSOM:
+					if (auto target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
+						DoCast(target, urand(0, 1) ? SPELL_FIRE_BLOSSOM : SPELL_FROST_BLOSSOM);
+					events.RescheduleEvent(EVENT_BLOSSOM, 5000);
+					break;
+				case EVENT_FIST_OF_FLAME:
+					DoCast(me, SPELL_FIST_OF_FLAME);
+					me->BossYell("Fists of flame!", 21153);
+					events.RescheduleEvent(EVENT_BLINK, 20000);
+					events.RescheduleEvent(EVENT_FIST_OF_FROST, 20500);
+					break;
+				case EVENT_FIST_OF_FROST:
+					DoCast(me, SPELL_FIST_OF_FROST);
+					me->BossYell("Fists of frost!", 21156);
+					events.RescheduleEvent(EVENT_BLINK, 20000);
+					events.RescheduleEvent(EVENT_FIST_OF_FLAME, 20500);
+					break;
+				case EVENT_BLINK:
+					if (auto target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100.0f, true))
+					{
+						DoCast(target, SPELL_BLINK);
+						if (IsHeroic())
+							DoResetThreat();
+					}
+					break;
+				}
+			}
+			DoMeleeAttackIfReady();
+		}
+	};
 };
 
 void AddSC_boss_glubtok()
 {
-    new boss_glubtok();
+	new boss_glubtok();
 }
