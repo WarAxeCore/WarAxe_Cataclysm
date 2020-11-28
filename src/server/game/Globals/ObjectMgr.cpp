@@ -4071,32 +4071,31 @@ void ObjectMgr::LoadQuests()
             if (int32 skill_id =  SkillByQuestSort(-int32(qinfo->ZoneOrSort)))
             {
                 // skill is positive value in SkillOrClass
-                if (qinfo->SkillOrClassMask != -skill_id)
+                if (qinfo->SkillOrClassMask != skill_id)
                 {
                     sLog->outErrorDb("Quest %u has `ZoneOrSort` = %i (skill sort case) but `SkillOrClassMask` does not have a corresponding value (%i).",
-                        qinfo->GetQuestId(), qinfo->ZoneOrSort, -skill_id);
+                        qinfo->GetQuestId(), qinfo->ZoneOrSort, skill_id);
                     //override, and force proper value here?
                 }
             }
         }
 
-        // SkillOrClassMask (class case) (higher than)
-        if (qinfo->SkillOrClassMask > 0)
+        // SkillOrClassMask (class case)
+        if (qinfo->SkillOrClassMask < 0)
         {
-            if (!((qinfo->SkillOrClassMask) & CLASSMASK_ALL_PLAYABLE))
+			if (!(-int32(qinfo->SkillOrClassMask) & CLASSMASK_ALL_PLAYABLE))
             {
                 sLog->outErrorDb("Quest %u has `SkillOrClassMask` = %i (class case) but classmask does not have valid class",
                     qinfo->GetQuestId(), qinfo->SkillOrClassMask);
             }
         }
-        // SkillOrClassMask (skill case) (lower than)
-        if (qinfo->SkillOrClassMask < 0)
+        // SkillOrClassMask (skill case)
+        if (qinfo->SkillOrClassMask > 0)
         {
-			uint32 realskillId = (qinfo->SkillOrClassMask) * (-1);
-            if (!sSkillLineStore.LookupEntry(realskillId))
+            if (!sSkillLineStore.LookupEntry(qinfo->SkillOrClassMask))
             {
                 sLog->outErrorDb("Quest %u has `SkillOrClass` = %u (skill case) but skill (%i) does not exist",
-                    qinfo->GetQuestId(), realskillId, realskillId);
+                    qinfo->GetQuestId(), qinfo->SkillOrClassMask, qinfo->SkillOrClassMask);
             }
         }
 
@@ -4109,7 +4108,7 @@ void ObjectMgr::LoadQuests()
                 // no changes, quest can't be done for this requirement
             }
 
-            if (qinfo->SkillOrClassMask >= 0)
+            if (qinfo->SkillOrClassMask <= 0)
             {
                 sLog->outErrorDb("Quest %u has `RequiredSkillValue` = %u but `SkillOrClass` = %i (class case), value ignored.",
                     qinfo->GetQuestId(), qinfo->RequiredSkillValue, qinfo->SkillOrClassMask);
