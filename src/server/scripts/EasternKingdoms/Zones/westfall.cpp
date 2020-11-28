@@ -159,7 +159,7 @@ class npc_thug: public CreatureScript
                             }
                             case 3:
                             {
-                                Thug3->MonsterSay(" See her face. It is really...", 0, 0);
+                                Thug3->MonsterSay("See her face. It is really...", 0, 0);
                                 SummonTimer = 4000;
                                 Phase++;
                             }
