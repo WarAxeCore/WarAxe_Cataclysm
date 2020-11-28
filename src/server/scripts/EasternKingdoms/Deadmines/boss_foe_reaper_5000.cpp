@@ -227,21 +227,6 @@ public:
 			}
 		}
 
-		/*void SpellHit(Unit* /*caster, SpellInfo const* spell)
-		{
-			if (!spell || !me)
-				return;
-
-			if (spell->Id == SPELL_ENERGIZE)
-			{
-				if (Step == 3)
-				{
-					events.ScheduleEvent(EVENT_START, 100);
-				}
-				Step++;
-			}
-		}*/
-
 		void MovementInform(uint32 /*type*/, uint32 id)
 		{
 			if (id == 0)
@@ -273,7 +258,7 @@ public:
 			{
 				if (Step == 3)
 				{
-					events.ScheduleEvent(EVENT_START, 100);
+					events.ScheduleEvent(EVENT_START, 3000);
 				}
 				Step++;
 				break;

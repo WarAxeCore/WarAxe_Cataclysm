@@ -179,7 +179,10 @@ public:
 			_JustDied();
 
 			if (IsHeroic())
+			{
 				me->SummonCreature(NPC_NOTE, notePos);
+				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			}
 		}
 
 		void UpdateAI(const uint32 diff)
@@ -205,8 +208,7 @@ public:
 					break;
 				case EVENT_CAULDRON_2:
 					if (Creature* pCauldron = me->FindNearestCreature(NPC_CAULDRON, 20.0f))
-						//me->EnterVehicle(pCauldron);
-						me->GetMotionMaster()->MoveJump(pCauldron->GetPositionX(), pCauldron->GetPositionY(), pCauldron->GetPositionZ(), 5, 10);
+						me->GetMotionMaster()->MoveJump(pCauldron->GetPositionX(), pCauldron->GetPositionY(), pCauldron->GetPositionZ() + 2, 5, 10);
 					events.ScheduleEvent(EVENT_THROW_FOOD, 3000);
 					break;
 				case EVENT_THROW_FOOD:
@@ -279,16 +281,16 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
-			me->DespawnOrUnsummon();
+			//me->DespawnOrUnsummon();
 		}
 
 		void UpdateAI(const uint32 /*diff*/)
 		{
-			if (!pInstance)
-				return;
+			//if (!pInstance)
+				//return;
 
-			if (pInstance->GetBossState(DATA_CAPTAIN) != IN_PROGRESS)
-				me->DespawnOrUnsummon();
+			//if (pInstance->GetBossState(DATA_CAPTAIN) != IN_PROGRESS)
+				//me->DespawnOrUnsummon();
 		}
 
 	private:
@@ -330,16 +332,16 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
-			me->DespawnOrUnsummon();
+			//me->DespawnOrUnsummon();
 		}
 
 		void UpdateAI(const uint32 /*diff*/)
 		{
-			if (!pInstance)
-				return;
+			//if (!pInstance)
+				//return;
 
-			if (pInstance->GetBossState(DATA_CAPTAIN) != IN_PROGRESS)
-				me->DespawnOrUnsummon();
+			//if (pInstance->GetBossState(DATA_CAPTAIN) != IN_PROGRESS)
+				//me->DespawnOrUnsummon();
 		}
 	private:
 		InstanceScript* pInstance;

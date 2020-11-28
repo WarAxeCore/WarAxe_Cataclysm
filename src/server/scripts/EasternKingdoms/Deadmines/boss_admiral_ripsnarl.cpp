@@ -229,10 +229,10 @@ public:
 					events.ScheduleEvent(EVENT_SWIPE, urand(8000, 10000));
 					break;
 				case EVENT_CONTINUE:
-					me->PlayDirectSound(19881, NULL);
 					me->SetVisible(true);
 					me->SetReactState(REACT_AGGRESSIVE);
 					events.ScheduleEvent(EVENT_THRIST_OF_BLOOD, urand(5000, 7000));
+					me->PlayDirectSound(19881, NULL);
 					if (IsHeroic())
 						events.ScheduleEvent(EVENT_GO_FOR_THE_THROAT, urand(5000, 10000));
 
@@ -257,6 +257,9 @@ public:
 							break;
 						case 1:
 							me->BossYell("I will rip your heart from your chest!", 19880);
+							break;
+						default:
+							me->BossYell("I can smell your fear...", 19879);
 							break;
 					}
 					events.ScheduleEvent(EVENT_GO_FOR_THE_THROAT, urand(10000, 20000));
