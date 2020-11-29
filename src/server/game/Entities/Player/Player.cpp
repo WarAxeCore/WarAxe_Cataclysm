@@ -8054,6 +8054,8 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
 {
     if (_zoneUpdateId != newZone)
     {
+		uint32 oldZoneId = _zoneUpdateId;
+
         if (Guild* guild = sGuildMgr->GetGuildById(GetGuildId()))
            guild->UpdateMemberData(this, GUILD_MEMBER_DATA_ZONEID, newZone);
 
@@ -8152,6 +8154,41 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
             }
         }
     }
+
+	//Prevent players from accessing Cataclysm Zones depending on config options
+	if (sWorld->getBoolConfig(CONFIG_CATACLYSM_ZONE_STATUS) == false)
+	{
+		if (GetMotionMaster()->GetCurrentMovementGeneratorType() != FLIGHT_MOTION_TYPE) // If player isn't on a flight path tele them out.
+		{
+			if (newZone == 616 && GetSession()->GetSecurity() == SEC_PLAYER) // Let GMs still enter (Mt. Hyjal)
+			{
+				TeleportTo(1, 3144.402f, -1738.89f, 171.39f, 3.2f);
+				MonsterTextEmote("This cataclysm zone is disabled until release", 0, true);
+			}
+			if (newZone == 5034 && GetSession()->GetSecurity() == SEC_PLAYER) // Let GMs still enter (Uldum)
+			{
+				TeleportTo(1, -7921.53f, -3406.69f, 80.04f, 0.66f);
+				MonsterTextEmote("This cataclysm zone is disabled until release", 0, true);
+			}
+			if (newZone == 4922 && GetSession()->GetSecurity() == SEC_PLAYER) // Let GMs still enter (Twilight Highlands)
+			{
+				TeleportTo(0, -3993.80f, -2817.39f, 17.78f, 0.29f);
+				MonsterTextEmote("This cataclysm zone is disabled until release", 0, true);
+			}
+			if (newZone == 5146 && GetSession()->GetSecurity() == SEC_PLAYER) // Let GMs still enter (Vashji'r)
+			{
+				if (GetTeam() == ALLIANCE)
+				{
+					TeleportTo(0, -8053.42f, 1416.94f, 1.21f, 4.86f);
+				}
+				else
+				{
+					TeleportTo(0, -2716.34f, -1216.99f, 1.28f, 3.32f);
+				}
+				MonsterTextEmote("This cataclysm zone is disabled until release", 0, true);
+			}
+		}
+	}
 
     // Prevent players from accessing GM Island
     if (sWorld->getBoolConfig(CONFIG_PREVENT_PLAYERS_ACCESS_TO_GMISLAND))

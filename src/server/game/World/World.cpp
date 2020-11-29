@@ -898,6 +898,8 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_ALL_TAXI_PATHS] = ConfigMgr::GetBoolDefault("AllFlightPaths", false);
     m_bool_configs[CONFIG_INSTANT_TAXI] = ConfigMgr::GetBoolDefault("InstantFlightPaths", false);
 
+	m_bool_configs[CONFIG_CATACLYSM_ZONE_STATUS] = ConfigMgr::GetBoolDefault("CataclysmZoneStatus", false);
+
     m_bool_configs[CONFIG_GUILD_ADVANCEMENT_ENABLED] = ConfigMgr::GetBoolDefault("GuildAdvancement.Enabled", false);// Not yet complete
     m_int_configs[CONFIG_GUILD_ADVANCEMENT_MAX_LEVEL] = ConfigMgr::GetIntDefault("GuildAdvancement.MaxLevel", 25);
     if (m_int_configs[CONFIG_GUILD_ADVANCEMENT_MAX_LEVEL] == 0 || m_int_configs[CONFIG_GUILD_ADVANCEMENT_MAX_LEVEL] > 255)
