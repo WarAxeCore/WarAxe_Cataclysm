@@ -1221,6 +1221,16 @@ AllFlightPaths = 0
 InstantFlightPaths = 0
 
 #
+#    Cataclysm Zone Status
+#        Description: If this is disabled all cataclysm main zones will be locked and player
+#                     will be teleported out and displayed a messgae
+#			"This cataclysm zone is disabled until release."
+#        Default:     0 - (Cataclysm zones locked)
+#                     1 - (Cataclysm zones unlocked)
+
+CataclysmZoneStatus = 0
+
+#
 #    OldSkillSystem
 #        Description: Players will have to gain on-level skills manually. (weapon, defense)
 #                     up.
