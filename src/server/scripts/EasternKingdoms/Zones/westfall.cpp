@@ -766,9 +766,13 @@ class npc_crate_mine : public CreatureScript
                                 SkyFire::PlayerListSearcher<SkyFire::AnyPlayerInObjectRangeCheck> searcher(me, players, checker);
                                 me->VisitNearbyWorldObject(20.0f, searcher);
 
-                                for (std::list<Player*>::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-                                    (*itr)->GroupEventHappens(QUEST_LIVIN_THE_LIFE, me);
+								for (std::list<Player*>::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+								{
+									(*itr)->GroupEventHappens(QUEST_LIVIN_THE_LIFE, me);
+								}
+                                    //(*itr)->GroupEventHappens(QUEST_LIVIN_THE_LIFE, me);
 
+								me->SummonCreature(140000, -9848.5f, 1390.56f, 38.45f);
                                 Phase = 0;
                             }
                             break;
@@ -2087,7 +2091,7 @@ class npc_horatio_investigate : public CreatureScript
                         {
                             case 0:
                             {
-                                Investigator04->MonsterSay("You were standing right here! What the hell did you see?Speak up!", 0, 0);
+                                Investigator04->MonsterSay("You were standing right here! What the hell did you see? Speak up!", 0, 0);
                                 TextTimer = 4000;
                                 Phase++;
                                 break;
@@ -2115,14 +2119,14 @@ class npc_horatio_investigate : public CreatureScript
                             }
                             case 4:
                             {
-                                me->MonsterSay("This was an execution. Whoever did this was sending a message,,,", 0, 0);
+                                me->MonsterSay("This was an execution. Whoever did this was sending a message.", 0, 0);
                                 TextTimer = 5000;
                                 Phase++;
                                 break;
                             }
                             case 5:
                             {
-                                me->MonsterSay("A message for anyone that would dare snitch on these cryminals.", 0, 0);
+                                me->MonsterSay("A message for anyone that would dare snitch on these criminals.", 0, 0);
                                 TextTimer = 4000;
                                 Phase++;
                                 break;
@@ -2153,6 +2157,45 @@ class npc_horatio_investigate : public CreatureScript
     };
 };
 
+class npc_two_shou_lou_fix : public CreatureScript
+{
+public:
+	npc_two_shou_lou_fix() : CreatureScript("npc_two_shou_lou_fix") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_two_shou_lou_fixAI(creature);
+	}
+
+	struct npc_two_shou_lou_fixAI : public ScriptedAI
+	{
+		npc_two_shou_lou_fixAI(Creature* creature) : ScriptedAI(creature) { }
+
+		void MoveInLineOfSight(Unit* who)
+		{
+				if (who->GetDistance(-9837.71f, 1389.57f, 38.36f) < 7.0f)
+				{
+					if (who->IsPlayer())
+					{
+						if (who->ToPlayer()->GetQuestStatus(26228) == QUEST_STATUS_NONE || who->ToPlayer()->GetQuestStatus(26228) == QUEST_STATUS_INCOMPLETE)
+						{
+							me->SummonCreature(42500, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
+							me->DespawnOrUnsummon();
+						}
+					}
+				}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			DoMeleeAttackIfReady();
+		}
+	};
+};
+
 void AddSC_westfall()
 {
     new npc_thug();
@@ -2167,4 +2210,5 @@ void AddSC_westfall()
     new npc_fire_trigger();
     new npc_summoner();
     new npc_horatio_investigate();
+	new npc_two_shou_lou_fix();
 }
