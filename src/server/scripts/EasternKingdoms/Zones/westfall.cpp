@@ -677,7 +677,7 @@ class npc_crate_mine : public CreatureScript
                             }
                             case 2:
                             {
-                                glubtok1->MonsterSay("What little human want? Why you call Glubtok?", 0, 0);
+                                glubtok1->MonsterSay("What little humie want? Why you call Glubtok?", 0, 0);
                                 EntryTime = 5000;
                                 Phase++;
                                 break;
@@ -691,7 +691,7 @@ class npc_crate_mine : public CreatureScript
                             }
                             case 4:
                             {
-                                glubtok1->MonsterSay("Glubtok crash you!", 0, 0);
+                                glubtok1->MonsterSay("Glubtok crush you!", 0, 0);
                                 EntryTime = 4000;
                                 Phase++;
                                 break;
@@ -712,7 +712,7 @@ class npc_crate_mine : public CreatureScript
                             }
                             case 7:
                             {
-                                glubtok1->MonsterSay("What is option two.", 0, 0);
+                                glubtok1->MonsterSay("What option two?", 0, 0);
                                 EntryTime = 4000;
                                 Phase++;
                                 break;
@@ -726,7 +726,7 @@ class npc_crate_mine : public CreatureScript
                             }
                             case 9:
                             {
-                                glubtok1->MonsterSay("So Glubtok have two choices die or be rich and powerful?", 0, 0);
+                                glubtok1->MonsterSay("So Glubtok have two choices: die or be rich and powerful?", 0, 0);
                                 EntryTime = 7000;
                                 Phase++;
                                 break;
