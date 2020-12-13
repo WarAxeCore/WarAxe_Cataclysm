@@ -95,7 +95,7 @@ class npc_thug: public CreatureScript
 
             if (who->ToPlayer()->GetQuestStatus(QUEST_LOUS_PARTING_THOUGHTS) == QUEST_STATUS_INCOMPLETE)
             {
-                if (who->IsWithinDistInMap(me, 10.0f) && !bSummoned)
+                if (who->IsWithinDistInMap(me, 10.0f))
                 {
                     PlayerGUID = who->GetGUID();
                     StartEvent();
@@ -105,6 +105,12 @@ class npc_thug: public CreatureScript
 
         void StartEvent()
         {
+			if (bSummoned == true)
+				return;
+
+			if (!me->GetDBTableGUIDLow())
+				return;
+
             if(!bSummoned)
             {
                 if (Creature* Thug1 = me->SummonCreature(NPC_THUG, -9859.36f, 1332.42f, 41.985f, 2.495f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90000))
@@ -112,10 +118,10 @@ class npc_thug: public CreatureScript
                 if (Creature* Thug3 = me->SummonCreature(NPC_THUG, -9863.49f, 1335.489f, 41.985f, 5.63f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90000))
                 if (Creature* Thug4 = me->SummonCreature(NPC_THUG, -9860.42f, 1335.459f, 41.985f, 4.11f, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90000))
                 {
-                    Thug1GUID      = Thug1->GetGUID();
-                    Thug2GUID      = Thug2->GetGUID();
-                    Thug3GUID      = Thug3->GetGUID();
-                    Thug4GUID      = Thug4->GetGUID();
+					Thug1GUID = Thug1->GetGUID();
+					Thug2GUID = Thug2->GetGUID();
+					Thug3GUID = Thug3->GetGUID();
+					Thug4GUID = Thug4->GetGUID();
                     bSummoned      = true;
                     SummonTimer    = 2000;
                 }
