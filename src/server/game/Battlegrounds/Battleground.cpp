@@ -701,46 +701,8 @@ void Battleground::RewardHonorToTeam(uint32 Honor, uint32 TeamID)
 	for (BattlegroundPlayerMap::const_iterator itr = _Players.begin(); itr != _Players.end(); ++itr)
 		if (Player* player_bg_experience = _GetPlayerForTeam(TeamID, itr, "RewardHonorToTeam"))
 		{
-			if (player_bg_experience->getLevel() <= 15) // 10 to 15
-			{
-				player_bg_experience->GiveXP(2000, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 25) // 16 to 25
-			{
-				player_bg_experience->GiveXP(3100, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 34) // 26 to 34
-			{
-				player_bg_experience->GiveXP(5550, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 45) // 35 to 45
-			{
-				player_bg_experience->GiveXP(8150, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 55) // 46 to 55
-			{
-				player_bg_experience->GiveXP(9550, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 60) // 56 to 60
-			{
-				player_bg_experience->GiveXP(10750, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 64) // 60 to 64
-			{
-				player_bg_experience->GiveXP(12650, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 70) // 65 to 70
-			{
-				player_bg_experience->GiveXP(16550, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 80) // 71 to 80
-			{
-				player_bg_experience->GiveXP(22050, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
-			if (player_bg_experience->getLevel() <= 84) // 81 to 84
-			{
-				player_bg_experience->GiveXP(33100, player_bg_experience); // This amount is estimated but we can't get real blizz values.
-			}
+			// Formula for BG experience with config multiplier.
+			player_bg_experience->GiveXP((player_bg_experience->getLevel() * 1100) / 7.10 * sWorld->getRate(RATE_XP_QUEST), player_bg_experience);
 		}
 }
 
