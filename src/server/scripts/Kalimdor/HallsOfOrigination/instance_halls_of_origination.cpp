@@ -189,7 +189,7 @@ public:
                     if(elementalsDefeated >= 4)
                     {
                         if(Creature* anrapet = instance->GetCreature(Anraphet))
-                            anrapet->SetPhaseMask(1, true);
+							anrapet->AI()->DoAction(1);
                     }
                     break;
             }

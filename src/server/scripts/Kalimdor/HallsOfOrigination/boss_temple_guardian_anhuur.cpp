@@ -144,6 +144,7 @@ public:
 		{
 			_JustDied();
 			me->BossYell("What... have you... done?", 18579);
+			instance->SetBossState(DATA_TEMPLE_GUARDIAN_ANHUUR, DONE);
 		}
 
 		void EnterCombat(Unit* /*Ent*/)

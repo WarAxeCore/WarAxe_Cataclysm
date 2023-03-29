@@ -1,411 +1,434 @@
-/*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2011-2013 ArkCORE <http://www.arkania.net/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+////////////////////////////////////////////////////////////////////////////////
+//
+//  MILLENIUM-STUDIO
+//  Copyright 2016 Millenium-studio SARL
+//  All Rights Reserved.
+//
+////////////////////////////////////////////////////////////////////////////////
 
- /*
- SFName: boss_setesh
- SF%Complete: 75%
- SFComment:
- SFCategory: Halls Of Origination
-
- Known Bugs:
-
- TODO:
- 1. Missing ScriptTexts
- 2. Needs testing
- 3. Check Timers
- */
-
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
 #include "ScriptPCH.h"
 #include "halls_of_origination.h"
 
 enum Spells
 {
-    //Setesh
-    SPELL_CHAOS_BOLT        = 77069,
-    SPELL_REIGN_OF_CHAOS    = 77026,
-    SPELL_CHAOS_BLAST       = 76681, //76676
-    SPELL_SEED_OF_CHAOS     = 76870,
-    SPELL_SUMMON_CHAOS_SEED = 76888,
+	// Setesh
+	SPELL_CHAOS_BOLT = 77069,
+	//SPELL_REIGN_OF_CHAOS      = 77026,
+	//SPELL_CHAOS_BLAST         = 76681,
+	//SPELL_SEED_OF_CHAOS       = 76870,
+	//SPELL_SUMMON_CHAOS_SEED   = 76888,
 
-    //Sentinel
-    SPELL_VOID_BARRIER      = 63710,
-    SPELL_CHARGED_FISTS     = 77238,
+	// Void Sentinel
+	SPELL_VOID_BARRIER = 76959,
+	SPELL_CHARGED_FISTS = 77238,
 
-    //Seeker
-    SPELL_ANTIMAGIC_PRISON  = 76903
-};
-
-enum Texts
-{
-    SAY_AGGRO    = 0,
-    SAY_KILL     = 1,
-    SAY_DEATH    = 2
-};
-
-enum Gameobjects
-{
+	// Void Seeker
+	SPELL_ANTI_MAGIC_PRISON = 76903,
+	SPELL_SHADOW_BOLT_VOLLEY = 76146, //r
+	SPELL_SHADOW_BOLT_VOLLEY_H = 89846, //r
 };
 
 enum NPCs
 {
-    NPC_VOID_SENTINEL       = 41208,
-    NPC_VOID_SEEKER         = 41371,
-    NPC_VOID_WURM           = 41374,
-    NPC_CHAOS_PORTAL        = 0
+	NPC_VOID_SENTINEL = 41208,
+	NPC_VOID_SEEKER = 41371,
+	NPC_VOID_WURM = 41374,
+	NPC_CHAOS_PORTAL = 41055,
+	NPC_REIGN_OF_CHAOS = 41168, // 77026
+	NPC_VOID_LORD = 41364, // 77458
 };
 
 enum Events
 {
-    EVENT_CHAOS_BOLT           = 1,
-    EVENT_REIGN_OF_CHAOS       = 2,
-    EVENT_CHAOS_BLAST          = 3,
-    EVENT_SUMMON_SEED_OF_CHAOS = 4,
-    EVENT_SUMMON_CHAOS_PORTAL  = 5
+	EVENT_CHAOS_BOLT = 1,
+	EVENT_SUMMON_CHAOS_PORTAL = 2,
+
+	EVENT_SUMMON_6 = 3,
+	EVENT_SUMMON_10 = 4,
+	EVENT_SUMMON_12 = 5,
+	EVENT_SUMMON_15 = 6,
+
+	EVENT_ANTI_MAGIC_PRISON = 7,
+	EVENT_SHADOW_BOLT_VOLLEY = 8,
+
+	EVENT_VOID_BARRIER = 9,
+	EVENT_CHARGED_FISTS = 10,
+
+	EVENT_MOVE = 11
+};
+
+enum SeteshSummonTypes
+{
+	SETESH_SUMMON_WURM = 1,
+	SETESH_SUMMON_SENTINEL = 2,
+	SETESH_SUMMON_SEEKER = 3
+};
+
+const Position movepos[9] =
+{
+	{-481.55f, 14.15f, 343.92f, 2.07f},
+	{-490.31f, 25.55f, 343.93f, 2.56f},
+	{-508.35f, 30.95f, 343.94f, 3.08f},
+	{-524.62f, 30.30f, 343.93f, 3.35f},
+	{-534.63f, 22.76f, 343.92f, 4.08f},
+	{-539.40f, 9.067f, 343.92f, 4.67f},
+	{-537.78f, -3.28f, 343.92f, 5.11f},
+	{-528.39f, -16.43f, 343.93f, 5.85f},
+	{-513.85f, -19.04f, 343.93f, 6.15f}
 };
 
 class boss_setesh : public CreatureScript
 {
-    public:
-        boss_setesh() : CreatureScript("boss_setesh") { }
+public:
+	boss_setesh() : CreatureScript("boss_setesh") { }
 
-        struct boss_seteshAI : public BossAI
-        {
-            boss_seteshAI(Creature* creature) : BossAI(creature, DATA_SETESH_EVENT)
-            {
-                instance = me->GetInstanceScript();
-            }
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new boss_seteshAI(creature);
+	}
 
-            InstanceScript* instance;
+	struct boss_seteshAI : public BossAI
+	{
+		boss_seteshAI(Creature* creature) : BossAI(creature, DATA_SETESH)
+		{
+			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+		}
 
-            void Reset()
-            {
-                if (instance)
-                    instance->SetData(DATA_SETESH_EVENT, NOT_STARTED);
-            }
+		void Reset()
+		{
+			_Reset();
+		}
 
-            void EnterCombat(Unit* /*who*/)
-            {
-                //DoScriptText(SAY_AGGRO, me);
+		void EnterCombat(Unit* /*who*/)
+		{
+			me->BossYell("You fear that which you cannot control. But can you control your fear?", 18553);
+			events.ScheduleEvent(EVENT_CHAOS_BOLT, 10000);
+			events.ScheduleEvent(EVENT_SUMMON_CHAOS_PORTAL, 20000);
+			events.ScheduleEvent(EVENT_MOVE, 2000);
 
-                if (instance)
-                    instance->SetData(DATA_SETESH_EVENT, IN_PROGRESS);
+			me->SetReactState(REACT_PASSIVE);
 
-                events.ScheduleEvent(EVENT_CHAOS_BOLT, 10000);
-                events.ScheduleEvent(EVENT_REIGN_OF_CHAOS, 15000);
-                events.ScheduleEvent(EVENT_CHAOS_BLAST, 12000);
-                events.ScheduleEvent(EVENT_SUMMON_SEED_OF_CHAOS, 25000);
-                events.ScheduleEvent(EVENT_SUMMON_CHAOS_PORTAL, 20000);
+			DoZoneInCombat();
+			instance->SetBossState(DATA_SETESH, IN_PROGRESS);
+		}
 
-                DoZoneInCombat();
-            }
+		void MovementInform(uint32 type, uint32 id)
+		{
+			if (type == POINT_MOTION_TYPE)
+			{
+				switch (id)
+				{
+				case 1:
+					events.ScheduleEvent(EVENT_MOVE, 1000);
+					break;
+				}
+			}
+		}
 
-            void UpdateAI(uint32 const diff)
-            {
-                if (!UpdateVictim())
-                    return;
+		void KilledUnit(Unit* /*p_Who*/)
+		{
+			me->BossYell("Do you understand now?", 18556);
+		}
 
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
+		void JustDied(Unit* /*who*/)
+		{
+			_JustDied();
 
-                events.Update(diff);
+			me->BossYell("Yes! Harness... your... hatred.", 18552);
+		}
 
-                while(uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                        case EVENT_CHAOS_BOLT:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, true))
-                                DoCast(target, SPELL_CHAOS_BOLT);
-                            events.ScheduleEvent(EVENT_CHAOS_BOLT, 10000);
-                            break;
-                        case EVENT_REIGN_OF_CHAOS:
-                            DoCastAOE(SPELL_REIGN_OF_CHAOS);
-                            events.ScheduleEvent(EVENT_REIGN_OF_CHAOS, urand(15000, 22000));
-                            break;
-                        case EVENT_CHAOS_BLAST:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, true))
-                                DoCast(target, SPELL_CHAOS_BLAST);
-                            events.ScheduleEvent(EVENT_CHAOS_BLAST, 15000);
-                            break;
-                        case EVENT_SUMMON_SEED_OF_CHAOS:
-                            DoCast(SPELL_SUMMON_CHAOS_SEED);
-                            events.ScheduleEvent(EVENT_SUMMON_SEED_OF_CHAOS, 25000);
-                            break;
-                        case EVENT_SUMMON_CHAOS_PORTAL:
-                            me->SummonCreature(NPC_CHAOS_PORTAL, me->GetPositionX()+rand()%10, me->GetPositionY()+rand()%10, me->GetPositionZ());
-                            events.ScheduleEvent(EVENT_SUMMON_CHAOS_PORTAL, 30000);
-                            break;
-                        default:
-                            break;
-                    }
-                }
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-                DoMeleeAttackIfReady();
-            }
+			events.Update(diff);
 
-            void JustDied(Unit* /*who*/)
-            {
-                //DoScriptText(SAY_DEATH, me);
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-                if (instance)
-                    instance->SetData(DATA_SETESH_EVENT, DONE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_seteshAI(creature);
-        }
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_CHAOS_BOLT:
+					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+						DoCast(pTarget, SPELL_CHAOS_BOLT);
+					events.ScheduleEvent(EVENT_CHAOS_BOLT, urand(5000, 10000));
+					break;
+				case EVENT_SUMMON_CHAOS_PORTAL:
+					me->SummonCreature(NPC_CHAOS_PORTAL,
+						me->GetPositionX(),
+						me->GetPositionY(),
+						me->GetPositionZ(),
+						me->GetOrientation(),
+						IsHeroic() ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_DESPAWN,
+						IsHeroic() ? 0 : 35000);
+					events.ScheduleEvent(EVENT_SUMMON_CHAOS_PORTAL, urand(40000, 45000));
+					break;
+				case EVENT_MOVE:
+					me->GetMotionMaster()->MovePoint(1, movepos[urand(0, 8)]);
+					break;
+				}
+			}
+		}
+	};
 };
 
-class mob_seed_of_chaos : public CreatureScript
+class npc_setesh_chaos_portal : public CreatureScript
 {
 public:
-    mob_seed_of_chaos() : CreatureScript("mob_seed_of_chaos") { }
+	npc_setesh_chaos_portal() : CreatureScript("npc_setesh_chaos_portal") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_seed_of_chaosAI(creature);
-    }
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_setesh_chaos_portalAI(creature);
+	}
 
-    struct mob_seed_of_chaosAI : public Scripted_NoMovementAI
-    {
-        mob_seed_of_chaosAI(Creature* creature) : Scripted_NoMovementAI(creature), Summons(me)
-        {
-            instance = (InstanceScript*)creature->GetInstanceScript();
-            Reset();
-        }
+	struct npc_setesh_chaos_portalAI : public Scripted_NoMovementAI
+	{
+		npc_setesh_chaos_portalAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+		{
+			pInstance = pCreature->GetInstanceScript();
+		}
 
-        InstanceScript* instance;
+		InstanceScript* pInstance;
+		EventMap events;
 
-        SummonList Summons;
+		void SeteshSummon(SeteshSummonTypes type)
+		{
+			if (!pInstance)
+				return;
 
-        void Reset()
-        {
-            me->SetReactState(REACT_PASSIVE);
-        }
+			if (Creature* pSetesh = pInstance->instance->GetCreature(pInstance->GetData64(DATA_SETESH)))
+			{
+				switch (type)
+				{
+				case SETESH_SUMMON_WURM:
+					pSetesh->SummonCreature(NPC_VOID_WURM,
+						me->GetPositionX(),
+						me->GetPositionY(),
+						me->GetPositionZ(),
+						me->GetOrientation());
+					pSetesh->SummonCreature(NPC_VOID_WURM,
+						me->GetPositionX(),
+						me->GetPositionY(),
+						me->GetPositionZ(),
+						me->GetOrientation());
+					break;
+				case SETESH_SUMMON_SENTINEL:
+					pSetesh->SummonCreature(NPC_VOID_SENTINEL,
+						me->GetPositionX(),
+						me->GetPositionY(),
+						me->GetPositionZ(),
+						me->GetOrientation());
+					break;
+				case SETESH_SUMMON_SEEKER:
+					pSetesh->SummonCreature(NPC_VOID_SEEKER,
+						me->GetPositionX(),
+						me->GetPositionY(),
+						me->GetPositionZ(),
+						me->GetOrientation());
+					break;
+				}
+			}
+		}
 
-        void UpdateAI(uint32 const diff)
-        {
-            if (Unit* target = SelectTarget(SELECT_TARGET_NEAREST, true))
-                if (me->IsInRange(target, 0, 3))
-                    DoCast(SPELL_SEED_OF_CHAOS);
-        }
+		void Reset()
+		{
+			me->SetReactState(REACT_PASSIVE);
 
-        void JustDied(Unit* /*killer*/)
-        {
-            // used to despawn corpse immediately
-            me->DespawnOrUnsummon();
-        }
-    };
+			if (!IsHeroic())
+			{
+				me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+				SeteshSummon(SETESH_SUMMON_WURM);
+				events.ScheduleEvent(EVENT_SUMMON_12, 12000);
+			}
+			else
+			{
+				me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+				SeteshSummon(SETESH_SUMMON_SENTINEL);
+				events.ScheduleEvent(EVENT_SUMMON_6, 12000);
+			}
+		}
+
+		void UpdateAI(uint32 const diff)
+		{
+			events.Update(diff);
+
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_SUMMON_6:
+					SeteshSummon(SETESH_SUMMON_WURM);
+					events.ScheduleEvent(EVENT_SUMMON_10, 10000);
+					break;
+				case EVENT_SUMMON_10:
+					SeteshSummon(SETESH_SUMMON_SEEKER);
+					events.ScheduleEvent(EVENT_SUMMON_15, 15000);
+					break;
+				case EVENT_SUMMON_12:
+					SeteshSummon(SETESH_SUMMON_SEEKER);
+					events.ScheduleEvent(EVENT_SUMMON_15, 15000);
+					break;
+				case EVENT_SUMMON_15:
+					if (IsHeroic())
+					{
+						if (urand(0, 1))
+							SeteshSummon(SETESH_SUMMON_WURM);
+						else
+							SeteshSummon(SETESH_SUMMON_SENTINEL);
+						events.ScheduleEvent(EVENT_SUMMON_15, 15000);
+					}
+					else
+					{
+						SeteshSummon(SETESH_SUMMON_SENTINEL);
+						me->DespawnOrUnsummon();
+					}
+					break;
+				}
+			}
+		}
+	};
+
 };
 
-class mob_choas_portal : public CreatureScript
+class npc_setesh_void_sentinel : public CreatureScript
 {
 public:
-    mob_choas_portal() : CreatureScript("mob_choas_portal") { }
+	npc_setesh_void_sentinel() : CreatureScript("npc_setesh_void_sentinel") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_choas_portalAI(creature);
-    }
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_setesh_void_sentinelAI(creature);
+	}
 
-    struct mob_choas_portalAI : public Scripted_NoMovementAI
-    {
-        mob_choas_portalAI(Creature* creature) : Scripted_NoMovementAI(creature), Summons(me)
-        {
-            instance = (InstanceScript*)creature->GetInstanceScript();
-            Reset();
-        }
+	struct npc_setesh_void_sentinelAI : public ScriptedAI
+	{
+		npc_setesh_void_sentinelAI(Creature* pCreature) : ScriptedAI(pCreature)
+		{
+			pInstance = pCreature->GetInstanceScript();
+		}
 
-        InstanceScript* instance;
+		InstanceScript* pInstance;
+		EventMap events;
 
-        SummonList Summons;
-        uint32 SummonTimer;
+		void Reset()
+		{
+			events.Reset();
+		}
 
-        void Reset()
-        {
-            me->SetReactState(REACT_PASSIVE);
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-            if (!IsHeroic())
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
-            else
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED);
+			events.Update(diff);
 
-            SummonTimer = 1000;
-            Summons.DespawnAll();
-        }
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-        void Summon(uint8 summon)
-        {
-            if (summon == 0)
-            {
-                me->SummonCreature(NPC_VOID_SEEKER, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
-                me->SummonCreature(NPC_VOID_WURM, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
-            }
-            else
-                me->SummonCreature(NPC_VOID_SENTINEL, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
-        }
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_CHARGED_FISTS:
+					DoCast(me, SPELL_CHARGED_FISTS);
+					events.ScheduleEvent(EVENT_CHARGED_FISTS, urand(18000, 22000));
+					break;
+				case EVENT_VOID_BARRIER:
+					DoCast(me, SPELL_VOID_BARRIER);
+					break;
+				}
+			}
 
-        void UpdateAI(uint32 const diff)
-        {
-            if (SummonTimer <= diff)
-            {
-                uint8 summon = urand(0, 1);
-                Summon(summon);
-                SummonTimer = 15000;
-            } else SummonTimer -= diff;
-        }
+			DoMeleeAttackIfReady();
+		}
+	};
 
-        void IsSummonedBy(Unit* /*summoner*/)
-        {
-            //DoCast(SPELL_INFERNAL_ERUPTION_EFFECT);
-        }
-
-        void JustSummoned(Creature* summoned)
-        {
-            Summons.Summon(summoned);
-            // makes immediate corpse despawn of summoned Felflame Infernals
-            summoned->SetCorpseDelay(0);
-        }
-
-        void JustDied(Unit* /*killer*/)
-        {
-            // used to despawn corpse immediately
-            me->DespawnOrUnsummon();
-        }
-    };
 };
 
-class mob_void_sentinel : public CreatureScript
+class npc_setesh_void_seeker : public CreatureScript
 {
 public:
-    mob_void_sentinel() : CreatureScript("mob_void_sentinel") { }
+	npc_setesh_void_seeker() : CreatureScript("npc_setesh_void_seeker") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_void_sentinelAI(creature);
-    }
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_setesh_void_seekerAI(creature);
+	}
 
-    struct mob_void_sentinelAI : public ScriptedAI
-    {
-        mob_void_sentinelAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = (InstanceScript*)creature->GetInstanceScript();
-            Reset();
-        }
+	struct npc_setesh_void_seekerAI : public ScriptedAI
+	{
+		npc_setesh_void_seekerAI(Creature* pCreature) : ScriptedAI(pCreature)
+		{
+			pInstance = pCreature->GetInstanceScript();
+		}
 
-        InstanceScript* instance;
-        uint32 BarrierTimer;
-        uint32 FistTimer;
+		InstanceScript* pInstance;
+		EventMap events;
 
-        void Reset()
-        {
-            BarrierTimer = 10000;
-            FistTimer = 3000;
-        }
+		void Reset()
+		{
+			events.Reset();
+		}
 
-        void UpdateAI(uint32 const diff)
-        {
-            if (!UpdateVictim())
-                return;
+		void EnterCombat(Unit* /*p_Who*/)
+		{
+			if (urand(0, 1))
+				events.ScheduleEvent(EVENT_ANTI_MAGIC_PRISON, urand(3000, 5000));
+			else
+				events.ScheduleEvent(EVENT_SHADOW_BOLT_VOLLEY, urand(3000, 5000));
+		}
 
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
+		void UpdateAI(uint32 const diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-            if (BarrierTimer <= diff)
-            {
-                DoCast(SPELL_VOID_BARRIER);
-                BarrierTimer = 25000;
-            } else BarrierTimer -= diff;
+			events.Update(diff);
 
-            if (FistTimer <= diff)
-            {
-                DoCast(SPELL_CHARGED_FISTS);
-                FistTimer = 25000;
-            } else FistTimer -= diff;
-        }
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-        void JustDied(Unit* /*killer*/)
-        {
-            // used to despawn corpse immediately
-            me->DespawnOrUnsummon();
-        }
-    };
-};
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_ANTI_MAGIC_PRISON:
+					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM))
+						DoCast(pTarget, SPELL_ANTI_MAGIC_PRISON);
+					events.ScheduleEvent(EVENT_ANTI_MAGIC_PRISON, urand(31000, 33000));
+					break;
+				case EVENT_SHADOW_BOLT_VOLLEY:
+					DoCastAOE(SPELL_SHADOW_BOLT_VOLLEY);
+					events.ScheduleEvent(EVENT_SHADOW_BOLT_VOLLEY, urand(9000, 13000));
+					break;
+				}
+			}
 
-class mob_void_seeker : public CreatureScript
-{
-public:
-    mob_void_seeker() : CreatureScript("mob_void_seeker") { }
+			DoMeleeAttackIfReady();
+		}
+	};
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new mob_void_seekerAI(creature);
-    }
-
-    struct mob_void_seekerAI : public ScriptedAI
-    {
-        mob_void_seekerAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = (InstanceScript*)creature->GetInstanceScript();
-            Reset();
-        }
-
-        InstanceScript* instance;
-        uint32 PrisonTimer;
-
-        void Reset()
-        {
-            PrisonTimer = 5000;
-        }
-
-         void UpdateAI(uint32 const diff)
-         {
-                if (!UpdateVictim())
-                    return;
-
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
-
-            if (PrisonTimer <= diff)
-            {
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, true))
-                    DoCast(target, SPELL_ANTIMAGIC_PRISON);
-                PrisonTimer = 25000;
-            } else PrisonTimer -= diff;
-        }
-
-        void JustDied(Unit* /*killer*/)
-        {
-            // used to despawn corpse immediately
-            me->DespawnOrUnsummon();
-        }
-    };
 };
 
 void AddSC_boss_setesh()
 {
-    new boss_setesh();
-    new mob_choas_portal();
-    new mob_seed_of_chaos();
-    new mob_void_sentinel();
-    new mob_void_seeker();
+	new boss_setesh();
+	new npc_setesh_chaos_portal();
+	new npc_setesh_void_sentinel();
+	new npc_setesh_void_seeker();
 }

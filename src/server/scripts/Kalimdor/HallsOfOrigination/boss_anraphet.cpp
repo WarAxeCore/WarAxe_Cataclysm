@@ -1,490 +1,194 @@
-/*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2011-2013 ArkCORE <http://www.arkania.net/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+////////////////////////////////////////////////////////////////////////////////
+//
+//  MILLENIUM-STUDIO
+//  Copyright 2016 Millenium-studio SARL
+//  All Rights Reserved.
+//
+////////////////////////////////////////////////////////////////////////////////
 
- /*
- SFName: boss_anraphet
- SF%Complete: 80%
- SFComment:
- SFCategory: Halls Of Origination
-
- Known Bugs:
-
- TODO:
- 1. Needs Testing
- 2. Missing enter Event
- 3. Missing ScriptTexts
- 4. Check Timers
- */
-
-#include "ScriptMgr.h"
-#include "ScriptedCreature.h"
 #include "ScriptPCH.h"
 #include "halls_of_origination.h"
 
-enum ScriptTexts
-{
-    SAY_INTRO                  = 0,
-    SAY_AGGRO                  = 1,
-    SAY_KILL_1                 = 2,
-    SAY_KILL_2                 = 3,
-    SAY_OMEGA                  = 4,
-    SAY_DEATH                  = 5,
-    SAY_PROTOCOL               = 6
-};
-
 enum Spells
 {
-    //Anraphet
-    SPELL_ALPHA_BEAMS          = 76184,
-    SPELL_CRUMBLING_RUIN       = 75609,
-    SPELL_DESTRUCTION_PROTOCOL = 77437,
-    SPELL_NEMESIS_STRIKE       = 75604,
-    SPELL_OMEGA_STANCE         = 75622,
-
-    //Flame Warden
-    SPELL_LAVA_ERUPTION        = 77273,
-    SPELL_RAGING_INFERNO       = 77241,
-    //Air Warden
-    SPELL_WIND_SHEAR           = 77334,
-    //Earth Warden
-    SPELL_IMPALE               = 77235,
-    SPELL_ROCKWAVE             = 77234,
-    //Water Warden
-    SPELL_BUBBLE_BOUND         = 77336
-};
-
-enum Cords
-{
-    //Cords for Anraphet intro
-    X = 0,
-    Y = 0,
-    Z = 0
+	SPELL_ALPHA_BEAMS = 76184,
+	SPELL_ALPHA_BEAMS_AOE = 76904,
+	SPELL_ALPHA_BEAM = 76912,
+	SPELL_ALPHA_BEAM_DMG = 76956,
+	SPELL_ALPHA_BEAM_DMG_H = 91177,
+	SPELL_CRUMBLING_RUIN = 75609,
+	SPELL_CRUMBLING_RUIN_H = 91206,
+	SPELL_DESTRUCTION_PROTOCOL = 77437,
+	SPELL_NEMESIS_STRIKE = 75604,
+	SPELL_OMEGA_STANCE = 75622
 };
 
 enum Events
 {
-    EVENT_ALPHA_BEAMS          = 1,
-    EVENT_CRUMBLING_RUIN       = 2,
-    EVENT_DESTRUCTION_PROTOCOL = 3,
-    EVENT_NEMESIS_STRIKE       = 4,
-    EVENT_OMEGA_STANCE         = 5
+	EVENT_ALPHA_BEAMS = 1,
+	EVENT_CRUMBLING_RUIN = 2,
+	EVENT_DESTRUCTION_PROTOCOL = 3,
+	EVENT_NEMESIS_STRIKE = 4,
+	EVENT_INTRO = 5
 };
 
-/*enum Timers
+enum Adds
 {
-    TIMER_ALPHA_BEAMS      = 15000,
-    TIMER_NEMESIS_STRIKE   = 10000,
-    TIMER_OMEGA_STANCE     = 20000
-    //TIMER_RUIN,
-};*/
+	NPC_ALPHA_BEAM = 41133,
+	NPC_OMEGA_STANCE = 41194, // 77137 77117
+};
 
 class boss_anraphet : public CreatureScript
 {
-    public:
-        boss_anraphet() : CreatureScript("boss_anraphet") { }
+public:
+	boss_anraphet() : CreatureScript("boss_anraphet") {}
 
-        struct boss_anraphetAI : public BossAI
-        {
-            boss_anraphetAI(Creature* creature) : BossAI(creature, DATA_ANRAPHET_EVENT)
-            {
-                instance = me->GetInstanceScript();
-            }
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new boss_anraphetAI(pCreature);
+	}
 
-            InstanceScript* instance;
-            uint8 wardenKilled;
+	struct boss_anraphetAI : public BossAI
+	{
+		boss_anraphetAI(Creature* pCreature) : BossAI(pCreature, DATA_EARTHRAGER_PTAH)
+		{
+			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+			//me->SetFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_NOT_SELECTABLE);
+		}
 
-            void Reset()
-            {
-                events.Reset();
+		uint8 spells;
 
-                if (instance)
-                    instance->SetData(DATA_ANRAPHET_EVENT, NOT_STARTED);
+		void Reset()
+		{
+			_Reset();
 
-                wardenKilled = 0;
-            }
+			spells = 0;
+		}
 
-            void EnterCombat(Unit* /*who*/)
-            {
-                //DoScriptText(SAY_AGGRO, me);
+		void EnterCombat(Unit * /*p_Who*/)
+		{
+			me->BossYell("Purge of unauthorized entities commencing.", 20862);
 
-                if (instance)
-                    instance->SetData(DATA_ANRAPHET_EVENT, IN_PROGRESS);
+			events.ScheduleEvent(EVENT_ALPHA_BEAMS, 7000, 10000);
+			events.ScheduleEvent(EVENT_NEMESIS_STRIKE, urand(3000, 7000));
+			events.ScheduleEvent(EVENT_CRUMBLING_RUIN, 20000);
 
-                events.ScheduleEvent(EVENT_ALPHA_BEAMS, 8000+rand()%2000);
-                events.ScheduleEvent(EVENT_CRUMBLING_RUIN, urand(10000, 16000));
-                events.ScheduleEvent(EVENT_NEMESIS_STRIKE, 12000);
-                events.ScheduleEvent(EVENT_OMEGA_STANCE, 10000);
-                instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_CRUMBLING_RUIN);
+			DoZoneInCombat();
+			instance->SetBossState(DATA_ANRAPHET, IN_PROGRESS);
+		}
 
-                DoZoneInCombat();
-            }
+		void JustDied(Unit* /*killer*/)
+		{
+			_JustDied();
+			me->BossYell("Anraphet unit shutting down...", 20856);
+			instance->SetBossState(DATA_ANRAPHET, DONE);
+		}
 
-            void KilledUnit(Unit* /*Killed*/)
-            {
-                //DoScriptText(RAND(SAY_KILL_1, SAY_KILL_2), me);
-            }
+		void KilledUnit(Unit* /*p_Who*/)
+		{
+			me->BossYell("Purge Complete.", 20859);
+		}
 
-            void WardenKilled()
-            {
-                wardenKilled++;
+		void DoAction(const int32 action)
+		{
+			if (action == 1)
+			{
+				me->BossYell("This unit has been activated outside normal operating protocols. Downloading new operational parameters. Download complete. Full unit self defense routines are now active. Destruction of foreign units in this system shall now commence.", 20857);
+				me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_NOT_SELECTABLE);
+				me->SetHomePosition(-203.93f, 368.71f, 75.92f, me->GetOrientation());
+				//DoTeleportTo(-203.93f, 368.71f, 75.92f);
+				me->GetMotionMaster()->MovePoint(0, -203.93f, 368.71f, 75.92f);
+			}
+		}
 
-                if (wardenKilled == 4)
-                    preBattlePhase();
-            }
+		void UpdateAI(const uint32 diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-            void preBattlePhase()
-            {
-                //Enter the room and kill all troggs
+			events.Update(diff);
 
-                //DoScriptText(SAY_INTRO, me);
-                //DoScriptText(SAY_PROTOCOL me);
-                me->GetMotionMaster()->MovePoint(0, X, Y, Z);
-                DoCast(SPELL_DESTRUCTION_PROTOCOL);
-            }
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-            void UpdateAI(uint32 const diff)
-            {
-                if (!UpdateVictim())
-                   return;
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_ALPHA_BEAMS:
+					if (spells == 3)
+					{
+						me->BossYell("Omega Stance activated. Annihilation of foreign unit is now imminent.", 20861);
+						DoCast(me, SPELL_OMEGA_STANCE);
+						spells = 0;
+					}
+					else
+					{
+						if (spells == 0)
+							me->BossYell("Alpha beams activated. Target tracking commencing.", 20860);
+						DoCast(me, SPELL_ALPHA_BEAMS);
+						spells++;
+					}
+					events.ScheduleEvent(EVENT_ALPHA_BEAMS, 15000);
+					break;
+				case EVENT_CRUMBLING_RUIN:
+					DoCastAOE(SPELL_CRUMBLING_RUIN);
+					events.ScheduleEvent(EVENT_CRUMBLING_RUIN, 40000);
+					break;
+				case EVENT_NEMESIS_STRIKE:
+					DoCastVictim(SPELL_NEMESIS_STRIKE);
+					events.ScheduleEvent(EVENT_NEMESIS_STRIKE, urand(15000, 20000));
+					break;
+				}
+			}
 
-                events.Update(diff);
-
-                if (me->HasUnitState(UNIT_STATE_CASTING))
-                    return;
-
-                while(uint32 eventId = events.ExecuteEvent())
-                {
-                    switch (eventId)
-                    {
-                        case EVENT_ALPHA_BEAMS:
-                            if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, true))
-                                DoCast(target, SPELL_ALPHA_BEAMS);
-                                events.ScheduleEvent(EVENT_ALPHA_BEAMS, urand(8000, 12000));
-                            break;
-                        case EVENT_CRUMBLING_RUIN:
-                            DoCast(me->getVictim(), SPELL_CRUMBLING_RUIN);
-                            events.ScheduleEvent(EVENT_CRUMBLING_RUIN, urand(10000, 16000));
-                            break;
-                        case EVENT_NEMESIS_STRIKE:
-                            DoCast(me->getVictim(), SPELL_NEMESIS_STRIKE);
-                            events.ScheduleEvent(EVENT_NEMESIS_STRIKE, 2000);
-                            break;
-                        case EVENT_OMEGA_STANCE:
-                            //DoScriptText(SAY_OMEGA, me);
-                            DoCast(me, SPELL_OMEGA_STANCE);
-                            events.ScheduleEvent(EVENT_OMEGA_STANCE, 14000);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                DoMeleeAttackIfReady();
-            }
-
-            void JustDied(Unit* /*who*/)
-            {
-                //DoScriptText(SAY_DEATH, me);
-
-                if (instance)
-                    instance->SetData(DATA_ANRAPHET_EVENT, DONE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_anraphetAI(creature);
-        }
+			DoMeleeAttackIfReady();
+		}
+	};
 };
 
-class boss_flame_warden : public CreatureScript
+class npc_alpha_beam : public CreatureScript
 {
-    public:
-        boss_flame_warden() : CreatureScript("boss_flame_warden") { }
+public:
+	npc_alpha_beam() : CreatureScript("npc_alpha_beam") { }
 
-        struct boss_flame_wardenAI : public BossAI
-        {
-            boss_flame_wardenAI(Creature* creature) : BossAI(creature, DATA_FLAME_WARDEN)
-            {
-                instance = me->GetInstanceScript();
-            }
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_alpha_beamAI(creature);
+	}
 
-            InstanceScript* instance;
+	struct npc_alpha_beamAI : public Scripted_NoMovementAI
+	{
+		npc_alpha_beamAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+		{
+			pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+		}
 
-            uint32 LavaTimer;
-            uint32 InfernoTimer;
+		void Reset()
+		{
+			DoCast(me, SPELL_ALPHA_BEAM);
+		}
 
-            void Reset()
-            {
-                if (instance)
-                    instance->SetData(DATA_FLAME_WARDEN, NOT_STARTED);
-
-                LavaTimer = 5000;
-                InfernoTimer = 20000;
-            }
-
-            void EnterCombat(Unit* /*who*/)
-            {
-                if (instance)
-                    instance->SetData(DATA_FLAME_WARDEN, IN_PROGRESS);
-            }
-
-            void UpdateAI(uint32 const diff)
-            {
-                if (!UpdateVictim())
-                    return;
-
-                if (LavaTimer <= diff)
-                {
-                    if (Unit *target = (SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true)))
-                        DoCast(target, SPELL_LAVA_ERUPTION);
-                    LavaTimer = 5000+rand()%5000;
-                }
-                else LavaTimer -= diff;
-
-                if (InfernoTimer <= diff)
-                {
-                    DoCast(SPELL_RAGING_INFERNO);
-                    InfernoTimer = 20000+rand()%7500;
-                }
-                else InfernoTimer -= diff;
-
-                DoMeleeAttackIfReady();
-            }
-
-            void JustDied(Unit* /*who*/)
-            {
-                if (Creature *anraphet = me->FindNearestCreature(BOSS_ANRAPHET, 1000, true))
-                      if (boss_anraphet::boss_anraphetAI* pAI = CAST_AI(boss_anraphet::boss_anraphetAI, anraphet->AI()))
-                                pAI->WardenKilled();
-
-                if (instance)
-                    instance->SetData(DATA_FLAME_WARDEN, DONE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_flame_wardenAI(creature);
-        }
-};
-
-class boss_air_warden : public CreatureScript
-{
-    public:
-        boss_air_warden() : CreatureScript("boss_air_warden") { }
-
-        struct boss_air_wardenAI : public BossAI
-        {
-            boss_air_wardenAI(Creature* creature) : BossAI(creature, DATA_AIR_WARDEN)
-            {
-                instance = me->GetInstanceScript();
-            }
-
-            InstanceScript* instance;
-
-            uint32 WindTimer;
-
-            void Reset()
-            {
-                if (instance)
-                    instance->SetData(DATA_AIR_WARDEN, NOT_STARTED);
-
-                WindTimer = 7500;
-            }
-
-            void EnterCombat(Unit* /*who*/)
-            {
-                if (instance)
-                    instance->SetData(DATA_AIR_WARDEN, IN_PROGRESS);
-            }
-
-            void UpdateAI(uint32 const diff)
-            {
-                if (!UpdateVictim())
-                    return;
-
-                if (WindTimer <= diff)
-                {
-                    if (Unit *target = (SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true)))
-                        DoCast(target, SPELL_WIND_SHEAR);
-                    WindTimer = 7500+rand()%7500;
-                } else WindTimer -= diff;
-
-                DoMeleeAttackIfReady();
-            }
-
-            void JustDied(Unit* /*who*/)
-            {
-                if (Creature *anraphet = me->FindNearestCreature(BOSS_ANRAPHET, 1000, true))
-                      if (boss_anraphet::boss_anraphetAI* pAI = CAST_AI(boss_anraphet::boss_anraphetAI, anraphet->AI()))
-                                pAI->WardenKilled();
-                if (instance)
-                    instance->SetData(DATA_AIR_WARDEN, DONE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_air_wardenAI(creature);
-        }
-};
-
-class boss_earth_warden : public CreatureScript
-{
-    public:
-        boss_earth_warden() : CreatureScript("boss_earth_warden") { }
-
-        struct boss_earth_wardenAI : public BossAI
-        {
-            boss_earth_wardenAI(Creature* creature) : BossAI(creature, DATA_EARTH_WARDEN)
-            {
-                instance = me->GetInstanceScript();
-            }
-
-            InstanceScript* instance;
-
-            uint32 RockTimer;
-            uint32 ImpaleTimer;
-
-            void Reset()
-            {
-                if (instance)
-                    instance->SetData(DATA_EARTH_WARDEN, NOT_STARTED);
-
-                RockTimer = 10000;
-                ImpaleTimer = 5000;
-            }
-
-            void EnterCombat(Unit* /*who*/)
-            {
-                if (instance)
-                    instance->SetData(DATA_EARTH_WARDEN, IN_PROGRESS);
-            }
-
-            void UpdateAI(uint32 const diff)
-            {
-                if (!UpdateVictim())
-                    return;
-
-                if (RockTimer <= diff)
-                {
-                    if (Unit* target = (SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true)))
-                        DoCast(target, SPELL_WIND_SHEAR);
-                    RockTimer = 20000+rand()%7500;
-                }
-                else RockTimer -= diff;
-
-                if (ImpaleTimer <= diff)
-                {
-                    DoCast(me->getVictim(), SPELL_WIND_SHEAR);
-                    ImpaleTimer = 7500+rand()%7500;
-                }
-                else ImpaleTimer -= diff;
-
-                DoMeleeAttackIfReady();
-            }
-
-            void JustDied(Unit* /*who*/)
-            {
-                if (Creature* anraphet = me->FindNearestCreature(BOSS_ANRAPHET, 1000, true))
-                      if (boss_anraphet::boss_anraphetAI* pAI = CAST_AI(boss_anraphet::boss_anraphetAI, anraphet->AI()))
-                                pAI->WardenKilled();
-
-                if (instance)
-                    instance->SetData(DATA_EARTH_WARDEN, DONE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_earth_wardenAI(creature);
-        }
-};
-
-class boss_water_warden : public CreatureScript
-{
-    public:
-        boss_water_warden() : CreatureScript("boss_water_warden") { }
-
-        struct boss_water_wardenAI : public BossAI
-        {
-            boss_water_wardenAI(Creature* creature) : BossAI(creature, DATA_WATER_WARDEN)
-            {
-                instance = me->GetInstanceScript();
-            }
-
-            InstanceScript* instance;
-
-            uint32 BubbleTimer;
-
-            void Reset()
-            {
-                if (instance)
-                    instance->SetData(DATA_WATER_WARDEN, NOT_STARTED);
-
-                BubbleTimer = 5000;
-            }
-
-            void EnterCombat(Unit* /*who*/)
-            {
-                if (instance)
-                    instance->SetData(DATA_WATER_WARDEN, IN_PROGRESS);
-            }
-
-            void UpdateAI(uint32 const diff)
-            {
-                if (!UpdateVictim())
-                    return;
-
-                if (BubbleTimer <= diff)
-                {
-                    if (Unit *target = (SelectTarget(SELECT_TARGET_RANDOM, 0, 0, true)))
-                        DoCast(target, SPELL_BUBBLE_BOUND);
-                    BubbleTimer = 15000+rand()%7500;
-                }
-                else BubbleTimer -= diff;
-
-                DoMeleeAttackIfReady();
-            }
-
-            void JustDied(Unit* /*who*/)
-            {
-                if (Creature* anraphet = me->FindNearestCreature(BOSS_ANRAPHET, 1000, true))
-                      if (boss_anraphet::boss_anraphetAI* pAI = CAST_AI(boss_anraphet::boss_anraphetAI, anraphet->AI()))
-                                pAI->WardenKilled();
-
-                if (instance)
-                    instance->SetData(DATA_WATER_WARDEN, DONE);
-            }
-        };
-
-        CreatureAI* GetAI(Creature* creature) const
-        {
-            return new boss_water_wardenAI(creature);
-        }
+		void UpdateAI(const uint32 /*p_Diff*/)
+		{
+		}
+	};
 };
 
 void AddSC_boss_anraphet()
 {
-    new boss_anraphet();
-    new boss_flame_warden();
-    new boss_air_warden();
-    new boss_earth_warden();
-    new boss_water_warden();
+	new boss_anraphet();
+	new npc_alpha_beam();
 }
