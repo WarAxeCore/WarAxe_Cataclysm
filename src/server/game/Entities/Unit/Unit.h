@@ -2064,6 +2064,9 @@ class Unit : public WorldObject
         void RemoveGameObject(uint32 spellid, bool del);
         void RemoveAllGameObjects();
 
+		// Gives all in range players (35 yds) killed monster credit with the associated npc id.
+		void inRangeMonsterCredit(uint32 entry);
+
         uint32 CalculateDamage(WeaponAttackType attType, bool normalized, bool addTotalPct);
         float GetAPMultiplier(WeaponAttackType attType, bool normalized);
         void ModifyAuraState(AuraStateType flag, bool apply);

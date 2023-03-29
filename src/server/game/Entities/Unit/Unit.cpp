@@ -13478,6 +13478,25 @@ void Unit::TauntApply(Unit* taunter)
 
 //======================================================================
 
+void Unit::inRangeMonsterCredit(uint32 entry)
+{
+	// Only if a unit is making this call.
+	if (GetTypeId() == TYPEID_UNIT)
+	{
+		std::list<Player*> players;
+
+		if (this)
+		{
+			SkyFire::AnyPlayerInObjectRangeCheck checker(this, 35.0f);
+			SkyFire::PlayerListSearcher<SkyFire::AnyPlayerInObjectRangeCheck> searcher(this, players, checker);
+			VisitNearbyWorldObject(35.0f, searcher);
+
+			for (std::list<Player*>::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+				(*itr)->KilledMonsterCredit(entry, NULL);
+		}
+	}
+}
+
 void Unit::TauntFadeOut(Unit* taunter)
 {
     ASSERT(GetTypeId() == TYPEID_UNIT);

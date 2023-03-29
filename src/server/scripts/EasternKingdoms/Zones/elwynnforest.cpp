@@ -704,14 +704,7 @@ public:
 						Mage2->DespawnOrUnsummon(500);
 						me->DespawnOrUnsummon(500);
 
-						std::list<Player*> players;
-
-						SkyFire::AnyPlayerInObjectRangeCheck checker(me, 35.0f);
-						SkyFire::PlayerListSearcher<SkyFire::AnyPlayerInObjectRangeCheck> searcher(me, players, checker);
-						me->VisitNearbyWorldObject(35.0f, searcher);
-
-						for (std::list<Player*>::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-							(*itr)->KilledMonsterCredit(448, NULL);
+						me->inRangeMonsterCredit(448);
 
 						phase = 0;
 					} break;
