@@ -31,3 +31,15 @@ UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'boss_setesh' WHER
 UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_setesh_chaos_portal' WHERE `entry` = 41055;
 UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_setesh_void_sentinel' WHERE `entry` = 41208;
 UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_setesh_void_seeker' WHERE `entry` = 41371;
+
+-- Throne of Tides
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'boss_lady_nazjar' WHERE `entry` = 40586;
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_lady_nazjar_honnor_guard' WHERE `entry` = 40633;
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_lady_nazjar_tempest_witch' WHERE `entry` = 44404;
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_lady_nazjar_waterspout' WHERE `entry` = 48571;
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_lady_nazjar_geyser' WHERE `entry` = 40597;
+
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'boss_commander_ulthok' WHERE `entry` = 40765;
+UPDATE `skyfire_world`.`creature_template` SET `ScriptName` = 'npc_ulthok_dark_fissure' WHERE `entry` = 40784;
+DELETE FROM `skyfire_world`.`areatrigger_scripts` WHERE `entry` = 5873;
+INSERT INTO `skyfire_world`.`areatrigger_scripts` (`entry`, `ScriptName`) VALUES (5873, 'at_tott_commander_ulthok');

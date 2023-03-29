@@ -1,155 +1,210 @@
-/*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2006-2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-/* ScriptData
-SDName: Boss Commander Ulthok
-SD%Complete: 99%
-SDComment: need to do flying part with squeeze - hack added.
-SDCategory: Throne of the Tides
-EndScriptData */
+////////////////////////////////////////////////////////////////////////////////
+//
+//  MILLENIUM-STUDIO
+//  Copyright 2016 Millenium-studio SARL
+//  All Rights Reserved.
+//
+////////////////////////////////////////////////////////////////////////////////
 
 #include "ScriptPCH.h"
 #include "throne_of_the_tides.h"
 
-#define SPELL_DARK_FISSURE          DUNGEON_MODE(76047,96311)
-#define SPELL_DARK_FISSURE_AURA     DUNGEON_MODE(76066,91371)
-#define SPELL_SQUEEZE               DUNGEON_MODE(76026,95463)
-
 enum Spells
 {
-    SPELL_ENRAGE                = 76100,
-    SPELL_CURSE_OF_FATIGUE      = 76094,
-    SPELL_PULL_TARGET           = 67357, // HACK!!
+	SPELL_DARK_FISSURE = 76047,
+	SPELL_SQUEEZE = 76026,
+	SPELL_SQUEEZE_VEHICLE = 76028,
+	SPELL_ENRAGE = 76100,
+	SPELL_CURSE_OF_FATIGUE = 76094,
+	SPELL_DARK_FISSURE_AURA = 76066,
+	SPELL_DARK_FISSURE_AURA_H = 91371,
+	SPELL_DARK_FISSURE_DMG = 76085,
+	SPELL_DARK_FISSURE_DMG_H = 91375,
+	SPELL_ULTHOK_INTRO = 82960
 };
 
-enum Yells
+enum Events
 {
-    SAY_AGGRO                   = -1643007,
-    SAY_AGGRO_WHISP             = -1643008,
-    SAY_DEATH                   = -1643009,
-    SAY_DEATH_WHISP             = -1643010,
+	EVENT_DARK_FISSURE = 1,
+	EVENT_SQUEEZE = 2,
+	EVENT_CURSE_OF_FATIGUE = 3,
+	EVENT_ENRAGE = 4
+};
+
+enum Actions
+{
+	ACTION_COMMANDER_ULTHOK_START_EVENT = 2
+};
+
+enum Adds
+{
+	NPC_DARK_FISSURE = 40784
 };
 
 class boss_commander_ulthok : public CreatureScript
 {
 public:
-    boss_commander_ulthok() : CreatureScript("boss_commander_ulthok") {}
+	boss_commander_ulthok() : CreatureScript("boss_commander_ulthok") { }
 
-    struct boss_commander_ulthokAI : public ScriptedAI
-    {
-        boss_commander_ulthokAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = creature->GetInstanceScript();
-        }
+	CreatureAI* GetAI(Creature *pCreature) const
+	{
+		return new boss_commander_ulthokAI(pCreature);
+	}
 
-        uint32 DarkFissureTimer;
-        uint32 EnrageTimer;
-        uint32 SqueezeTimer;
-        uint32 CurseTimer;
-        uint32 TargetTimer;
-        Unit* SqueezeTarget;
+	struct boss_commander_ulthokAI : public BossAI
+	{
+		boss_commander_ulthokAI(Creature* pCreature) : BossAI(pCreature, DATA_COMMANDER_ULTHOK)
+		{
+			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+		}
 
-        InstanceScript *instance;
+		void InitializeAI()
+		{
+			if (!me->isDead())
+				Reset();
+		}
 
-        void Reset()
-        {
-            DarkFissureTimer = 22500;
-            EnrageTimer = urand(12000,18000);
-            SqueezeTimer = 25500;
-            CurseTimer = 32000;
-            TargetTimer = 20000;
+		void Reset()
+		{
+			_Reset();
+		}
 
-            me->GetMotionMaster()->MoveTargetedHome();
-
-            if (instance)
-                instance->SetData(DATA_COMMANDER_ULTHOK_EVENT, NOT_STARTED);
-        }
-
-        void EnterCombat(Unit* /*who*/)
-        {
-            DoScriptText(SAY_AGGRO, me);
-            DoScriptText(SAY_AGGRO_WHISP, me);
-
-            if (instance)
-                instance->SetData(DATA_COMMANDER_ULTHOK_EVENT, IN_PROGRESS);
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (TargetTimer <= diff)
-            {
-                SqueezeTarget = SelectTarget(SELECT_TARGET_RANDOM, 0);
-                TargetTimer = 22500;
-            } else TargetTimer -= diff;
-
-            if (DarkFissureTimer <= diff)
-            {
-                DoCastVictim(SPELL_DARK_FISSURE);
-                DarkFissureTimer = 22500;
-            } else DarkFissureTimer -= diff;
-
-            if (EnrageTimer <= diff)
-            {
-                DoCast(me, SPELL_ENRAGE);
-                EnrageTimer = urand(12000,15000);
-            } else EnrageTimer -= diff;
-
-            if (SqueezeTimer <= diff)
-            {
-                DoCast(SqueezeTarget, SPELL_PULL_TARGET, true);
-                DoCast(SqueezeTarget, SPELL_SQUEEZE, true);
-                SqueezeTimer = 22500;
-            } else SqueezeTimer -= diff;
-
-            if (CurseTimer <= diff)
-            {
-                DoCast(SqueezeTarget, SPELL_CURSE_OF_FATIGUE, true);
-                CurseTimer = 22500;
-            } else CurseTimer -= diff;
-
-            DoMeleeAttackIfReady();
-        }
-
-        void JustDied(Unit* /*killer*/)
-        {
-            DoScriptText(SAY_DEATH, me);
-            DoScriptText(SAY_DEATH_WHISP, me);
-
-			if (IsHeroic())
+		void DoAction(const int32 action)
+		{
+			if (action == ACTION_COMMANDER_ULTHOK_START_EVENT)
 			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+				me->SetPhaseMask(PHASEMASK_NORMAL, true);
+				DoCast(me, SPELL_ULTHOK_INTRO);
+				/*if (GameObject* pCorales = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_CORALES)))
+				{
+					pCorales->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+					pCorales->SetPhaseMask(2, true);
+				}*/
 			}
+		}
 
-            if (instance)
-                instance->SetData(DATA_COMMANDER_ULTHOK_EVENT, DONE);
-        }
-    };
+		void EnterCombat(Unit* /*who*/)
+		{
+			events.ScheduleEvent(EVENT_DARK_FISSURE, urand(5000, 8000));
+			events.ScheduleEvent(EVENT_ENRAGE, urand(20000, 25000));
+			events.ScheduleEvent(EVENT_CURSE_OF_FATIGUE, urand(9000, 15000));
+			events.ScheduleEvent(EVENT_SQUEEZE, urand(14000, 20000));
+			instance->SetBossState(DATA_COMMANDER_ULTHOK, IN_PROGRESS);
+		}
 
-    CreatureAI* GetAI(Creature *creature) const
-    {
-        return new boss_commander_ulthokAI (creature);
-    }
+		void JustDied(Unit* /*pKiller*/)
+		{
+			_JustDied();
+			instance->SetBossState(DATA_COMMANDER_ULTHOK, DONE);
+		}
+
+		void UpdateAI(const uint32 diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			events.Update(diff);
+
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
+
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_DARK_FISSURE:
+					DoCast(me, SPELL_DARK_FISSURE);
+					events.ScheduleEvent(EVENT_DARK_FISSURE, urand(20000, 22000));
+					break;
+				case EVENT_ENRAGE:
+					DoCast(me, SPELL_ENRAGE);
+					events.ScheduleEvent(EVENT_ENRAGE, urand(20000, 25000));
+					break;
+				case EVENT_SQUEEZE:
+					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
+						DoCast(pTarget, SPELL_SQUEEZE);
+					events.ScheduleEvent(EVENT_SQUEEZE, urand(29000, 31000));
+					break;
+				case EVENT_CURSE_OF_FATIGUE:
+					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 1, 0.0f, true))
+						DoCast(pTarget, SPELL_CURSE_OF_FATIGUE);
+					events.ScheduleEvent(EVENT_CURSE_OF_FATIGUE, urand(13000, 15000));
+					break;
+				}
+			}
+			DoMeleeAttackIfReady();
+		}
+	};
+
+};
+
+class npc_ulthok_dark_fissure : public CreatureScript
+{
+public:
+	npc_ulthok_dark_fissure() : CreatureScript("npc_ulthok_dark_fissure") { }
+
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new npc_ulthok_dark_fissureAI(pCreature);
+	}
+
+	struct npc_ulthok_dark_fissureAI : public Scripted_NoMovementAI
+	{
+		npc_ulthok_dark_fissureAI(Creature* creature) : Scripted_NoMovementAI(creature)
+		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+			me->SetReactState(REACT_PASSIVE);
+		}
+
+		void Reset()
+		{
+			DoCast(me, IsHeroic() ? SPELL_DARK_FISSURE_AURA_H : SPELL_DARK_FISSURE_AURA, true);
+		}
+
+		void UpdateAI(const uint32 /*diff*/)
+		{
+		}
+	};
+};
+
+class at_tott_commander_ulthok : public AreaTriggerScript
+{
+public:
+	at_tott_commander_ulthok() : AreaTriggerScript("at_tott_commander_ulthok") { }
+
+	bool OnTrigger(Player* pPlayer, const AreaTriggerEntry* /*pAt*/)
+	{
+		if (InstanceScript* pInstance = pPlayer->GetInstanceScript())
+		{
+			if (pInstance->GetData(DATA_COMMANDER_ULTHOK_EVENT) != DONE
+				&& pInstance->GetBossState(DATA_LADY_NAZJAR) != DONE)
+			{
+				pInstance->SetData(DATA_COMMANDER_ULTHOK_EVENT, DONE);
+				if (Creature* pUlthok = ObjectAccessor::GetCreature(*pPlayer, pInstance->GetData64(DATA_COMMANDER_ULTHOK)))
+				{
+					pUlthok->AI()->DoAction(ACTION_COMMANDER_ULTHOK_START_EVENT);
+				}
+			}
+		}
+		return true;
+	}
 };
 
 void AddSC_boss_commander_ulthok()
 {
-    new boss_commander_ulthok();
+	new boss_commander_ulthok();
+	new npc_ulthok_dark_fissure();
+	new at_tott_commander_ulthok();
 }
