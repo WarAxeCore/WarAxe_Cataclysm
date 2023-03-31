@@ -45,10 +45,8 @@ BattlegroundBG::BattlegroundBG()
 
 BattlegroundBG::~BattlegroundBG() {}
 
-void BattlegroundBG::Update(uint32 diff) // PostUpdateImpl...
+void BattlegroundBG::PostUpdateImpl(uint32 diff)
 {
-    Battleground::Update(diff);
-
     if (GetStatus() == STATUS_IN_PROGRESS)
     {
         int team_points[BG_TEAMS_COUNT] = { 0, 0 };
@@ -194,7 +192,7 @@ void BattlegroundBG::StartingEventCloseDoors()
 void BattlegroundBG::StartingEventOpenDoors()
 {
     // Spawn neutral banners
-    for (int banner = GILNEAS_BG_OBJECT_BANNER_NEUTRAL, i = 0; i < 5; banner += 8, ++i)
+    for (int banner = GILNEAS_BG_OBJECT_BANNER_NEUTRAL, i = 0; i < 3; banner += 8, ++i)
         SpawnBGObject(banner, RESPAWN_IMMEDIATELY);
     for (int i = 0; i < GILNEAS_BG_DYNAMIC_NODES_COUNT; ++i)
     {

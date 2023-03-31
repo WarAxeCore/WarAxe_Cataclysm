@@ -154,9 +154,9 @@ enum GILNEAS_BG_Objectives
 // x, y, z, o
 const float GILNEAS_BG_NodePositions[GILNEAS_BG_DYNAMIC_NODES_COUNT][4] =
 {
-    { 1057.856934f, 1278.269165f, 2.91f, 1.903034f },   // Lighthouse
-    { 980.1835f, 947.8692f, 13.998f, 5.9015f },         // Waterwork
-    { 1251.010f, 958.3939f, 5.680f, 2.7698f }           // mine
+	{ 1057.790f, 1278.285f, 3.1500f, 1.945662f },        // Lighthouse
+	{ 980.0446f, 948.7411f, 12.650f, 5.904071f },        // Waterworks
+	{ 1251.010f, 958.2685f, 5.6000f, 5.892280f },        // Mine
 };
 
 // x, y, z, o, rot0, rot1, rot2, rot3
@@ -214,7 +214,7 @@ class BattlegroundBG : public Battleground
         BattlegroundBG();
         ~BattlegroundBG();
 
-        void Update(uint32 diff);
+        //void Update(uint32 diff);
 
         /* inherited from BattlegroundClass */
         void AddPlayer(Player* player);
@@ -241,6 +241,7 @@ class BattlegroundBG : public Battleground
 
     private:
 
+		virtual void PostUpdateImpl(uint32 diff);
         /* GameObject spawning/removing */
         void _CreateBanner(uint8 node, uint8 type, uint8 teamIndex, bool delay);
         void _DelBanner(uint8 node, uint8 type, uint8 teamIndex);
