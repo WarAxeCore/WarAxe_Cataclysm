@@ -961,28 +961,38 @@ void BattlegroundMgr::BuildBattlegroundListPacket(WorldPacket* data, uint64 guid
     if (!player)
         return;
 
-    uint32 winner_kills = player->GetRandomWinner() ? BG_REWARD_WINNER_HONOR_LAST : BG_REWARD_WINNER_HONOR_FIRST;
-    uint32 winner_arena = player->GetRandomWinner() ? BG_REWARD_WINNER_ARENA_LAST : BG_REWARD_WINNER_ARENA_FIRST;
-    uint32 loser_kills = player->GetRandomWinner() ? BG_REWARD_LOSER_HONOR_LAST : BG_REWARD_LOSER_HONOR_FIRST;
+	uint32 new_honor_winner = (player->getLevel() * 3) + 15;
+	uint32 new_honor_loser = player->getLevel() + 50;
 
-    winner_kills = SkyFire::Honor::hk_honor_at_level(player->getLevel(), float(winner_kills));
-    loser_kills = SkyFire::Honor::hk_honor_at_level(player->getLevel(), float(loser_kills));
+    //uint32 winner_kills = player->GetRandomWinner() ? BG_REWARD_WINNER_HONOR_LAST : BG_REWARD_WINNER_HONOR_FIRST;
+    uint32 winner_arena = player->GetRandomWinner() ? BG_REWARD_WINNER_ARENA_LAST : BG_REWARD_WINNER_ARENA_FIRST;
+    //uint32 loser_kills = player->GetRandomWinner() ? BG_REWARD_LOSER_HONOR_LAST : BG_REWARD_LOSER_HONOR_FIRST;
+
+    // winner_kills = SkyFire::Honor::hk_honor_at_level(player->getLevel(), float(winner_kills));
+    // loser_kills = SkyFire::Honor::hk_honor_at_level(player->getLevel(), float(loser_kills));
+
+	 // Players under 85 do not get conquest and loser amount is halved.
+	if (player->getLevel() < 85)
+	{
+		winner_arena = 0;
+		new_honor_loser = uint32(ceil(new_honor_loser / 2));
+	}
 
     data->Initialize(SMSG_BATTLEFIELD_LIST);
 
     *data << uint8(0x2);                 // unk flags 1 << 7, 1 << 6, 1 << 5
     *data << uint8(0x31);                // unk
-    *data << uint32(winner_kills);       // Call to arms win honor bonus
+    *data << uint32(new_honor_winner);       // Call to arms win honor bonus
     *data << uint64(guid);               // battlemaster guid?
-    *data << uint32(winner_kills);       // random BG win honor bonus
+    *data << uint32(new_honor_winner);       // random BG win honor bonus
     *data << uint8(0x2D);                // unk
-    *data << uint32(loser_kills);        // Call to arms lose honor bonus
+    *data << uint32(new_honor_loser);        // Call to arms lose honor bonus
     *data << uint32(winner_arena);       // Call to arms win conquest bonus
     *data << uint32(winner_arena);       // random BG win conquest bonus
     *data << uint32(0);                  // unk
 
     *data << uint32(0);                  // count of uints appended to the end
-    *data << uint32(loser_kills);        // random BG lose honor bonus
+    *data << uint32(new_honor_loser);        // random BG lose honor bonus
 }
 
 void BattlegroundMgr::SendToBattleground(Player* player, uint32 instanceId, BattlegroundTypeId bgTypeId)
