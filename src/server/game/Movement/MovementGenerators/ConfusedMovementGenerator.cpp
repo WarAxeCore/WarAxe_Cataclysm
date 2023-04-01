@@ -139,16 +139,16 @@ bool ConfusedMovementGenerator<T>::Update(T &unit, const uint32 &diff)
             unit.UpdateAllowedPositionZ(x, y, z);
 
             PathFinderMovementGenerator path(&unit);
-            path.setPathLengthLimit(30.0f);
-            path.calculate(x, y, z);
-            if (path.getPathType() & PATHFIND_NOPATH)
+            path.SetPathLengthLimit(30.0f);
+            path.CalculatePath(x, y, z);
+            if (path.GetPathType() & PATHFIND_NOPATH)
             {
                 i_nextMoveTime.Reset(urand(800, 1000));
                return true;
             }
             Movement::MoveSplineInit init(unit);
             // init.MoveTo(x, y, z);
-            init.MovebyPath(path.getPath());
+            init.MovebyPath(path.GetPath());
             init.SetWalk(true);
             init.Launch();
         }
