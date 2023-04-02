@@ -9265,6 +9265,13 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // dummy basepoints or other customs
     switch (trigger_spell_id)
     {
+		// Protector of the Innocent
+		case 94286:
+		case 94288:
+		case 94289:
+		if (victim && victim == this) // Check if we are healing ourselves if so di not proc.
+			return false;
+		break;
         case 92184: // Lead Plating
         case 92233: // Tectonic Shift
         case 92355: // Turn of the Worm
