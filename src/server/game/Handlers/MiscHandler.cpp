@@ -1503,48 +1503,13 @@ void WorldSession::HandleResetInstancesOpcode(WorldPacket& /*recvData*/)
 {
     sLog->outDebug(LOG_FILTER_NETWORKIO, "WORLD: CMSG_RESET_INSTANCES");
 
-	// cannot reset while in an instance
-	Map* map = _player->FindMap();
-	if (map && map->IsDungeon())
-	{
-		sLog->outError("WorldSession::HandleResetInstancesOpcode: player (Name: %s, GUID: %u) tried to reset the instance while player is inside!", _player->GetName(), _player->GetGUIDLow());
-		return;
-	}
-
-	Group* group = _player->GetGroup();
-	if (group)
+	if (Group* group = _player->GetGroup())
 	{
 		if (group->IsLeader(_player->GetGUID()))
-		{
-			for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
-			{
-				Player* pGroupGuy = itr->getSource();
-				if (!pGroupGuy)
-					continue;
-
-				if (!pGroupGuy->IsInMap(pGroupGuy))
-					return;
-
-				if (pGroupGuy->GetMap()->IsNonRaidDungeon())
-				{
-					sLog->outError("WorldSession::HandleResetInstancesOpcode: player %d tried to reset the instance while group member (Name: %s, GUID: %u) is inside!", _player->GetGUIDLow(), pGroupGuy->GetName(), pGroupGuy->GetGUIDLow());
-					return;
-				}
-			}
-			// the difficulty is set even if the instances can't be reset
-			group->ResetInstances(INSTANCE_RESET_CHANGE_DIFFICULTY, false, _player);
-		}
+			group->ResetInstances(INSTANCE_RESET_ALL, false, _player);
 	}
-	else
-	{
-		_player->ResetInstances(INSTANCE_RESET_CHANGE_DIFFICULTY, false);
-	}
-
-    /*if (Group* group = _player->GetGroup())
-        if (group->IsLeader(_player->GetGUID()))
-            group->ResetInstances(INSTANCE_RESET_ALL, false, _player);
     else
-        _player->ResetInstances(INSTANCE_RESET_ALL, false);*/
+        _player->ResetInstances(INSTANCE_RESET_ALL, false);
 }
 
 void WorldSession::HandleSetDungeonDifficultyOpcode(WorldPacket& recvData)
