@@ -90,7 +90,22 @@ public:
 			if (Creature * pRaz = GetClosestCreatureWithEntry(me, NPC_RAZ_THE_CRAZED, 300.0f))
 			{
 				// Jump out of the prison
+				Map::PlayerList const& players2 = instance->instance->GetPlayers();
+				if (!players2.isEmpty())
+				{
+					for (Map::PlayerList::const_iterator itr = players2.begin(); itr != players2.end(); ++itr)
+						if (Player * player = itr->getSource())
+						{
+							if (player->GetTeam() == TEAM_ALLIANCE)
+								pRaz->setFaction(85);
+							else
+								pRaz->setFaction(11);
+						}
+				}
+				pRaz->SetSpeed(MOVE_WALK, 3.0f, true);
+				pRaz->SetSpeed(MOVE_RUN, 2.0f, true);
 				pRaz->GetMotionMaster()->MoveJump(227.6f, 949.8f, 192.6f, 12.0f, 15.0f);
+				pRaz->GetMotionMaster()->MovePath(6972251, false);
 			}
 		}
 

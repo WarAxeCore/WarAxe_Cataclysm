@@ -92,6 +92,15 @@ public:
 			events.ScheduleEvent(EVENT_DARK_COMMAND, urand(6000, 10000));
 			me->BossYell("HERETICS! You will suffer for this interruption!", 18589);
 			DoZoneInCombat();
+
+			if (Creature * p1Raz = GetClosestCreatureWithEntry(me, NPC_RAZ_THE_CRAZED, 300.0f))
+			{
+				if (p1Raz->GetPositionX() == 417.744720f)
+				{
+					p1Raz->DespawnOrUnsummon(1000);
+				}
+			}
+
 			if (pInstance)
 				pInstance->SetData(DATA_CORLA, IN_PROGRESS);
 		}
@@ -136,6 +145,26 @@ public:
 
 			summons.DespawnAll();
 			me->BossYell("For the master I die a thousand times... A thousan...", 18594);
+
+			if (Creature * pRaz = GetClosestCreatureWithEntry(me, NPC_RAZ_THE_CRAZED, 300.0f))
+			{
+				Map::PlayerList const& players2 = pInstance->instance->GetPlayers();
+				if (!players2.isEmpty())
+				{
+					for (Map::PlayerList::const_iterator itr = players2.begin(); itr != players2.end(); ++itr)
+						if (Player * player = itr->getSource())
+						{
+							if (player->GetTeam() == TEAM_ALLIANCE)
+								pRaz->setFaction(85);
+							else
+								pRaz->setFaction(11);
+						}
+				}
+				pRaz->SetSpeed(MOVE_WALK, 3.0f, true);
+				pRaz->SetSpeed(MOVE_RUN, 2.0f, true);
+				pRaz->GetMotionMaster()->MovePath(6972252, false);
+			}
+
 			if (pInstance)
 				pInstance->SetData(DATA_CORLA, DONE);
 		}
