@@ -36,11 +36,6 @@ enum Actions
 	ACTION_COMMANDER_ULTHOK_START_EVENT = 2
 };
 
-enum Adds
-{
-	NPC_DARK_FISSURE = 40784
-};
-
 class boss_commander_ulthok : public CreatureScript
 {
 public:
@@ -85,12 +80,14 @@ public:
 			if (action == ACTION_COMMANDER_ULTHOK_START_EVENT)
 			{
 				me->SetPhaseMask(PHASEMASK_NORMAL, true);
-				DoCast(me, SPELL_ULTHOK_INTRO);
-				/*if (GameObject* pCorales = ObjectAccessor::GetGameObject(*me, instance->GetData64(DATA_CORALES)))
+				DoCast(me, SPELL_ULTHOK_INTRO); //207406
+
+				GameObject* go_fountain = me->FindNearestGameObject(207406, 250.0f);
+				if (go_fountain)
 				{
-					pCorales->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
-					pCorales->SetPhaseMask(2, true);
-				}*/
+					go_fountain->SetGoState(GO_STATE_ACTIVE_ALTERNATIVE);
+					go_fountain->SetPhaseMask(2, true);
+				}
 			}
 		}
 
@@ -106,6 +103,26 @@ public:
 		void JustDied(Unit* /*pKiller*/)
 		{
 			_JustDied();
+
+			GameObject* wall1 = me->FindNearestGameObject(GO_INVISIBLE_WALL_1, 999.0f);
+			GameObject* wall2 = me->FindNearestGameObject(GO_INVISIBLE_WALL_2, 999.0f);
+			GameObject* tentacle1 = me->FindNearestGameObject(GO_ABYSSAL_TENTACLE_1, 999.0f);
+			GameObject* tentacle2 = me->FindNearestGameObject(GO_ABYSSAL_TENTACLE_2, 999.0f);
+			GameObject* ozumatdoor = me->FindNearestGameObject(GO_OZUMAT_DOOR, 999.0f);
+
+			if (wall1 && wall2 && tentacle1 && tentacle2)
+			{
+				wall1->SetPhaseMask(2, true);
+				wall2->SetPhaseMask(2, true);
+				tentacle1->SetPhaseMask(2, true);
+				tentacle2->SetPhaseMask(2, true);
+			}
+
+			if (ozumatdoor)
+			{
+				ozumatdoor->SetGoState(GO_STATE_ACTIVE);
+			}
+
 			instance->SetBossState(DATA_COMMANDER_ULTHOK, DONE);
 		}
 
@@ -189,13 +206,11 @@ public:
 		if (InstanceScript* pInstance = pPlayer->GetInstanceScript())
 		{
 			if (pInstance->GetData(DATA_COMMANDER_ULTHOK_EVENT) != DONE
-				&& pInstance->GetBossState(DATA_LADY_NAZJAR) != DONE)
+				&& pInstance->GetBossState(DATA_LADY_NAZJAR) == DONE)
 			{
 				pInstance->SetData(DATA_COMMANDER_ULTHOK_EVENT, DONE);
-				if (Creature* pUlthok = ObjectAccessor::GetCreature(*pPlayer, pInstance->GetData64(DATA_COMMANDER_ULTHOK)))
-				{
-					pUlthok->AI()->DoAction(ACTION_COMMANDER_ULTHOK_START_EVENT);
-				}
+				if (Creature* summoner = pPlayer->SummonCreature(BOSS_COMMANDER_ULTHOK, 60.45f, 800.99f, 805.73f, 0, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60480000))
+					summoner->AI()->DoAction(ACTION_COMMANDER_ULTHOK_START_EVENT);
 			}
 		}
 		return true;

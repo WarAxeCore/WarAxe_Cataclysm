@@ -130,7 +130,13 @@ class instance_throne_of_the_tides : public InstanceMapScript
             {
                 switch(go->GetEntry())
                 {
+				    case GO_ABYSSAL_TENTACLE_1:
+				    case GO_ABYSSAL_TENTACLE_2:
+					case GO_TOT_DEFENSE_SYSTEM_1:
+						go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
+					break;
                     case GO_LADY_NAZJAR_DOOR:
+						go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                         LadyNazjarDoor = go->GetGUID();
                         if (encounter[0] == DONE)
                             HandleGameObject(0, true, go);
@@ -138,6 +144,7 @@ class instance_throne_of_the_tides : public InstanceMapScript
                             HandleGameObject(0, false, go);
                         break;
                     case GO_JELLYFISH_ELEVATOR:
+						go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                         JellyFishElevator = go->GetGUID();
                         if (encounter[0] == DONE)
                             HandleGameObject(0, true, go);
@@ -145,6 +152,7 @@ class instance_throne_of_the_tides : public InstanceMapScript
                             HandleGameObject(0, false, go);
                         break;
                     case GO_COMMANDER_ULTHOK_DOOR:
+						go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                         CommanderUlthokDoor = go->GetGUID();
                         if (encounter[0] == DONE)
                             HandleGameObject(0, false, go);
@@ -152,6 +160,7 @@ class instance_throne_of_the_tides : public InstanceMapScript
                             HandleGameObject(0, true, go);
                         break;
                     case GO_ERUNAK_STONESPEAKER_DOOR:
+						go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                         OzumatDoor = go->GetGUID();
                         if (encounter[1] == DONE)
                             HandleGameObject(0, true, go);
@@ -161,6 +170,7 @@ class instance_throne_of_the_tides : public InstanceMapScript
                             HandleGameObject(0, true, go);
                         break;
                     case GO_OZUMAT_DOOR:
+						go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
                         ErunakStonespeakerDoor = go->GetGUID();
                         if (encounter[2] == DONE)
                             HandleGameObject(0, true, go);

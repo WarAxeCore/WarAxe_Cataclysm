@@ -1,463 +1,387 @@
-/*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2006-2010 ScriptDev2 <https://scriptdev2.svn.sourceforge.net/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
- /* ScriptData
-SDName: Boss Erunak Stonespeaker & Mindbender Ghur'sha
-SD%Complete: 90%
-SDComment: sometimes Mindbender attacks while somebody is enslaved.
-SDCategory: Throne of the Tides
-EndScriptData */
+////////////////////////////////////////////////////////////////////////////////
+//
+//  MILLENIUM-STUDIO
+//  Copyright 2016 Millenium-studio SARL
+//  All Rights Reserved.
+//
+////////////////////////////////////////////////////////////////////////////////
 
 #include "ScriptPCH.h"
+#include "Spell.h"
 #include "throne_of_the_tides.h"
-
-Creature* erunak;
-Creature* mindbender;
-
-#define SPELL_ABSORB_MAGIC           DUNGEON_MODE(76307,91492)
-#define SPELL_LAVA_BOLT              DUNGEON_MODE(76171,91412)
 
 enum Spells
 {
-// Erunak Stonespeaker
-    SPELL_EARTH_SHARDS           = 84931, // VISUAL - missle?
-    SPELL_EARTH_SHARD_AURA       = 84935,
-    SPELL_EARTH_SHARD_SUMMON     = 84934,
-    SPELL_EMBERSTRIKE            = 76165,
-    SPELL_MAGMA_SPLASH           = 76170,
-// Mindbender Ghur'sha
-    SPELL_ENSLAVE                = 76207,
-    SPELL_ENSLAVE_BUFF           = 76213, // Should be in SPELL_LINKED_SPELL with SPELL_ENSLAVE
+	// Erunak Stonespeaker
+	SPELL_EARTH_SHARDS = 84931,
+	SPELL_EARTH_SHARDS_AURA = 84935,
+	SPELL_EARTH_SHARDS_DMG = 84945,
+	SPELL_EARTH_SHARDS_DMG_H = 91491,
+	SPELL_EMBERSTRIKE = 76165,
+	SPELL_LAVA_BOLT = 76171,
+	SPELL_LAVA_BOLT_H = 91412,
+	SPELL_MAGMA_SPLASH = 76170,
 
-    SPELL_MIND_FOG_SUMMON        = 76234,
-    SPELL_MIND_FOG_AURA          = 76230,
-    SPELL_MIND_FOG_VISUAL        = 76231,
-    SPELL_UNRELENTING_AGONY      = 76339,
+	// Mindbender Ghur'sha
+	SPELL_ENSLAVE = 76207,
+	SPELL_ENSLAVE_BUFF = 76213,
+	SPELL_ABSORB_MAGIC = 76307,
+	SPELL_MIND_FOG = 76234,
+	SPELL_MIND_FOG_AURA = 76230,
+	SPELL_MIND_FOG_VISUAL = 76231,
+	SPELL_UNRELENTING_AGONY = 76339,
+	SPELL_UNRELENTING_AGONY_DMG = 76341,
+	SPELL_UNRELENTING_AGONY_DMG_H = 91493
 };
 
-enum Yells
+enum Events
 {
-    SAY_PHASE_1_END_MINDBENDER      = -1643011,
-    SAY_PHASE_1_END_ERUNAK          = -1643012,
-    SAY_MIND_CONTROL_1              = -1643013,
-    SAY_MIND_CONTROL_2              = -1643014,
-    SAY_MIND_CONTROL_3              = -1643015,
-    SAY_MIND_FOG                    = -1643016,
-    SAY_DEATH                       = -1643017,
-    SAY_WIN_ERUNAK                  = -1643018,
+	EVENT_EARTH_SHARDS = 1,
+	EVENT_EMBERSTRIKE = 2,
+	EVENT_LAVA_BOLT = 3,
+	EVENT_MAGMA_SPLASH = 4,
+	EVENT_ENSLAVE = 5,
+	EVENT_ABSORB_MAGIC = 6,
+	EVENT_MIND_FOG = 7,
+	EVENT_UNRELENTING_AGONY = 8
 };
 
-// predicate function to select not charmed target
-struct NotCharmedTargetSelector : public std::unary_function<Unit*, bool>
+enum Actions
 {
-    NotCharmedTargetSelector() {}
+	ACTION_GHURSHA_START = 1
+};
 
-    bool operator()(Unit const* target) const
-    {
-        return !target->isCharmed();
-    }
+enum Adds
+{
+	NPC_EARTH_SHARDS = 45469,
+	NPC_MIND_FOG = 40861
 };
 
 class boss_erunak_stonespeaker : public CreatureScript
 {
 public:
-    boss_erunak_stonespeaker() : CreatureScript("boss_erunak_stonespeaker") {}
+	boss_erunak_stonespeaker() : CreatureScript("boss_erunak_stonespeaker") { }
 
-    struct boss_erunak_stonespeakerAI : public ScriptedAI
-    {
-        boss_erunak_stonespeakerAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = creature->GetInstanceScript();
-            erunak = me;
-        }
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new boss_erunak_stonespeakerAI(pCreature);
+	}
 
-        std::list<uint64> SummonList;
+	struct boss_erunak_stonespeakerAI : public ScriptedAI
+	{
+		boss_erunak_stonespeakerAI(Creature* pCreature) : ScriptedAI(pCreature), summons(me)
+		{
+			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+			pInstance = pCreature->GetInstanceScript();
+		}
 
-        uint32 EarthShardsTimer;
-        uint32 EmberstrikeTimer;
-        uint32 LavaBoltTimer;
-        uint32 MagmaSplashTimer;
+		InstanceScript* pInstance;
+		EventMap events;
+		SummonList summons;
 
-        bool phased;
+		bool bPhase;
 
-        InstanceScript* instance;
+		void Reset()
+		{
+			bPhase = false;
+			events.Reset();
+			summons.DespawnAll();
 
-        void Reset()
-        {
-            EarthShardsTimer = 20000;
-            EmberstrikeTimer = urand(12000,20000);
-            LavaBoltTimer = 10000;
-            MagmaSplashTimer = 15000;
-            phased = false;
+			if (Creature* mindBender = me->FindNearestCreature(BOSS_MINDBENDER_GHURSHA, 250.0f))
+			{
+				mindBender->DespawnOrUnsummon(1000);
+				me->setFaction(14);
+			}
 
-            if (instance)
-                instance->SetData(DATA_ERUNAK_STONESPEAKER_EVENT, NOT_STARTED);
-        }
+			if (pInstance)
+				if (pInstance->GetBossState(DATA_ERUNAK_STONESPEAKER) == DONE || bPhase)
+					me->setFaction(35);
+		}
 
-        void EnterCombat(Unit* /*who*/)
-        {
-            DoZoneInCombat();
+		void KilledUnit(Unit* /*victim*/)
+		{
+			me->BossYell("Too weak to serve!", 18861);
+		}
 
-            EarthShardsTimer = 20000;
-            EmberstrikeTimer = 11000;
-            LavaBoltTimer = 6500;
-            MagmaSplashTimer = 17000;
+		void SpellHit(Unit* /*caster*/, SpellInfo const* spell)
+		{
+			if (me->GetCurrentSpell(CURRENT_GENERIC_SPELL))
+				if (me->GetCurrentSpell(CURRENT_GENERIC_SPELL)->m_spellInfo->Id == SPELL_LAVA_BOLT
+					|| me->GetCurrentSpell(CURRENT_GENERIC_SPELL)->m_spellInfo->Id == SPELL_LAVA_BOLT_H)
+					for (uint8 i = 0; i < 3; ++i)
+						if (spell->Effects[i].Effect == SPELL_EFFECT_INTERRUPT_CAST)
+							me->InterruptSpell(CURRENT_GENERIC_SPELL);
+		}
 
-            if (instance)
-                instance->SetData(DATA_ERUNAK_STONESPEAKER_EVENT, IN_PROGRESS);
-        }
+		void EnterCombat(Unit* /*who*/)
+		{
+			events.ScheduleEvent(EVENT_EARTH_SHARDS, 8000);
+			events.ScheduleEvent(EVENT_EMBERSTRIKE, 11000);
+			events.ScheduleEvent(EVENT_LAVA_BOLT, 13000);
+			events.ScheduleEvent(EVENT_MAGMA_SPLASH, 6000);
+			if (pInstance)
+				pInstance->SetBossState(DATA_ERUNAK_STONESPEAKER, IN_PROGRESS);
+		}
 
-        void JustSummoned(Creature* summon)
-        {
-            switch (summon->GetEntry())
-            {
-                case BOSS_MINDBENDER_GHURSHA:
-                    if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                        summon->AI()->AttackStart(target);
-                    break;
-                case NPC_EARTH_SHARD:
-                    SummonList.push_back(summon->GetGUID());
-                    break;
-            }
-        }
+		void JustSummoned(Creature* summon)
+		{
+			if (me->isInCombat())
+				summon->SetInCombatWithZone();
+		}
 
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
+		void SummonedCreatureDespawn(Creature* summon)
+		{
+			summons.Despawn(summon);
+		}
 
-            if (EarthShardsTimer <= diff && phased == false)
-            {
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                    DoCast(target, SPELL_EARTH_SHARDS);
-                DoCast(me, SPELL_EARTH_SHARD_SUMMON);
-                EarthShardsTimer = 20000;
-            } else EarthShardsTimer -= diff;
+		void UpdateAI(const uint32 diff)
+		{
+			if (!UpdateVictim())
+				return;
 
-            if (EmberstrikeTimer <= diff && phased == false)
-            {
-                DoCastVictim(SPELL_EMBERSTRIKE);
-                EmberstrikeTimer = 15000;
-            } else EmberstrikeTimer -= diff;
+			if (me->GetHealthPct() < 50 && !bPhase)
+			{
+				bPhase = true;
+				events.Reset();
+				me->setFaction(35);
+				EnterEvadeMode();
+				me->SummonCreature(BOSS_MINDBENDER_GHURSHA, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
+				return;
+			}
 
-            if (LavaBoltTimer <= diff && phased == false)
-            {
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true))
-                    DoCast(target, SPELL_LAVA_BOLT);
-                LavaBoltTimer = 10000;
-            } else LavaBoltTimer -= diff;
+			events.Update(diff);
 
-            if (MagmaSplashTimer <= diff && phased == false)
-            {
-                DoCastVictim(SPELL_MAGMA_SPLASH);
-                MagmaSplashTimer = 15000;
-            } else MagmaSplashTimer -= diff;
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
 
-            if (HealthBelowPct(50) && phased == false)
-            {
-                me->CombatStop(true);
-                me->SetReactState(REACT_PASSIVE);
-                me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                me->setFaction(35);
-                me->HandleEmoteCommand(68);
-                DoScriptText(SAY_PHASE_1_END_ERUNAK, me);
-                Position pos;
-                me->GetPosition(&pos);
-                me->SummonCreature(BOSS_MINDBENDER_GHURSHA, pos, TEMPSUMMON_MANUAL_DESPAWN);
-                phased = true;
-            }
-
-            DoMeleeAttackIfReady();
-        }
-    };
-
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
-    {
-        player->PlayerTalkClass->ClearMenus();
-        return true;
-    }
-
-    bool OnGossipHello(Player* player, Creature* creature)
-    {
-        if (creature->isQuestGiver())
-            player->PrepareQuestMenu(creature->GetGUID());
-
-        player->SEND_GOSSIP_MENU(player->GetGossipTextId(creature), creature->GetGUID());
-
-        return true;
-    }
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new boss_erunak_stonespeakerAI (creature);
-    }
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_EARTH_SHARDS:
+					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
+						DoCast(pTarget, SPELL_EARTH_SHARDS);
+					events.ScheduleEvent(EVENT_EARTH_SHARDS, 20000);
+					break;
+				case EVENT_EMBERSTRIKE:
+					DoCast(me->getVictim(), SPELL_EMBERSTRIKE);
+					events.ScheduleEvent(EVENT_EMBERSTRIKE, 11000);
+					break;
+				case EVENT_LAVA_BOLT:
+					if (Unit* pTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
+						DoCast(pTarget, SPELL_LAVA_BOLT);
+					events.ScheduleEvent(EVENT_LAVA_BOLT, 14000);
+					break;
+				case EVENT_MAGMA_SPLASH:
+					DoCast(me, SPELL_MAGMA_SPLASH);
+					events.ScheduleEvent(EVENT_MAGMA_SPLASH, 13000);
+					break;
+				}
+			}
+			DoMeleeAttackIfReady();
+		}
+	};
 };
 
 class boss_mindbender_ghursha : public CreatureScript
 {
 public:
-    boss_mindbender_ghursha() : CreatureScript("boss_mindbender_ghursha") { }
+	boss_mindbender_ghursha() : CreatureScript("boss_mindbender_ghursha") { }
 
-    struct boss_mindbender_ghurshaAI : public ScriptedAI
-    {
-        boss_mindbender_ghurshaAI(Creature* creature) : ScriptedAI(creature)
-        {
-            instance = creature->GetInstanceScript();
-            mindbender = me;
-        }
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new boss_mindbender_ghurshaAI(pCreature);
+	}
 
-        std::list<uint64> SummonList;
+	struct boss_mindbender_ghurshaAI : public BossAI
+	{
+		boss_mindbender_ghurshaAI(Creature* pCreature) : BossAI(pCreature, DATA_ERUNAK_STONESPEAKER)
+		{
+			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
+			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
+			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+		}
 
-        InstanceScript *instance;
+		void InitializeAI()
+		{
+			if (!me->isDead())
+				Reset();
+		}
 
-        bool Enslaved;
+		void Reset()
+		{
+		}
 
-        uint32 TargetTimer;
-        uint32 EnslaveTimer;
-        uint32 AbsorbMagicTimer;
-        uint32 MindFogTimer;
-        uint32 UnrelentingAgonyTimer;
-        uint32 CastTimer;
-        uint32 EnslaveEndTimer;
-        Unit* EnslaveTarget;
-
-        void Reset()
-        {
-            RemoveSummons();
-        }
-
-        void JustReachedHome()
-        {
-            erunak->SetReactState(REACT_AGGRESSIVE);
-            erunak->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            erunak->setFaction(16);
-            CAST_AI(boss_erunak_stonespeaker::boss_erunak_stonespeakerAI, erunak->AI())->phased = false;
-            erunak->GetMotionMaster()->MoveTargetedHome();
-            me->DespawnOrUnsummon();
-
-            if (instance)
-                instance->SetData(DATA_ERUNAK_STONESPEAKER_EVENT, NOT_STARTED);
-        }
-
-        void EnterCombat(Unit* /*who*/)
-        {
-            Enslaved = false;
-            erunak->HandleEmoteCommand(68);
-            erunak->setFaction(35);
-            me->SetReactState(REACT_AGGRESSIVE);
-            DoScriptText(SAY_PHASE_1_END_MINDBENDER, me);
-
-            TargetTimer = 3000;
-            EnslaveTimer = 5000;
-            AbsorbMagicTimer = 20000;
-            MindFogTimer = urand(6000, 12000);
-            UnrelentingAgonyTimer = 10000;
-        }
-
-        void RemoveSummons()
-        {
-            if (SummonList.empty())
-                return;
-
-            for (std::list<uint64>::const_iterator itr = SummonList.begin(); itr != SummonList.end(); ++itr)
-            {
-                if (Creature* temp = Unit::GetCreature(*me, *itr))
-                    if (temp)
-                        temp->DisappearAndDie();
-            }
-            SummonList.clear();
-        }
-
-        void JustSummoned(Creature* summon)
-        {
-            summon->CastSpell(summon,SPELL_MIND_FOG_AURA, false);
-            summon->CastSpell(summon,SPELL_MIND_FOG_VISUAL, false);
-            summon->SetReactState(REACT_PASSIVE);
-            summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            SummonList.push_back(summon->GetGUID());
-        }
-
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
-
-            if (TargetTimer <= diff && Enslaved == false)
-            {
-                EnslaveTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
-                TargetTimer = 1000;
-            } else TargetTimer -= diff;
-
-            if (EnslaveEndTimer <= diff && Enslaved == true)
-            {
-                me->SetReactState(REACT_AGGRESSIVE);
-                EnslaveTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
-                EnslaveTarget->RemoveAurasDueToSpell(SPELL_ENSLAVE);
-                EnslaveTarget->RemoveAurasDueToSpell(SPELL_ENSLAVE_BUFF);
-                me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                Enslaved = false;
-                EnslaveTimer = 30000;
-                AbsorbMagicTimer = 20000;
-                MindFogTimer = urand(6000,12000);
-                UnrelentingAgonyTimer = 10000;
-                EnslaveEndTimer = 90000;
-            } else EnslaveEndTimer -= diff;
-
-            if (EnslaveTimer <= diff && Enslaved == false)
-            {
-                if (EnslaveTarget)
-                {
-                    DoZoneInCombat();
-                    me->SetReactState(REACT_PASSIVE);
-                    DoCast(EnslaveTarget, SPELL_ENSLAVE);
-                    DoCast(EnslaveTarget, SPELL_ENSLAVE_BUFF);
-                    me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    DoScriptText(RAND(SAY_MIND_CONTROL_1,SAY_MIND_CONTROL_2,SAY_MIND_CONTROL_3), me);
-                    Enslaved = true;
-                    EnslaveTimer = 180000;
-                    AbsorbMagicTimer = 180000;
-                    MindFogTimer = 180000;
-                    UnrelentingAgonyTimer = 180000;
-                    EnslaveEndTimer = DUNGEON_MODE(60000,30000);
-                    CastTimer = 2000;
-                }
-                EnslaveTimer = 1000;
-            } else EnslaveTimer -= diff;
-
-            if (EnslaveTarget && Enslaved == true)
-                if (EnslaveTarget->HealthBelowPct(50))
-                {
-                    me->SetReactState(REACT_AGGRESSIVE);
-                    EnslaveTarget = SelectTarget(SELECT_TARGET_RANDOM, 0, 100, true);
-                    EnslaveTarget->RemoveAurasDueToSpell(SPELL_ENSLAVE);
-                    EnslaveTarget->RemoveAurasDueToSpell(SPELL_ENSLAVE_BUFF);
-                    me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                    Enslaved = false;
-                    EnslaveTimer = 30000;
-                    AbsorbMagicTimer = 20000;
-                    MindFogTimer = urand(6000,12000);
-                    UnrelentingAgonyTimer = 10000;
-                }
-
-            if (CastTimer <= diff && Enslaved == true)
-            {
-                if (Unit *target = SelectTarget(SELECT_TARGET_RANDOM, 0, NotCharmedTargetSelector()))
-                {
-                    switch(EnslaveTarget->getClass())
-                    {
-                        case CLASS_DRUID:
-                            if (urand(0, 1))
-                                EnslaveTarget->CastSpell(target, 8921, false);
-                            else
-                                EnslaveTarget->CastSpell(me, 774, false);
-                            break;
-                        case CLASS_HUNTER:
-                            EnslaveTarget->CastSpell(target, RAND(2643, 1978), false);
-                            break;
-                        case CLASS_MAGE:
-                            EnslaveTarget->CastSpell(target, RAND(44614, 30455), false);
-                            break;
-                        case CLASS_WARLOCK:
-                            EnslaveTarget->CastSpell(target, RAND(980, 686), true);
-                            break;
-                        case CLASS_WARRIOR:
-                            EnslaveTarget->CastSpell(target, RAND(46924, 845), false);
-                            break;
-                        case CLASS_PALADIN:
-                            if (urand(0, 1))
-                                EnslaveTarget->CastSpell(target, 853, false);
-                            else
-                                EnslaveTarget->CastSpell(me, 20473, false);
-                            break;
-                        case CLASS_PRIEST:
-                            if (urand(0,1))
-                                EnslaveTarget->CastSpell(target, 34914, false);
-                            else
-                                EnslaveTarget->CastSpell(me, 139, false);
-                            break;
-                        case CLASS_SHAMAN:
-                            if (urand(0,1))
-                                EnslaveTarget->CastSpell(target, 421, false);
-                            else
-                                EnslaveTarget->CastSpell(me, 61295, false);
-                            break;
-                        case CLASS_ROGUE:
-                            EnslaveTarget->CastSpell(target, RAND(16511, 1329), false);
-                            break;
-                        case CLASS_DEATH_KNIGHT:
-                            if (urand(0,1))
-                                EnslaveTarget->CastSpell(target, 45462, true);
-                            else
-                                EnslaveTarget->CastSpell(target, 49184, true);
-                            break;
-                    }
-                }
-                CastTimer = 3000;
-            } else CastTimer -= diff;
-
-            if (AbsorbMagicTimer <= diff && Enslaved == false)
-            {
-                DoCast(me, SPELL_ABSORB_MAGIC);
-                AbsorbMagicTimer = urand(15000, 20000);
-            } else AbsorbMagicTimer -= diff;
-
-            if (MindFogTimer <= diff && Enslaved == false)
-            {
-                DoCast(me, SPELL_MIND_FOG_SUMMON);
-                DoScriptText(SAY_MIND_FOG, me);
-                MindFogTimer = 18000;
-            } else MindFogTimer -= diff;
-
-            if (UnrelentingAgonyTimer <= diff && Enslaved == false)
-            {
-                DoCastAOE(SPELL_UNRELENTING_AGONY);
-                UnrelentingAgonyTimer = 20000;
-            } else UnrelentingAgonyTimer -= diff;
-
-            DoMeleeAttackIfReady();
-        }
-
-        void JustDied(Unit* /*killer*/)
-        {
-            DoScriptText(SAY_DEATH, me);
-            DoScriptText(SAY_WIN_ERUNAK, erunak);
-            RemoveSummons();
-            erunak->setFaction(35);
-
-			if (IsHeroic())
+		void DoAction(const int32 action)
+		{
+			if (action == ACTION_GHURSHA_START)
 			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+				me->SetReactState(REACT_AGGRESSIVE);
+				me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+				me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+				if (Unit* pTarget = me->SelectNearestTarget(100.0f))
+					me->GetMotionMaster()->MoveChase(pTarget);
 			}
+		}
 
-            if (instance)
-                instance->SetData(DATA_ERUNAK_STONESPEAKER_EVENT, DONE);
-        }
-    };
+		void EnterCombat(Unit* /*who*/)
+		{
+			events.ScheduleEvent(EVENT_ENSLAVE, 13000);
+			events.ScheduleEvent(EVENT_ABSORB_MAGIC, 20000);
+			events.ScheduleEvent(EVENT_MIND_FOG, urand(6000, 12000));
+			events.ScheduleEvent(EVENT_UNRELENTING_AGONY, 10000);
+			me->BossYell("A new host must be found.", 18860);
+			instance->SetBossState(DATA_ERUNAK_STONESPEAKER, IN_PROGRESS);
+		}
 
-    CreatureAI* GetAI(Creature* creature)const
-    {
-        return new boss_mindbender_ghurshaAI(creature);
-    }
+		void UpdateAI(const uint32 diff)
+		{
+			if (!UpdateVictim())
+				return;
+
+			events.Update(diff);
+
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
+
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_ENSLAVE:
+					me->BossYell("Who are your allies?", 18866);
+					events.ScheduleEvent(EVENT_ENSLAVE, 31000);
+					break;
+				case EVENT_ABSORB_MAGIC:
+					DoCast(me, SPELL_ABSORB_MAGIC);
+					events.ScheduleEvent(EVENT_ABSORB_MAGIC, 15000);
+					break;
+				case EVENT_MIND_FOG:
+					me->BossYell("Is. This. Reality.", 18867);
+					DoCast(me, SPELL_MIND_FOG);
+					events.ScheduleEvent(EVENT_MIND_FOG, urand(23000, 25000));
+					break;
+				case EVENT_UNRELENTING_AGONY:
+					DoCast(me, SPELL_UNRELENTING_AGONY);
+					events.ScheduleEvent(EVENT_UNRELENTING_AGONY, 30000);
+					break;
+				}
+			}
+			DoMeleeAttackIfReady();
+		}
+
+		void KilledUnit(Unit* /*victim*/)
+		{
+			me->BossYell("Only your memory remains!", 18862);
+		}
+
+		void JustDied(Unit* /*killer*/)
+		{
+			_JustDied();
+			me->BossYell("They are outside the cycle...", 18863);
+			if (Creature* pErunak = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ERUNAK_STONESPEAKER)))
+			{
+				//pErunak->AI()->EnterEvadeMode();
+				//pErunak->AI()->Talk(SAY_VICTORY);
+			}
+		}
+	};
+};
+
+class npc_erunak_earth_shards : public CreatureScript
+{
+public:
+	npc_erunak_earth_shards() : CreatureScript("npc_erunak_earth_shards") { }
+
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new npc_erunak_earth_shardsAI(pCreature);
+	}
+
+	struct npc_erunak_earth_shardsAI : public Scripted_NoMovementAI
+	{
+		npc_erunak_earth_shardsAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+			me->SetReactState(REACT_PASSIVE);
+		}
+
+		uint32 uiDespawnTimer;
+
+		void Reset()
+		{
+			uiDespawnTimer = 5000;
+			DoCast(me, SPELL_EARTH_SHARDS_AURA);
+		}
+
+		void UpdateAI(const uint32 diff)
+		{
+			if (uiDespawnTimer <= diff)
+			{
+				me->DespawnOrUnsummon();
+			}
+			else
+				uiDespawnTimer -= diff;
+		}
+	};
+};
+
+class npc_ghursha_mind_fog : public CreatureScript
+{
+public:
+	npc_ghursha_mind_fog() : CreatureScript("npc_ghursha_mind_fog") { }
+
+	CreatureAI* GetAI(Creature* pCreature) const
+	{
+		return new npc_ghursha_mind_fogAI(pCreature);
+	}
+
+	struct npc_ghursha_mind_fogAI : public Scripted_NoMovementAI
+	{
+		npc_ghursha_mind_fogAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+			me->SetReactState(REACT_PASSIVE);
+		}
+
+		void Reset()
+		{
+			DoCast(me, SPELL_MIND_FOG_AURA, true);
+			DoCast(me, SPELL_MIND_FOG_VISUAL, true);
+		}
+
+		void UpdateAI(const uint32 /*diff*/)
+		{
+		}
+	};
 };
 
 void AddSC_boss_erunak_stonespeaker()
 {
-    new boss_erunak_stonespeaker();
-    new boss_mindbender_ghursha();
+	new boss_erunak_stonespeaker();
+	new boss_mindbender_ghursha();
+	new npc_erunak_earth_shards();
+	new npc_ghursha_mind_fog();
 }

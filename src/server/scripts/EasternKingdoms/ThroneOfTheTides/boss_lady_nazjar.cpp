@@ -182,6 +182,13 @@ public:
 			events.ScheduleEvent(EVENT_GEYSER, 11000);
 			events.ScheduleEvent(EVENT_FUNGAL_SPORES, urand(3000, 10000));
 			events.ScheduleEvent(EVENT_SHOCK_BLAST, urand(6000, 12000));
+
+			GameObject* go_door = me->FindNearestGameObject(GO_LADY_NAZJAR_DOOR, 250.0f);
+			if (go_door)
+			{
+				go_door->SetGoState(GO_STATE_READY);
+			}
+
 			instance->SetData(DATA_LADY_NAZJAR, IN_PROGRESS);
 		}
 
@@ -189,6 +196,18 @@ public:
 		{
 			_JustDied();
 			me->BossYell("Ulthok... stop them...", 18889);
+
+			GameObject* go_door = me->FindNearestGameObject(GO_LADY_NAZJAR_DOOR, 250.0f);
+			GameObject* go_defensesystem = me->FindNearestGameObject(GO_TOT_DEFENSE_SYSTEM_1, 250.0f);
+			if (go_door)
+			{
+				go_door->SetGoState(GO_STATE_ACTIVE);
+			}
+			if (go_defensesystem)
+			{
+				go_defensesystem->SetGoState(GO_STATE_READY);
+			}
+
 			instance->SetData(DATA_LADY_NAZJAR, DONE);
 		}
 
