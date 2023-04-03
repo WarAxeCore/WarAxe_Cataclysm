@@ -123,6 +123,67 @@ public:
 	}
 };
 
+// 879 Exorcism
+// 4.0.6a
+class spell_pal_exorcism : public SpellScriptLoader
+{
+public:
+	spell_pal_exorcism() : SpellScriptLoader("spell_pal_exorcism") { }
+
+	class spell_pal_exorcism_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_pal_exorcism_SpellScript)
+
+		enum
+		{
+			GLYPH_OF_EXORCISM = 54934,
+			SPELL_EXORCISM_TRIGGERED = 879
+		};
+
+		void CalculateDamage(SpellEffIndex /*effIndex*/)
+		{
+			Unit* caster = GetCaster();
+			if (!caster || !GetHitUnit())
+				return;
+
+			PreventHitAura();
+
+			damageAmount = (GetHitDamage() * 0.20f) / 3;
+		}
+
+		void HandleGlyphOfExorcism()
+		{
+			if (Unit* caster = GetCaster())
+			{
+				if (Unit* target = GetHitUnit())
+				{
+					if (caster->HasAura(GLYPH_OF_EXORCISM) && damageAmount > 0)
+					{
+						caster->AddAura(SPELL_EXORCISM_TRIGGERED, target);
+
+						// Set pre-calculated amount
+						if (Aura* glyphOfExorcism = target->GetAura(SPELL_EXORCISM_TRIGGERED, caster->GetGUID()))
+							glyphOfExorcism->GetEffect(EFFECT_1)->SetAmount(damageAmount);
+					}
+				}
+			}
+		}
+
+	protected:
+		int32 damageAmount;
+
+		void Register()
+		{
+			OnEffectHitTarget += SpellEffectFn(spell_pal_exorcism_SpellScript::CalculateDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+			AfterHit += SpellHitFn(spell_pal_exorcism_SpellScript::HandleGlyphOfExorcism);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_pal_exorcism_SpellScript();
+	}
+};
 
 // 31850 - Ardent Defender
 class spell_pal_ardent_defender : public SpellScriptLoader
@@ -999,4 +1060,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_bless_of_might();
     new spell_pal_bless_of_king();
 	new spell_pal_illuminated_healing();
+	new spell_pal_exorcism();
 }
