@@ -428,6 +428,12 @@ enum AuraScriptHookType
     AURA_SCRIPT_HOOK_EFFECT_PROC,
     AURA_SCRIPT_HOOK_DISPEL,
     AURA_SCRIPT_HOOK_AFTER_DISPEL,
+	AURA_SCRIPT_HOOK_CHECK_PROC,
+	AURA_SCRIPT_HOOK_PREPARE_PROC,
+	AURA_SCRIPT_HOOK_PROC,
+	AURA_SCRIPT_HOOK_EFFECT_PROC2,
+	AURA_SCRIPT_HOOK_EFFECT_AFTER_PROC,
+	AURA_SCRIPT_HOOK_AFTER_PROC,
     /*AURA_SCRIPT_HOOK_APPLY,
     AURA_SCRIPT_HOOK_REMOVE, */
 };
@@ -452,6 +458,9 @@ class AuraScript : public _SpellScript
         typedef void(CLASSNAME::*AuraEffectCalcSpellModFnType)(AuraEffect const*, SpellModifier* &, SpellInfo const *, Unit *); \
         typedef void(CLASSNAME::*AuraEffectAbsorbFnType)(AuraEffect*, DamageInfo &, uint32 &); \
         typedef void(CLASSNAME::*AuraEffectProcFnType)(AuraEffect const *, Unit *, Unit *, uint32, SpellInfo const*, uint32, uint32, WeaponAttackType, int32); \
+        typedef bool(CLASSNAME::*AuraCheckProcFnType)(ProcEventInfo&); \
+        typedef void(CLASSNAME::*AuraProcFnType)(ProcEventInfo&); \
+        typedef void(CLASSNAME::*AuraEffectProc2FnType)(AuraEffect const*, ProcEventInfo&); \
 
         AURASCRIPT_FUNCTION_TYPE_DEFINES(AuraScript)
 
@@ -551,6 +560,31 @@ class AuraScript : public _SpellScript
             private:
                 AuraEffectAbsorbFnType pEffectHandlerScript;
         };
+		class CheckProcHandler
+		{
+		public:
+			CheckProcHandler(AuraCheckProcFnType handlerScript);
+			bool Call(AuraScript* auraScript, ProcEventInfo& eventInfo);
+		private:
+			AuraCheckProcFnType _HandlerScript;
+		};
+		class AuraProcHandler
+		{
+		public:
+			AuraProcHandler(AuraProcFnType handlerScript);
+			void Call(AuraScript* auraScript, ProcEventInfo& eventInfo);
+		private:
+			AuraProcFnType _HandlerScript;
+		};
+		class EffectProcHandler2 : public EffectBase
+		{
+		public:
+			EffectProcHandler2(AuraEffectProc2FnType effectHandlerScript, uint8 effIndex, uint16 effName);
+			void Call(AuraScript* auraScript, AuraEffect const* aurEff, ProcEventInfo& eventInfo);
+		private:
+			AuraEffectProc2FnType _EffectHandlerScript2;
+		};
+		
 
         #define AURASCRIPT_FUNCTION_CAST_DEFINES(CLASSNAME) \
         class CheckAreaTargetFunction : public AuraScript::CheckAreaTargetHandler { public: CheckAreaTargetFunction(AuraCheckAreaTargetFnType _pHandlerScript) : AuraScript::CheckAreaTargetHandler((AuraScript::AuraCheckAreaTargetFnType)_pHandlerScript) {} }; \
@@ -564,6 +598,9 @@ class AuraScript : public _SpellScript
         class EffectAbsorbFunction : public AuraScript::EffectAbsorbHandler { public: EffectAbsorbFunction(AuraEffectAbsorbFnType _pEffectHandlerScript, uint8 _effIndex) : AuraScript::EffectAbsorbHandler((AuraScript::AuraEffectAbsorbFnType)_pEffectHandlerScript, _effIndex) {} }; \
         class EffectManaShieldFunction : public AuraScript::EffectManaShieldHandler { public: EffectManaShieldFunction(AuraEffectAbsorbFnType _pEffectHandlerScript, uint8 _effIndex) : AuraScript::EffectManaShieldHandler((AuraScript::AuraEffectAbsorbFnType)_pEffectHandlerScript, _effIndex) {} }; \
         class EffectProcHandlerFunction : public AuraScript::EffectProcHandler { public: EffectProcHandlerFunction(AuraEffectProcFnType _pEffectProcScript, uint8 _effIndex, uint16 _effName) : AuraScript::EffectProcHandler((AuraScript::AuraEffectProcFnType)_pEffectProcScript, _effIndex, _effName) {} }; \
+		class CheckProcHandlerFunction : public AuraScript::CheckProcHandler { public: CheckProcHandlerFunction(AuraCheckProcFnType handlerScript) : AuraScript::CheckProcHandler((AuraScript::AuraCheckProcFnType)handlerScript) {} }; \
+        class AuraProcHandlerFunction : public AuraScript::AuraProcHandler { public: AuraProcHandlerFunction(AuraProcFnType handlerScript) : AuraScript::AuraProcHandler((AuraScript::AuraProcFnType)handlerScript) {} }; \
+        class EffectProcHandlerFunction2 : public AuraScript::EffectProcHandler2 { public: EffectProcHandlerFunction2(AuraEffectProc2FnType effectHandlerScript, uint8 effIndex, uint16 effName) : AuraScript::EffectProcHandler2((AuraScript::AuraEffectProc2FnType)effectHandlerScript, effIndex, effName) {} }; \
 
         #define PrepareAuraScript(CLASSNAME) AURASCRIPT_FUNCTION_TYPE_DEFINES(CLASSNAME) AURASCRIPT_FUNCTION_CAST_DEFINES(CLASSNAME)
 
@@ -693,6 +730,36 @@ class AuraScript : public _SpellScript
         // example: AfterEffectManaShield += AuraEffectAbsorbFn(class::function, EffectIndexSpecifier);
         // where function is: void function (AuraEffect* aurEff, DamageInfo& dmgInfo, uint32& absorbAmount);
         HookList<EffectManaShieldHandler> AfterEffectManaShield;
+
+		// executed when aura checks if it can proc
+		// example: DoCheckProc += AuraCheckProcFn(class::function);
+		// where function is: bool function (ProcEventInfo& eventInfo);
+		HookList<CheckProcHandler> DoCheckProc;
+#define AuraCheckProcFn(F) CheckProcHandlerFunction(&F)
+
+		// executed before aura procs (possibility to prevent charge drop/cooldown)
+		// example: DoPrepareProc += AuraProcFn(class::function);
+		// where function is: void function (ProcEventInfo& eventInfo);
+		HookList<AuraProcHandler> DoPrepareProc;
+		// executed when aura procs
+		// example: OnProc += AuraProcFn(class::function);
+		// where function is: void function (ProcEventInfo& eventInfo);
+		HookList<AuraProcHandler> OnProc;
+		// executed after aura proced
+		// example: AfterProc += AuraProcFn(class::function);
+		// where function is: void function (ProcEventInfo& eventInfo);
+		HookList<AuraProcHandler> AfterProc;
+#define AuraProcFn(F) AuraProcHandlerFunction(&F)
+
+		// executed when aura effect procs
+		// example: OnEffectProc += AuraEffectProcFn(class::function, EffectIndexSpecifier, EffectAuraNameSpecifier);
+		// where function is: void function (AuraEffect const* aurEff, ProcEventInfo& procInfo);
+		HookList<EffectProcHandler2> OnEffectProc2;
+		// executed after aura effect proced
+		// example: AfterEffectProc += AuraEffectProcFn(class::function, EffectIndexSpecifier, EffectAuraNameSpecifier);
+		// where function is: void function (AuraEffect const* aurEff, ProcEventInfo& procInfo);
+		HookList<EffectProcHandler2> AfterEffectProc2;
+#define AuraEffectProcFn2(F, I, N) EffectProcHandlerFunction2(&F, I, N)
 
         // AuraScript interface - hook/effect execution manipulators
 

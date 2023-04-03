@@ -194,7 +194,7 @@ class Aura
         void AddProcCooldown(uint32 msec);
         bool IsUsingCharges() const { return m_isUsingCharges; }
         void SetUsingCharges(bool val) { m_isUsingCharges = val; }
-        void PrepareProcToTrigger();
+        void PrepareProcToTrigger(AuraApplication* aurApp, ProcEventInfo& eventInfo);
         bool IsProcTriggeredOnEvent(AuraApplication* aurApp, ProcEventInfo& eventInfo) const;
         float CalcProcChance(SpellProcEntry const& procEntry, ProcEventInfo& eventInfo) const;
         void TriggerProcOnEvent(AuraApplication* aurApp, ProcEventInfo& eventInfo);
@@ -218,7 +218,14 @@ class Aura
         void CallScriptEffectManaShieldHandlers(AuraEffect* aurEff, AuraApplication const* aurApp, DamageInfo & dmgInfo, uint32 & absorbAmount, bool & defaultPrevented);
         void CallScriptEffectAfterManaShieldHandlers(AuraEffect* aurEff, AuraApplication const* aurApp, DamageInfo & dmgInfo, uint32 & absorbAmount);
         bool CallScriptEffectProc(AuraEffect const * aurEff, Unit* pUnit, Unit *victim, uint32 damage, SpellInfo const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, int32 cooldown);
-        std::list<AuraScript*> m_loadedScripts;
+		// Spell Proc Hooks
+		bool CallScriptCheckProcHandlers(AuraApplication const* aurApp, ProcEventInfo& eventInfo);
+		bool CallScriptPrepareProcHandlers(AuraApplication const* aurApp, ProcEventInfo& eventInfo);
+		void CallScriptProcHandlers(AuraApplication const* aurApp, ProcEventInfo& eventInfo);
+		void CallScriptAfterProcHandlers(AuraApplication const* aurApp, ProcEventInfo& eventInfo);
+		bool CallScriptEffectProcHandlers(AuraEffect const* aurEff, AuraApplication const* aurApp, ProcEventInfo& eventInfo);
+		void CallScriptAfterEffectProcHandlers(AuraEffect const* aurEff, AuraApplication const* aurApp, ProcEventInfo& eventInfo);
+		std::list<AuraScript*> m_loadedScripts;
     private:
         void _DeleteRemovedApplications();
     protected:

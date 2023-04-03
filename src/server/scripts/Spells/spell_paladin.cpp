@@ -33,6 +33,8 @@ enum PaladinSpells
 
     PALADIN_SPELL_DIVINE_PLEA                    = 54428,
 
+	SPELL_PALADIN_ILLUMINATED_HEALING			 = 86273,
+
     PALADIN_SPELL_HOLY_SHOCK_R1                  = 20473,
     PALADIN_SPELL_HOLY_SHOCK_R1_DAMAGE           = 25912,
     PALADIN_SPELL_HOLY_SHOCK_R1_HEALING          = 25914,
@@ -302,6 +304,49 @@ public:
     {
         return new spell_pal_holy_shock_SpellScript();
     }
+};
+
+// 76669 - Illuminated Healing
+class spell_pal_illuminated_healing : public SpellScriptLoader
+{
+public:
+	spell_pal_illuminated_healing() : SpellScriptLoader("spell_pal_illuminated_healing") { }
+
+	class spell_pal_illuminated_healing_AuraScript : public AuraScript
+	{
+		PrepareAuraScript(spell_pal_illuminated_healing_AuraScript);
+
+		bool Validate(SpellInfo const* /*spellInfo*/) override
+		{
+			if (!sSpellMgr->GetSpellInfo(SPELL_PALADIN_ILLUMINATED_HEALING))
+				return false;
+
+			return true;
+		}
+
+		void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+		{
+			PreventDefaultAction();
+			if (Unit* caster = GetCaster())
+			{
+				if (Unit* target = eventInfo.GetProcTarget())
+				{
+					uint32 shieldAmount = CalculatePctN(eventInfo.GetHealInfo()->GetHeal(), aurEff->GetAmount());
+					caster->CastCustomSpell(SPELL_PALADIN_ILLUMINATED_HEALING, SPELLVALUE_BASE_POINT0, shieldAmount, target, true, nullptr, aurEff);
+				}
+			}
+		}
+
+		void Register() override
+		{
+			OnEffectProc2 += AuraEffectProcFn2(spell_pal_illuminated_healing_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+		}
+	};
+
+	AuraScript* GetAuraScript() const override
+	{
+		return new spell_pal_illuminated_healing_AuraScript();
+	}
 };
 
 class spell_pal_judgements_of_the_bold : public SpellScriptLoader
@@ -953,4 +998,5 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_consecration();
     new spell_pal_bless_of_might();
     new spell_pal_bless_of_king();
+	new spell_pal_illuminated_healing();
 }
