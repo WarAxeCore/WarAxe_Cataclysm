@@ -20,6 +20,7 @@
 
 enum Npcs
 {
+	NPC_EVENT_LADY_NAZJAR = 44524,
     // Lady Naz'jar
     BOSS_LADY_NAZJAR                  = 40586,
     NPC_SUMMONED_WITCH                = 40634, // 2 of them

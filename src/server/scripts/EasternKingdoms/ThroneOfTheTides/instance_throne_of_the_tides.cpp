@@ -40,6 +40,7 @@ class instance_throne_of_the_tides : public InstanceMapScript
                 SetBossNumber(MAX_ENCOUNTER);
             }
 
+			uint64 NazjarEvent;
             uint64 LadyNazjar;
             uint64 JellyFishElevator;
             uint64 CommanderUlthok;
@@ -62,6 +63,7 @@ class instance_throne_of_the_tides : public InstanceMapScript
                 for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
                    encounter[i] = NOT_STARTED;
 
+				NazjarEvent             = 0;
                 LadyNazjar              = 0;
                 JellyFishElevator      = 0;
                 CommanderUlthok         = 0;
@@ -96,6 +98,9 @@ class instance_throne_of_the_tides : public InstanceMapScript
                 }
                 switch (creature->GetEntry())
                 {
+					case NPC_EVENT_LADY_NAZJAR:
+						NazjarEvent = creature->GetGUID();
+						break;
                     case BOSS_LADY_NAZJAR:
                         LadyNazjar = creature->GetGUID();
                         break;

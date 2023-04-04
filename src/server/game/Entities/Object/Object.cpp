@@ -2193,6 +2193,10 @@ TempSummon* Map::SummonCreature(uint32 entry, Position const& pos, SummonPropert
     summon->SetHomePosition(pos);
 
     summon->InitStats(duration);
+
+	//Equipment
+	summon->LoadEquipment(entry);
+
     AddToMap(summon->ToCreature());
     summon->InitSummon();
 

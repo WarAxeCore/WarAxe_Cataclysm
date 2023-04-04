@@ -556,11 +556,149 @@ public:
 	};
 };
 
+const Position eventPos[7] =
+{
+	{-121.93f, 807.15f, 797.19f, 3.13f},
+	{-122.00f, 799.22f, 797.13f, 3.13f},
+	{-97.83f, 798.27f, 797.04f, 3.13f},
+	{-98.13f, 806.96f, 797.04f, 3.13f},
+	{-65.19f, 808.50f, 796.96f, 3.13f},
+	{-66.57f, 798.02f, 796.87f, 3.13f},
+	{13.67f, 802.34f, 806.43f, 0.12f}
+};
+
+enum Actions
+{
+	ACTION_LADY_NAZJAR_START_EVENT = 1
+};
+
+enum Creatures
+{
+	NPC_NAZJAR_INVADER = 39616,
+	NPC_NAZJAR_SPIRITMENDER = 41139,
+	NPC_DEEP_MURLOC_DRUDGE = 39960
+};
+
+class at_tott_lady_nazjar_event : public AreaTriggerScript
+{
+public:
+	at_tott_lady_nazjar_event() : AreaTriggerScript("at_tott_lady_nazjar_event") { }
+
+	bool OnTrigger(Player* pPlayer, const AreaTriggerEntry* /*pAt*/)
+	{
+		if (InstanceScript* pInstance = pPlayer->GetInstanceScript())
+		{
+			if (pInstance->GetData(DATA_LADY_NAZJAR_EVENT) != DONE)
+			{
+				pInstance->SetData(DATA_LADY_NAZJAR_EVENT, DONE);
+				if (Creature* pLadyNazjarEvent = ObjectAccessor::GetCreature(*pPlayer, pInstance->GetData64(NPC_EVENT_LADY_NAZJAR)))
+					pLadyNazjarEvent->AI()->DoAction(ACTION_LADY_NAZJAR_START_EVENT);
+			}
+		}
+		return true;
+	}
+};
+
+class npc_lady_nazjar_event : public CreatureScript
+{
+public:
+	npc_lady_nazjar_event() : CreatureScript("npc_lady_nazjar_event") { }
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new npc_lady_nazjar_eventAI(creature);
+	}
+
+	struct npc_lady_nazjar_eventAI : public ScriptedAI
+	{
+		npc_lady_nazjar_eventAI(Creature* creature) : ScriptedAI(creature)
+		{
+			pInstance = creature->GetInstanceScript();
+		}
+
+		InstanceScript* pInstance;
+		EventMap events;
+		bool bEvade;
+		bool bSay1;
+
+		void Reset()
+		{
+			if (!pInstance)
+				return;
+
+			if (pInstance->GetData(DATA_LADY_NAZJAR_EVENT) == DONE)
+				me->DespawnOrUnsummon();
+
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+			me->SetReactState(REACT_PASSIVE);
+			me->setActive(true);
+			bEvade = false;
+			bSay1 = false;
+			events.Reset();
+		}
+
+		void MovementInform(uint32 type, uint32 id)
+		{
+			if (type == POINT_MOTION_TYPE)
+			{
+				if (id == 1)
+					me->DespawnOrUnsummon();
+			}
+		}
+
+		void DoAction(const int32 action)
+		{
+			if (action == ACTION_LADY_NAZJAR_START_EVENT)
+			{
+				me->BossYell("Armies of the depths, wash over our enemies as a tide of death!", 18890);
+			}
+		}
+
+		void UpdateAI(const uint32 /*diff*/)
+		{
+			if (!pInstance)
+				return;
+
+			if (me->SelectNearestTarget(150.0f) && !bSay1)
+			{
+				bSay1= true;
+				me->BossYell("Armies of the depths, wash over our enemies as a tide of death!", 18890);
+				me->SummonCreature(NPC_NAZJAR_INVADER, eventPos[0]);
+				me->SummonCreature(NPC_NAZJAR_INVADER, eventPos[1]);
+				me->SummonCreature(NPC_NAZJAR_INVADER, eventPos[2]);
+				me->SummonCreature(NPC_TEMPEST_WITCH, eventPos[3]);
+				me->SummonCreature(NPC_NAZJAR_SPIRITMENDER, eventPos[4]);
+				me->SummonCreature(NPC_NAZJAR_SPIRITMENDER, eventPos[5]);
+				pInstance->SetData(DATA_LADY_NAZJAR_EVENT, DONE);
+			}
+
+			if (me->SelectNearestTarget(50.0f) && !bEvade)
+			{
+				bEvade = true;
+				me->BossYell("Meddlesome gnats, you've thought us defeated so easily.", 18891);
+				me->GetMotionMaster()->MovePoint(1, eventPos[6]);
+
+				GameObject* go_door = me->FindNearestGameObject(GO_COMMANDER_ULTHOK_DOOR, 250.0f);
+				if (go_door)
+				{
+					go_door->SetGoState(GO_STATE_ACTIVE);
+				}
+
+			}
+		}
+	};
+};
+
+
+
+
 void AddSC_boss_lady_nazjar()
 {
 	new boss_lady_nazjar();
+	new npc_lady_nazjar_event();
 	new npc_lady_nazjar_honnor_guard();
 	new npc_lady_nazjar_tempest_witch();
 	new npc_lady_nazjar_waterspout();
 	new npc_lady_nazjar_geyser();
+	new at_tott_lady_nazjar_event();
 }
