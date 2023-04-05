@@ -138,11 +138,6 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
-
 			summons.DespawnAll();
 			me->BossYell("For the master I die a thousand times... A thousan...", 18594);
 

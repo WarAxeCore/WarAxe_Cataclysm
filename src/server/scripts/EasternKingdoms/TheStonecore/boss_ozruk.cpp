@@ -81,10 +81,6 @@ public:
 		void JustDied(Unit * /*killer*/)
 		{
 			me->BossYell("A protector has fallen. The World's Heart lies exposed!", 21922);
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
 			_JustDied();
 		}
 

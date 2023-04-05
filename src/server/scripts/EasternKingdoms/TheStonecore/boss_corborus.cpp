@@ -83,10 +83,6 @@ class boss_corborus : public CreatureScript
 
 		void JustDied(Unit* /*killer*/)
 		{
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
 			_JustDied();
 		}
 

@@ -180,8 +180,7 @@ public:
 
 			if (IsHeroic())
 			{
-				me->SummonCreature(NPC_NOTE, notePos);
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+				me->SummonCreature(NPC_NOTE, notePos);			
 			}
 		}
 

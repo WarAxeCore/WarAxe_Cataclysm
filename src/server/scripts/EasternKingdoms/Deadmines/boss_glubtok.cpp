@@ -117,11 +117,6 @@ public:
 			{
 				go_door->SetGoState(GO_STATE_ACTIVE);
 			}
-
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
 		}
 
 		void UpdateAI(uint32 diff)

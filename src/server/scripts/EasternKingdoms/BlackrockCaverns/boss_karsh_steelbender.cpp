@@ -133,11 +133,6 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
-
 			me->BossYell("We number in the millions! Your efforts are wasted...", 18855);
 			if (instance)
 				instance->SetData(DATA_KARSH_STEELBENDER, DONE);

@@ -164,11 +164,6 @@ public:
 			_JustDied();
 			me->BossYell("You will... NOT find her... until it is to late...", 19875);
 
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
-
 			me->SummonCreature(NPC_CAPTAIN, -88.1319f, -819.33f, 39.2345f);
 
 			instance->DoRemoveAurasDueToSpellOnPlayers(SPELL_RIPSNARL_ACHIEVEMENT);

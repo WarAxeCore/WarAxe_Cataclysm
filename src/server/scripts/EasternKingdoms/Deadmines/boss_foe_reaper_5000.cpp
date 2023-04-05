@@ -164,8 +164,7 @@ public:
 			instance->SetBossState(DATA_FOEREAPER, DONE);
 
 			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
+			{			
 				if (Creature* Reaper = me->GetCreature(*me, prototypeGUID))
 				{
 					Reaper->DespawnOrUnsummon();

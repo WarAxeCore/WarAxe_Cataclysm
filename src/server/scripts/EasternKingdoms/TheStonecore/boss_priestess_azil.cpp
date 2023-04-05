@@ -150,11 +150,6 @@ public:
 					}
 				}
 			}
-
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
 		}
 
 		void MovementInform(uint32 type, uint32 id)

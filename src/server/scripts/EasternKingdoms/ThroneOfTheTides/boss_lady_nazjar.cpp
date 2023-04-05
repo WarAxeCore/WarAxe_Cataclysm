@@ -197,14 +197,10 @@ public:
 			_JustDied();
 			me->BossYell("Ulthok... stop them...", 18889);
 
-			GameObject* go_door = me->FindNearestGameObject(GO_LADY_NAZJAR_DOOR, 250.0f);
 			GameObject* go_defensesystem = me->FindNearestGameObject(GO_TOT_DEFENSE_SYSTEM_1, 250.0f);
-			if (go_door)
-			{
-				go_door->SetGoState(GO_STATE_ACTIVE);
-			}
 			if (go_defensesystem)
 			{
+				go_defensesystem->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NOT_SELECTABLE);
 				go_defensesystem->SetGoState(GO_STATE_READY);
 			}
 
@@ -689,7 +685,37 @@ public:
 	};
 };
 
+class go_totd_defense_system : public GameObjectScript
+{
+public:
+	go_totd_defense_system() : GameObjectScript("go_totd_defense_system") { }
 
+	bool OnGossipHello(Player* /*player*/, GameObject* go)
+	{
+		if (go->GetInstanceScript())
+		{
+			Map::PlayerList const &PlayerList = go->GetMap()->GetPlayers();
+
+			if (!PlayerList.isEmpty())
+			{
+				for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+				{
+					i->getSource()->SendCinematicStart(169);
+
+					GameObject* go_door = i->getSource()->FindNearestGameObject(GO_LADY_NAZJAR_DOOR, 250.0f);
+					if (go_door && go_door->GetGoState() != GO_STATE_ACTIVE)
+					{
+						go_door->SetGoState(GO_STATE_ACTIVE);
+					}
+				}
+			}
+		}
+
+		go->SetGoState(GO_STATE_ACTIVE);
+
+		return false;
+	}
+};
 
 
 void AddSC_boss_lady_nazjar()
@@ -701,4 +727,5 @@ void AddSC_boss_lady_nazjar()
 	new npc_lady_nazjar_waterspout();
 	new npc_lady_nazjar_geyser();
 	new at_tott_lady_nazjar_event();
+	new go_totd_defense_system();
 }

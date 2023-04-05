@@ -131,11 +131,6 @@ public:
 			_JustDied();
 			me->BossYell("The scales... have... tipped...", 20844);
 
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
-
 			GameObject* go_door = me->FindNearestGameObject(GO_MAST_ROOM_DOOR, 250.0f);
 			if (go_door)
 			{

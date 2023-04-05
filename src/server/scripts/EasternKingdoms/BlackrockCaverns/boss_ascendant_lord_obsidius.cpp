@@ -135,10 +135,6 @@ public:
 
 		void JustDied(Unit* /*killer*/)
 		{
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
 
 			me->BossYell("I cannot be destroyed... Only de... layed...", 18902);
 			summons.DespawnAll();

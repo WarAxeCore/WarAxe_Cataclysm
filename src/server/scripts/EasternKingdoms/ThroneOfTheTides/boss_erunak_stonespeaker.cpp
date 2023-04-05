@@ -299,11 +299,8 @@ public:
 		{
 			_JustDied();
 			me->BossYell("They are outside the cycle...", 18863);
-			if (Creature* pErunak = ObjectAccessor::GetCreature(*me, instance->GetData64(DATA_ERUNAK_STONESPEAKER)))
-			{
-				//pErunak->AI()->EnterEvadeMode();
-				//pErunak->AI()->Talk(SAY_VICTORY);
-			}
+			
+			instance->SetData(DATA_ERUNAK_STONESPEAKER, DONE);
 		}
 	};
 };

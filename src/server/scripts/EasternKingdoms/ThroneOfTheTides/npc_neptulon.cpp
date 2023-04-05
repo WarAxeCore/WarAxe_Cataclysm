@@ -279,7 +279,7 @@ public:
         InstanceScript* instance = creature->GetInstanceScript();
         if (instance)
         {
-            if (instance->GetData(DATA_LADY_NAZJAR_EVENT) == DONE && instance->GetData(DATA_COMMANDER_ULTHOK_EVENT) == DONE && instance->GetData(DATA_ERUNAK_STONESPEAKER_EVENT) == DONE) // If everything is already finished
+            if (instance->GetData(DATA_LADY_NAZJAR) == DONE && instance->GetData(DATA_COMMANDER_ULTHOK) == DONE) // If everything is already finished
             {
                 player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_READY, GOSSIP_SENDER_MAIN, 1000);
                 player->PlayerTalkClass->SendGossipMenu(player->GetGossipTextId(creature), creature->GetGUID());

@@ -176,15 +176,6 @@ public:
 
 		void JustDied(Unit* killer)
 		{
-			if (IsHeroic())
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 70);
-			}
-			else
-			{
-				me->RewardCurrency(CURRENCY_TYPE_JUSTICE_POINTS, 30);
-			}
-
 			me->BossYell("Ywaq maq oou; ywaq maq ssaggh. Yawq ma shg'fhn.", 18641);
 			summons.DespawnAll();
 			if (pInstance)
