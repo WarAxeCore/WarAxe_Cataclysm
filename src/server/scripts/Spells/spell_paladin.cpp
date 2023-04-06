@@ -691,6 +691,89 @@ public:
     }
 };
 
+class spell_pal_infusion_removal : public SpellScriptLoader
+{
+public:
+	spell_pal_infusion_removal() : SpellScriptLoader("spell_pal_infusion_removal") { }
+
+	class spell_pal_infusion_removal_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_pal_infusion_removal_SpellScript);
+
+		void HandleExtraEffect()
+		{
+			Unit* caster = GetCaster();
+
+			if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+				return;
+
+			// Holy Light or Divine Light casted
+
+			if (caster->HasAura(53672)) // Infusion of Light rank 1 remove it.
+			{
+				caster->RemoveAura(53672);
+			}
+			if (caster->HasAura(54149)) // Infusion of Light rank 2 remove it.
+			{
+				caster->RemoveAura(54149);
+			}
+		}
+
+		void Register()
+		{
+			AfterCast += SpellCastFn(spell_pal_infusion_removal_SpellScript::HandleExtraEffect);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_pal_infusion_removal_SpellScript();
+	}
+};
+
+class spell_pal_sol_movement_fix : public SpellScriptLoader
+{
+public:
+	spell_pal_sol_movement_fix() : SpellScriptLoader("spell_pal_sol_movement_fix") { }
+
+	class spell_pal_sol_movement_fix_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_pal_sol_movement_fix_SpellScript);
+
+		void HandleExtraEffect()
+		{
+			Unit* caster = GetCaster();
+
+			if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+				return;
+
+			// Holy Radiance casted and has Speed of light talents
+			if (caster->HasAura(85495)) // Speed of Light rank 1
+			{
+				caster->CastCustomSpell(85497, SPELLVALUE_BASE_POINT0, 20, caster, true);
+			}
+			if (caster->HasAura(85498)) // Speed of Light rank 2
+			{
+				caster->CastCustomSpell(85497, SPELLVALUE_BASE_POINT0, 40, caster, true);
+			}
+			if (caster->HasAura(85499)) // Speed of Light rank 3
+			{
+				caster->CastCustomSpell(85497, SPELLVALUE_BASE_POINT0, 60, caster, true);
+			}
+		}
+
+		void Register()
+		{
+			AfterCast += SpellCastFn(spell_pal_sol_movement_fix_SpellScript::HandleExtraEffect);
+		}
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_pal_sol_movement_fix_SpellScript();
+	}
+};
+
 class spell_pal_selfless_healer : public SpellScriptLoader
 {
     public:
@@ -1061,4 +1144,6 @@ void AddSC_paladin_spell_scripts()
     new spell_pal_bless_of_king();
 	new spell_pal_illuminated_healing();
 	new spell_pal_exorcism();
+	new spell_pal_infusion_removal();
+	new spell_pal_sol_movement_fix();
 }

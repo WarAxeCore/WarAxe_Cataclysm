@@ -9016,6 +9016,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+		case 53556: // Enlightened Judgements
+		case 53557:
+		// Proc only from Judgements
+		if (procSpell->Id != 54158 && procSpell->Id != 31804 && procSpell->Id != 20187)
+			return false;
+		break;
         // Soul Leech, Replenishment
         case 30293:
         case 30295:
