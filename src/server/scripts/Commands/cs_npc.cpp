@@ -568,7 +568,15 @@ public:
         std::string curRespawnDelayStr = secsToTimeString(uint64(curRespawnDelay), true);
         std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay(), true);
 
-        handler->PSendSysMessage(LANGUAGE_NPCINFO_CHAR, target->GetCreatureData()->dbGuid, faction, npcflags, Entry, displayid, nativeid);
+		if (target->GetCreatureData()->dbGuid != NULL)
+		{
+			handler->PSendSysMessage(LANGUAGE_NPCINFO_CHAR, target->GetCreatureData()->dbGuid, faction, npcflags, Entry, displayid, nativeid);
+		}
+		else
+		{
+			handler->PSendSysMessage(LANGUAGE_NPCINFO_CHAR, target->GetGUID(), faction, npcflags, Entry, displayid, nativeid);
+			sLog->outError("cs_npc.cpp error HandleNpcInfoCommand - could not find database guid returning with current guid.");
+		}
         handler->PSendSysMessage(LANGUAGE_NPCINFO_LEVEL, target->getLevel());
         handler->PSendSysMessage(LANGUAGE_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
         handler->PSendSysMessage(LANGUAGE_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->getFaction());
