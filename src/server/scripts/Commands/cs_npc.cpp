@@ -568,7 +568,7 @@ public:
         std::string curRespawnDelayStr = secsToTimeString(uint64(curRespawnDelay), true);
         std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay(), true);
 
-		if (target->GetCreatureData()->dbGuid != NULL)
+		if (target->GetCreatureData() && target->GetCreatureData()->dbGuid != NULL)
 		{
 			handler->PSendSysMessage(LANGUAGE_NPCINFO_CHAR, target->GetCreatureData()->dbGuid, faction, npcflags, Entry, displayid, nativeid);
 		}
