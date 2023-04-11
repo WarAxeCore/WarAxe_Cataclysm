@@ -105,5 +105,6 @@ public:
 
 void AddSC_boss_kelris()
 {
-    new boss_kelris();
+	// This boss is scripted with smartscripts in DB.
+    //new boss_kelris();
 }

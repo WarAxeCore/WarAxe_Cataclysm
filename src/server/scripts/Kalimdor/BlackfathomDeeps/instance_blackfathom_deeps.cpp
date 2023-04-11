@@ -95,6 +95,22 @@ public:
             deathTimes = 0;
         }
 
+		void OnCreatureDeath(Creature* creature)
+		{
+			switch (creature->GetEntry())
+			{
+			case NPC_TWILIGHT_LORD_KELRIS:
+				sLog->outError("MADE_1");
+				GameObject* go_door = creature->FindNearestGameObject(21117, 250.0f);
+				if (go_door)
+				{
+					go_door->SetGoState(GO_STATE_ACTIVE);
+					sLog->outError("MADE_2");
+				}
+				break;
+			}
+		}
+
         void OnCreatureCreate(Creature* creature)
         {
             switch (creature->GetEntry())
