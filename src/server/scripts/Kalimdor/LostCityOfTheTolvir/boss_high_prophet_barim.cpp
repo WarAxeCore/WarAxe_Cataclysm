@@ -741,7 +741,7 @@ public:
 
 		void Register()
 		{
-			//OnEffectProc += AuraEffectProcFn(spell_fifty_lashings_AuraScript::OnProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+			OnEffectProc2 += AuraEffectProcFn2(spell_fifty_lashings_AuraScript::OnProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
 		}
 	};
 
@@ -759,5 +759,5 @@ void AddSC_boss_high_prophet_barim()
 	new npc_soul_fragment();
 	new npc_blaze_of_heavens_egg();
 	new spell_soul_fragment_effects();
-	//new spell_fifty_lashings();
+	new spell_fifty_lashings();
 }

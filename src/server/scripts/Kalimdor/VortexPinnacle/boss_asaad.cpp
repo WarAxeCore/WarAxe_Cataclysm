@@ -146,9 +146,12 @@ public:
 					{
 						me->GetRandomPoint(centerPos, 40, pos);
 						Creature * stormtarget = c->SummonCreature(46387, pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ() + 10, TEMPSUMMON_MANUAL_DESPAWN);
-						//stormtarget->SetVisible(false);
-						stormtarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-						stormtarget->SetReactState(REACT_PASSIVE);
+						if (stormtarget)
+						{
+							//stormtarget->SetVisible(false);
+							stormtarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+							stormtarget->SetReactState(REACT_PASSIVE);
+						}
 					}
 				}
 				me->CastSpell(me, SPELL_SUPREMACY_OF_THE_STORM, true);
