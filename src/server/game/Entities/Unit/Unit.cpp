@@ -7005,6 +7005,25 @@ bool Unit::HandleDummyAuraProc(Unit* victim, uint32 damage, AuraEffect* triggere
                 basepoints0 = (int32)GetAttackTime(BASE_ATTACK) * int32(ap * 0.011f + 0.022f * holy) / 1000;
                 break;
             }
+			// Tower of Radiance rank 3 is for some reason listed as "dummy" instead of "trigger spell" like previous ranks
+			if (dummySpell->Id == 85512)
+			{
+				if (!procSpell)
+					return false;
+
+				triggered_spell_id = 88852;
+				// only for spells Flash of Light and Divine Light
+				if (procSpell->Id != 19750 && procSpell->Id != 82326)
+					return false;
+				// and also if target has aura Beacon of Light of this caster
+				if (victim->GetAura(53563, GetGUID()))
+				{
+					target = this;
+					break;
+				}
+
+				return false;
+			}
             // Light's Beacon - Beacon of Light
             if (dummySpell->Id == 53651)
             {
@@ -9016,6 +9035,18 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
     // Custom triggered spells
     switch (auraSpellInfo->Id)
     {
+		// Tower of Radiance proc spell
+		case 88852:
+		{
+		// only for spells Flash of Light and Divine Light
+		if (procSpell->Id != 19750 && procSpell->Id != 82326)
+			return false;
+		// and also if target has aura Beacon of Light of this caster
+		if (victim->GetAura(53563, GetGUID()))
+			break;
+
+		return false;
+		}
 		case 53556: // Enlightened Judgements
 		case 53557:
 		// Proc only from Judgements
