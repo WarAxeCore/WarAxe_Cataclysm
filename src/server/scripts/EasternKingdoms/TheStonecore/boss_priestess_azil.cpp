@@ -1,128 +1,136 @@
+/*
+* Copyright (C) 2013-2015 DeathCore <http://www.noffearrdeathproject.net/>
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+*/
 
-#include "ScriptPCH.h"
+/*
+* TODO: grip and seismic shard part is unfinished...
+*/
 #include "the_stonecore.h"
+#include "ScriptPCH.h"
+#include "MoveSplineInit.h"
+#include "Vehicle.h"
+#include "ScriptedCreature.h"
 
 enum Spells
 {
 	SPELL_CURSE_OF_BLOOD = 79345,
-	SPELL_CURSE_OF_BLOOD_H = 92663,
-	SPELL_ARCANE_SHIELD = 79050,
-	SPELL_ARCANE_SHIELD_H = 92667,
+	SPELL_FORCE_GRIP = 79351,
+	SPELL_FORCE_GRIP_DOWN = 79359,
+	SPELL_FORCE_GRIP_UP = 79358,
 	SPELL_SUMMON_GRAVITY_WELL = 79340,
-	SPELL_GRAVITY_WELL_AURA_0 = 79245,
-	SPELL_GRAVITY_WELL_AURA_1 = 79244,
-	SPELL_GRAVITY_WELL_AURA_1_T = 79251,
-	SPELL_GRAVITY_WELL_AURA_MOD = 92475,
-	SPELL_GRAVITY_WELL_AURA_DMG = 79249,
+	SPELL_SEISMIC_SHARD = 79002, // visual
+	SPELL_SEISMIC_SHARD_CHARGE = 79014, // damage + leap
+	SPELL_SEISMIC_SHARD_PULL = 86862, // pulls the shard -> makes it enter vehicle
+	SPELL_SEISMIC_SHARD_TAR = 80511, // target visual
+	SPELL_SEISMIC_SHARD_THROW = 79015, // throw visual
+	SPELL_SEISMIC_SHARD_SUMM_1 = 86856, // summons shards
+	SPELL_SEISMIC_SHARD_SUMM_2 = 86858,
+	SPELL_SEISMIC_SHARD_SUMM_3 = 86860,
+	SPELL_SEISMIC_SHARD_VISUAL = 79009,
+	SPELL_ENERGY_SHIELD = 82858,
+
+	SPELL_GRAVITY_WELL_VIS_1 = 79245, // after 8 sec - removed
+	SPELL_GRAVITY_WELL_PERIODIC = 79244,
+	SPELL_GRAVITY_WELL_SCRIPT = 79251,
+	SPELL_GRAVITY_WELL_DMG = 79249,
+	SPELL_GRAVITY_WELL_PULL = 79333,
+	SPELL_GRAVITY_WELL_SCALE = 92475, // hc only
+
+	SPELL_RIDE_VEHICLE = 46598,
 };
 
 enum Events
 {
 	EVENT_CURSE_OF_BLOOD = 1,
-	EVENT_SHIELD = 2,
-	EVENT_GRAVITY_WELL = 3,
-	EVENT_GRAVITY_WELL_1 = 4,
-	EVENT_SUMMON_ADDS = 5,
-	EVENT_MOVE = 6,
-	EVENT_MOVE_2 = 7,
-	EVENT_ROTTEN_TO_THE_CORE = 8,
+	EVENT_FORCE_GRIP = 2,
+	EVENT_SEISMIC_SHARD = 3,
+	EVENT_SEISMIC_SHARD_THROW = 4,
+	EVENT_SHIELD_PHASE_END = 5,
+	EVENT_GRAVITY_WELL = 6,
+	EVENT_ENERGY_SHIELD = 7,
+	EVENT_ENERGY_SHIELD_END = 8,
+	EVENT_ADDS_SUMMON = 9,
 };
 
-enum Adds
+enum Phases
 {
-	NPC_ADVOUT_FOLLOWER = 42428,
-	NPC_GRAVITY_WELL = 42499,
+	PHASE_NORMAL = 1,
+	PHASE_SHIELD = 2
 };
 
-Position highpriestessazilAddsPos[2] =
+enum Misc
 {
-	{1263.20f, 966.03f, 205.81f, 0.0f},
-	{1278.51f, 1021.72f, 209.08f, 0.0f}
+	VEHICLE_GRIP = 892,
+	VEHICLE_NORMAL = 903,
+	POINT_FLY = 1,
+	POINT_PLATFORM = 2,
 };
 
-Position highpriestessazilStandPos = { 1337.79f, 963.39f, 214.18f, 1.8f };
-uint32 DiscipleAmt;
-bool RottenToTheCore;
+static const Position summonPos[2] =
+{
+	{ 1271.93f, 1042.73f, 210.0f, 0.0f }, // W
+	{ 1250.99f, 949.48f, 205.5f, 0.0f }   // E
+};
 
 class boss_priestess_azil : public CreatureScript
 {
 public:
-	boss_priestess_azil() : CreatureScript("boss_priestess_azil") { }
-
-	CreatureAI* GetAI(Creature* pCreature) const
-	{
-		return new boss_priestess_azilAI(pCreature);
-	}
+	boss_priestess_azil() : CreatureScript("boss_priestess_azil") {}
 
 	struct boss_priestess_azilAI : public BossAI
 	{
-		boss_priestess_azilAI(Creature* pCreature) : BossAI(pCreature, DATA_HIGH_PRIESTESS_AZIL), summons(me)
+		boss_priestess_azilAI(Creature * creature) : BossAI(creature, DATA_HIGH_PRIESTESS_AZIL), vehicle(creature->GetVehicleKit())
 		{
-			me->ApplySpellImmune(0, IMMUNITY_EFFECT, SPELL_EFFECT_KNOCK_BACK, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_GRIP, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_STUN, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FEAR, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_ROOT, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_FREEZE, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_POLYMORPH, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_HORROR, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_SAPPED, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_CHARM, true);
-			me->ApplySpellImmune(0, IMMUNITY_MECHANIC, MECHANIC_DISORIENTED, true);
-			me->ApplySpellImmune(0, IMMUNITY_STATE, SPELL_AURA_MOD_CONFUSE, true);
+			ASSERT(vehicle);
 		}
-
-		EventMap events;
-		SummonList summons;
-
-		/*void InitializeAI()
-		{
-			if (!instance || static_cast<InstanceMap*>(me->GetMap())->GetScriptId() != sObjectMgr->GetScriptId(TSScriptName))
-				me->IsAIEnabled = false;
-			else if (!me->isDead())
-				Reset();
-		}*/
 
 		void Reset()
 		{
+			seismicShards = 0;
+			me->SetReactState(REACT_AGGRESSIVE);
+			me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
 			_Reset();
-
-			DiscipleAmt = 0;
-			RottenToTheCore = false;
-			summons.DespawnAll();
-			events.Reset();
 		}
 
-		void JustSummoned(Creature* summon)
-		{
-			summons.Summon(summon);
-			switch (summon->GetEntry())
-			{
-			case NPC_ADVOUT_FOLLOWER:
-				if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
-				{
-					summon->AddThreat(target, 10.0f);
-					summon->Attack(target, true);
-					summon->GetMotionMaster()->MoveChase(target);
-				}
-				break;
-			}
-		}
-
-		void SummonedCreatureDespawn(Creature* summon)
-		{
-			summons.Despawn(summon);
-		}
-
-		void EnterCombat(Unit* who)
+		void EnterCombat(Unit * /*victim*/)
 		{
 			me->BossYell("The world will be reborn in flames!", 21634);
-			events.ScheduleEvent(EVENT_SHIELD, 45000);
+			me->GetMotionMaster()->MoveJump(1332.59f, 983.41f, 207.62f, 10.0f, 10.0f);
+			events.SetPhase(PHASE_NORMAL);
+			events.ScheduleEvent(EVENT_FORCE_GRIP, 10000);
+			events.ScheduleEvent(EVENT_ENERGY_SHIELD, 45000);
 			events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, urand(5000, 8000));
-			events.ScheduleEvent(EVENT_SUMMON_ADDS, urand(10000, 15000));
-			events.ScheduleEvent(EVENT_GRAVITY_WELL, 10000);
-			events.ScheduleEvent(EVENT_ROTTEN_TO_THE_CORE, 10000); // Achievement Check
-			instance->SetBossState(DATA_HIGH_PRIESTESS_AZIL, IN_PROGRESS);
+			events.ScheduleEvent(EVENT_GRAVITY_WELL, urand(3000, 5000));
+			events.ScheduleEvent(EVENT_ADDS_SUMMON, urand(10000, 15000));
+			_EnterCombat();
+		}
+
+		void SpellHit(Unit * /*caster*/, const SpellInfo *spell)
+		{
+			Spell * curSpell = me->GetCurrentSpell(CURRENT_GENERIC_SPELL);
+			if (curSpell && curSpell->m_spellInfo->Id == SPELL_FORCE_GRIP)
+				for (uint8 i = 0; i < 3; ++i)
+					if (spell->Effects[i].Effect == SPELL_EFFECT_INTERRUPT_CAST)
+						me->InterruptSpell(CURRENT_GENERIC_SPELL, false);
+		}
+
+		void JustSummoned(Creature * summon)
+		{
+			BossAI::JustSummoned(summon);
 		}
 
 		void KilledUnit(Unit * victim)
@@ -131,41 +139,39 @@ public:
 				me->BossYell("A sacrifice for you, master.", 21635);
 		}
 
-		void JustDied(Unit* killer)
+		void JustDied(Unit * /*killer*/)
 		{
-			_JustDied();
-			summons.DespawnAll();
 			me->BossYell("For my death, countless more will fall. The burden is now yours to bear.", 21633);
-
-			if (RottenToTheCore == true && IsHeroic())
-			{
-				AchievementEntry const* RottenToThecore = sAchievementStore.LookupEntry(5287);
-				Map::PlayerList const& players = me->GetMap()->GetPlayers();
-				if (!players.isEmpty())
-				{
-					for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
-					{
-						if (Player* player = itr->getSource())
-								player->CompletedAchievement(RottenToThecore);
-					}
-				}
-			}
+			_JustDied();
 		}
 
 		void MovementInform(uint32 type, uint32 id)
 		{
-			if (type == POINT_MOTION_TYPE)
+			switch (id)
 			{
-				switch (id)
+			case POINT_PLATFORM:
+				events.ScheduleEvent(EVENT_SHIELD_PHASE_END, 30000);
+				Movement::MoveSplineInit init(*me);
+				init.SetFacing(me->GetHomePosition().GetOrientation());
+				DoCast(SPELL_SEISMIC_SHARD);
+				events.ScheduleEvent(EVENT_SEISMIC_SHARD, 4000);
+				if (vehicle)
 				{
-				case 1:
-					events.ScheduleEvent(EVENT_MOVE_2, 20000);
-					break;
+					first = true;
+					vehicle->InstallAccessory(NPC_SEISMIC_SHARD, 0, true, TEMPSUMMON_DEAD_DESPAWN, 0);
+					vehicle->InstallAccessory(NPC_SEISMIC_SHARD, 1, true, TEMPSUMMON_DEAD_DESPAWN, 0);
 				}
+				break;
 			}
 		}
 
-		void UpdateAI(const uint32 diff)
+		void OnInstallAccessory(Vehicle* veh, Creature* accessory)
+		{
+			accessory->CastSpell(accessory, SPELL_SEISMIC_SHARD_VISUAL);
+			accessory->setActive(true);
+		}
+
+		void UpdateAI(uint32 const diff)
 		{
 			if (!UpdateVictim())
 				return;
@@ -175,179 +181,197 @@ public:
 			if (me->HasUnitState(UNIT_STATE_CASTING))
 				return;
 
-			while (uint32 eventId = events.ExecuteEvent())
+			if (uint32 eventId = events.ExecuteEvent())
 			{
 				switch (eventId)
 				{
-				case EVENT_SUMMON_ADDS:
-					for (uint8 i = 0; i < 3; i++)
-						me->SummonCreature(NPC_ADVOUT_FOLLOWER, highpriestessazilAddsPos[urand(0, 1)]);
-					events.ScheduleEvent(EVENT_SUMMON_ADDS, urand(5000, 7000));
-					break;
 				case EVENT_CURSE_OF_BLOOD:
-					DoCast(DUNGEON_MODE(SPELL_CURSE_OF_BLOOD, SPELL_CURSE_OF_BLOOD_H));
-					events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, 15000);
+					DoCastVictim(SPELL_CURSE_OF_BLOOD);
+					events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, urand(8000, 10000), 0, PHASE_NORMAL);
+					break;
+				case EVENT_FORCE_GRIP:
+					vehicle->SetVehicleId(VEHICLE_GRIP);
+					DoCastVictim(SPELL_FORCE_GRIP);
+					events.ScheduleEvent(EVENT_FORCE_GRIP, urand(15000, 20000), 0, PHASE_NORMAL);
 					break;
 				case EVENT_GRAVITY_WELL:
-					if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
-						DoCast(target, SPELL_SUMMON_GRAVITY_WELL);
-					events.ScheduleEvent(EVENT_GRAVITY_WELL, urand(15000, 20000));
+					DoCastRandom(SPELL_SUMMON_GRAVITY_WELL, 100.0f);
+					events.ScheduleEvent(EVENT_GRAVITY_WELL, urand(15000, 20000), 0, PHASE_NORMAL);
 					break;
-				case EVENT_SHIELD:
+				case EVENT_SEISMIC_SHARD:
+					if (Unit * target = SelectTarget(SELECT_TARGET_RANDOM, 0, 0.0f, true))
+					{
+						target->GetPosition(&shardPos);
+						DoCast(SPELL_SEISMIC_SHARD_PULL);
+						me->CastSpell(shardPos.GetPositionX(), shardPos.GetPositionY(), shardPos.GetPositionZ(), SPELL_SEISMIC_SHARD_TAR, false);
+						DoCast(SPELL_SEISMIC_SHARD_THROW);
+						events.ScheduleEvent(EVENT_SEISMIC_SHARD_THROW, 3000);
+					}
+					if (seismicShards < 2)
+					{
+						++seismicShards;
+						events.ScheduleEvent(EVENT_SEISMIC_SHARD, 7000);
+					}
+					break;
+				case EVENT_SEISMIC_SHARD_THROW:
+					if (Unit* passenger = vehicle->GetPassenger((first ? 0 : 1)))
+					{
+						if (passenger)
+						{
+							passenger->ExitVehicle();
+							passenger->CastSpell(shardPos.GetPositionX(), shardPos.GetPositionY(), shardPos.GetPositionZ(), SPELL_SEISMIC_SHARD_CHARGE, false);
+							passenger->ToCreature()->DespawnOrUnsummon(3000);
+							first = false;
+						}
+					}
+					break;
+				case EVENT_ENERGY_SHIELD:
 					me->BossYell("Witness the power bestowed upon me by Deathwing! Feel the fury of earth!", 21628);
-					SetCombatMovement(false);
-					events.CancelEvent(EVENT_CURSE_OF_BLOOD);
-					DoCast(me, DUNGEON_MODE(SPELL_ARCANE_SHIELD, SPELL_ARCANE_SHIELD_H));
-					events.ScheduleEvent(EVENT_MOVE, 2000);
+					me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+					me->GetMotionMaster()->Clear();
+					me->GetMotionMaster()->MoveIdle();
+					vehicle->SetVehicleId(VEHICLE_NORMAL);
+					me->SetReactState(REACT_PASSIVE);
+					me->SetUInt64Value(UNIT_FIELD_TARGET, 0);
+					events.SetPhase(PHASE_SHIELD);
+					DoCast(SPELL_ENERGY_SHIELD);
+					seismicShards = 0;
+					events.ScheduleEvent(EVENT_ENERGY_SHIELD_END, 2000);
 					break;
-				case EVENT_MOVE:
-					me->GetMotionMaster()->MovePoint(1, highpriestessazilStandPos);
+				case EVENT_ENERGY_SHIELD_END: // fly up
+					me->GetMotionMaster()->MoveJump(1337.79f, 963.399f, 214.183f, 30.0f, 30.0f, POINT_PLATFORM);
 					break;
-				case EVENT_MOVE_2:
-					me->RemoveAurasDueToSpell(DUNGEON_MODE(SPELL_ARCANE_SHIELD, SPELL_ARCANE_SHIELD_H));
-					SetCombatMovement(true);
-					if (me->getVictim())
-						me->GetMotionMaster()->MoveChase(me->getVictim());
-					events.ScheduleEvent(EVENT_CURSE_OF_BLOOD, 3000);
-					events.ScheduleEvent(EVENT_SHIELD, urand(40000, 45000));
-					break;
-				case EVENT_ROTTEN_TO_THE_CORE:
-					if (DiscipleAmt >= 60) // Check if players killed 60 or more disciples and grant achievement
+				case EVENT_SHIELD_PHASE_END:
+					me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE);
+					me->RemoveAurasDueToSpell(SPELL_SEISMIC_SHARD);
+					me->RemoveAurasDueToSpell(SPELL_ENERGY_SHIELD);
+					if (Unit * victim = me->getVictim())
 					{
-						RottenToTheCore = true;
+						me->SetReactState(REACT_AGGRESSIVE);
+						DoStartMovement(victim);
 					}
-					else // Players didn't make it so reset the counter
+					events.SetPhase(PHASE_NORMAL);
+					events.RescheduleEvent(EVENT_CURSE_OF_BLOOD, urand(8000, 10000), 0, PHASE_NORMAL);
+					events.RescheduleEvent(EVENT_GRAVITY_WELL, urand(15000, 20000), 0, PHASE_NORMAL);
+					events.RescheduleEvent(EVENT_FORCE_GRIP, urand(10000, 12000), 0, PHASE_NORMAL);
+					events.ScheduleEvent(EVENT_ENERGY_SHIELD, urand(40000, 45000), 0, PHASE_NORMAL);
+					break;
+				case EVENT_ADDS_SUMMON:
+				{
+					if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM))
 					{
-						DiscipleAmt = 0;
+						uint8 amount = 3;
+						uint8 pos = urand(0, 1);
+						if (events.IsInPhase(PHASE_SHIELD))
+							amount = urand(8, 10);
+						for (int i = 0; i < amount; ++i)
+						{
+							Position tarPos;
+							me->GetRandomPoint(summonPos[pos], 5.0f, tarPos);
+							if (Creature * summon = me->SummonCreature(NPC_FOLLOWER, tarPos, TEMPSUMMON_DEAD_DESPAWN, 1000))
+							{
+								summon->AI()->AttackStart(target);
+								summon->AI()->DoZoneInCombat();
+							}
+						}
 					}
-					if (RottenToTheCore == false)
-						events.ScheduleEvent(EVENT_ROTTEN_TO_THE_CORE, 10000); // Check every 10 seconds
+					events.ScheduleEvent(EVENT_ADDS_SUMMON, urand(10000, 12000));
+				}
+				break;
+				default:
 					break;
 				}
 			}
 
 			DoMeleeAttackIfReady();
 		}
+	private:
+		bool first;
+		Vehicle* vehicle;
+		uint8 seismicShards;
+		Position shardPos;
 	};
+
+	CreatureAI * GetAI(Creature * creature) const
+	{
+		return new boss_priestess_azilAI(creature);
+	}
 };
 
-class npc_disciple_boss : public CreatureScript
+class npc_gravity_well_azil : public CreatureScript
 {
 public:
-	npc_disciple_boss() : CreatureScript("npc_disciple_boss") { }
+	npc_gravity_well_azil() : CreatureScript("npc_gravity_well_azil") {}
 
-	CreatureAI* GetAI(Creature* pCreature) const
+	struct npc_gravity_well_azilAI : public ScriptedAI
 	{
-		return new npc_disciple_bossAI(pCreature);
-	}
-
-	struct npc_disciple_bossAI : public ScriptedAI
-	{
-		npc_disciple_bossAI(Creature *c) : ScriptedAI(c)
-		{
-		}
-
-		void JustDied(Unit* /*Kill*/)
-		{
-			Creature *azil = me->FindNearestCreature(BOSS_HIGH_PRIESTESS_AZIL, 200.0f);
-			if (azil)
-			{
-				if (azil->isInCombat())
-				{
-					++DiscipleAmt; // Add to the amount
-				}
-			}
-		}
-
-	};
-};
-
-class npc_gravity_well : public CreatureScript
-{
-public:
-	npc_gravity_well() : CreatureScript("npc_gravity_well") { }
-
-	CreatureAI* GetAI(Creature* pCreature) const
-	{
-		return new npc_gravity_wellAI(pCreature);
-	}
-
-	struct npc_gravity_wellAI : public ScriptedAI
-	{
-		npc_gravity_wellAI(Creature *c) : ScriptedAI(c)
-		{
-		}
-
-		EventMap events;
-		uint32 uidespawnTimer;
+		npc_gravity_well_azilAI(Creature * creature) : ScriptedAI(creature) {}
 
 		void Reset()
 		{
-			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-			me->SetReactState(REACT_PASSIVE);
-			uidespawnTimer = 20000;
-			events.ScheduleEvent(EVENT_GRAVITY_WELL_1, 3000);
-			DoCast(me, SPELL_GRAVITY_WELL_AURA_0);
+			DoCast(SPELL_GRAVITY_WELL_VIS_1);
+			active = false;
+			activeTimer = 8000;
+			if (!IsHeroic())
+				me->DespawnOrUnsummon(20000);
+			killCount = 0;
 		}
 
-		void UpdateAI(const uint32 diff)
+		void SpellHitTarget(Unit * target, const SpellInfo * spell)
 		{
-			if (uidespawnTimer <= diff)
-				me->DespawnOrUnsummon();
-			else
-				uidespawnTimer -= diff;
-
-			events.Update(diff);
-
-			while (uint32 eventId = events.ExecuteEvent())
+			if (target->isAlive() && spell->Id == SPELL_GRAVITY_WELL_SCRIPT)
 			{
-				switch (eventId)
+				int bp = IsHeroic() ? 20000 : 10000; // evtl needs to be increased / lowered
+				uint32 distFkt = uint32(me->GetDistance(target)) * 5;
+				bp -= (bp * distFkt) / 100;
+
+				me->CastCustomSpell(target, SPELL_GRAVITY_WELL_DMG, &bp, NULL, NULL, true);
+			}
+		}
+
+		void KilledUnit(Unit * victim)
+		{
+			if (IsHeroic() && victim->GetEntry() == NPC_FOLLOWER)
+			{
+				if (killCount == 3)
+					me->DespawnOrUnsummon();
+				else
 				{
-				case EVENT_GRAVITY_WELL_1:
-					me->RemoveAurasDueToSpell(SPELL_GRAVITY_WELL_AURA_0);
-					DoCast(me, SPELL_GRAVITY_WELL_AURA_1);
-					break;
+					DoCast(me, SPELL_GRAVITY_WELL_SCALE, true);
+					++killCount;
 				}
 			}
 		}
-	};
-};
 
-class spell_priestess_azil_gravity_well_script : public SpellScriptLoader
-{
-public:
-	spell_priestess_azil_gravity_well_script() : SpellScriptLoader("spell_priestess_azil_gravity_well_script") { }
-
-
-	class spell_priestess_azil_gravity_well_script_SpellScript : public SpellScript
-	{
-		PrepareSpellScript(spell_priestess_azil_gravity_well_script_SpellScript);
-
-
-		void HandleScript(SpellEffIndex /*effIndex*/)
+		void UpdateAI(uint32 const diff)
 		{
-			if (GetCaster() && GetHitUnit())
+			if (!active)
 			{
-				GetCaster()->CastSpell(GetHitUnit(), SPELL_GRAVITY_WELL_AURA_DMG, true);
+				if (activeTimer <= diff)
+				{
+					active = true;
+					me->RemoveAurasDueToSpell(SPELL_GRAVITY_WELL_VIS_1);
+					DoCast(me, SPELL_GRAVITY_WELL_PERIODIC, true);
+					DoCast(me, SPELL_GRAVITY_WELL_PULL, true);
+				}
+				else activeTimer -= diff;
 			}
 		}
 
-		void Register()
-		{
-			OnEffectHitTarget += SpellEffectFn(spell_priestess_azil_gravity_well_script_SpellScript::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-		}
+	private:
+		bool active;
+		uint32 activeTimer;
+		uint8 killCount;
 	};
 
-	SpellScript* GetSpellScript() const
+	CreatureAI * GetAI(Creature * creature) const
 	{
-		return new spell_priestess_azil_gravity_well_script_SpellScript();
+		return new npc_gravity_well_azilAI(creature);
 	}
 };
 
 void AddSC_boss_priestess_azil()
 {
 	new boss_priestess_azil();
-	new npc_disciple_boss();
-	new npc_gravity_well();
-	new spell_priestess_azil_gravity_well_script();
+	new npc_gravity_well_azil();
 }

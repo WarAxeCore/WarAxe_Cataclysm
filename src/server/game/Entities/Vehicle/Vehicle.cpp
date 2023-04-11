@@ -109,6 +109,30 @@ void Vehicle::InstallAllAccessories(bool evading)
             InstallAccessory(itr->AccessoryEntry, itr->SeatId, itr->IsMinion, itr->SummonedType, itr->SummonTime);
 }
 
+void Vehicle::SetVehicleId(uint32 id)
+{
+	if (_vehicleInfo && id == _vehicleInfo->m_ID)
+		return;
+
+	VehicleEntry const *ve = sVehicleStore.LookupEntry(id);
+
+	if (!ve)
+		return;
+
+	_vehicleInfo = ve;
+
+	RemoveAllPassengers();
+	Seats.clear();
+
+	for (uint32 i = 0; i < 8; ++i)
+	{
+		uint32 seatId = _vehicleInfo->m_seatID[i];
+		if (seatId)
+			if (VehicleSeatEntry const *veSeat = sVehicleSeatStore.LookupEntry(seatId))
+				Seats.insert(std::make_pair(i, VehicleSeat(veSeat)));
+	}
+}
+
 void Vehicle::Uninstall()
 {
     sLog->outDebug(LOG_FILTER_VEHICLES, "Vehicle::Uninstall Entry: %u, GuidLow: %u", _creatureEntry, _me->GetGUIDLow());
