@@ -1,4 +1,4 @@
-# ![logo](http://www.projectskyfire.org/public/style_images/15_14_skyfire_logo.png)
+# ![logo](https://ibb.co/vYPMBHN)
 
 
 ## Introduction
