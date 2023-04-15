@@ -3,11 +3,11 @@
 
 ## Introduction
 
-SkyFire is a *MMORPG* Framework based mostly in C++.
+WarAxeCore is a *MMORPG* Framework based mostly in C++
 
-SkyFireEMU is a MMORPG Framework based mostly on C++. It is completely 
+WarAxeCore is a MMORPG Framework based mostly on C++. It is completely 
 open source, and is community supported. It is derived
-from CactusEmu, TrinityCore, and MaNGOS, the Massive Network Game Object Servers, 
+from Skyfire, CactusEmu, TrinityCore, and MaNGOS, the Massive Network Game Object Servers, 
 and is based on the code of there projects with extensive changes over time to optimize, 
 improve and cleanup the codebase at the same time as improving the ingame mechanics
 and functionality.
@@ -25,7 +25,7 @@ For further information on the SkyFire project, please visit our project website
 **Cataclysm (4.0.6a - 13623)**
 
 ## Client Patch
-[SkyFire-Community-Tools](https://github.com/ProjectSkyfire/SkyFire-Community-Tools).
+unavaliable at this time.
 
 ## Install
 
