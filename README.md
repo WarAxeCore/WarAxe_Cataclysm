@@ -1,4 +1,3 @@
-[![Stories in Ready](https://badge.waffle.io/ProjectSkyfire/SkyFire.548.png?label=ready&title=Ready)](https://waffle.io/ProjectSkyfire/SkyFire.548)
 # ![logo](http://www.projectskyfire.org/public/style_images/15_14_skyfire_logo.png)
 
 
@@ -23,23 +22,10 @@ For further information on the SkyFire project, please visit our project website
 [projectskyfire.org](http://www.projectskyfire.org).
 
 ## Supported Client Version
-**MoP 4.0.6a Build 13623**
+**Cataclysm (4.0.6a - 13623)**
 
 ## Client Patch
 [SkyFire-Community-Tools](https://github.com/ProjectSkyfire/SkyFire-Community-Tools).
-
-## Build Status
-# [![Build Status](https://travis-ci.org/ProjectSkyfire/SkyFire.406a.png)](https://travis-ci.org/ProjectSkyfire/SkyFire.406a)
-
-## Requirements
-+ Platform: Linux, Windows or Mac
-+ Processor with SSE2 support
-+ ACE     = 6.1.4 (included for Windows)
-+ MySQL   = 5.6.36 (Windows / Linux)
-+ CMake   = 3.8.1 / 2.8.9 (Windows / Linux)
-+ OpenSSL = 1.0.2L
-+ GCC     = 4.7.2 (Linux only)
-+ MS Visual Studio = 15 (2017) (Windows only)
 
 ## Install
 
@@ -51,7 +37,7 @@ Detailed installation guides are available in the wiki for
 
 ## Reporting issues
 
-Issues can be reported via the [Github issue tracker](https://github.com/ProjectSkyfire/SkyFireEMU/issues).
+Issues can be reported via the [Github issue tracker](https://github.com/Razfury/WarAxeCore/issues).
 
 Please take the time to review existing issues before submitting your own to
 prevent duplicates.
@@ -70,12 +56,3 @@ Read file [COPYING](COPYING.md)
 ## Authors &amp; Contributors
 
 Read file [THANKS](https://github.com/ProjectSkyfire/SkyFireEMU/tree/master/doc/THANKS.md)
-
-
-## Links
-
-Forum [http://www.projectskyfire.org](http://www.projectskyfire.org)
-
-Database [http://www.projectskyfire.org/index.php?/files/] (http://www.projectskyfire.org/index.php?/files/)
-
-Wiki [http://wiki.projectskyfire.org](http://wiki.projectskyfire.org)
