@@ -7666,12 +7666,11 @@ void Player::ModifyCurrency(uint32 id, int32 count)
         itr->second.weekCount = newWeekCount;
 
         // probably excessive checks
-       // if (IsInWorld() && !GetSession()->PlayerLoading())
-        //{
+        if (IsInWorld() && !GetSession()->PlayerLoading())
+        {
 			if (count > 0)
 			{
 				UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CURRENCY, id, count);
-				_SaveCurrency();
 			}
 
             WorldPacket packet(SMSG_UPDATE_CURRENCY, 12);
@@ -7679,7 +7678,7 @@ void Player::ModifyCurrency(uint32 id, int32 count)
             packet << uint32(weekCap ? (newWeekCount / PLAYER_CURRENCY_PRECISION) : 0);
             packet << uint32(newTotalCount / PLAYER_CURRENCY_PRECISION);
             GetSession()->SendPacket(&packet);
-        //}
+        }
     }
 }
 

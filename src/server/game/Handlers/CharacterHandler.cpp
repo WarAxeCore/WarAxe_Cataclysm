@@ -193,6 +193,10 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt32(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_RANDOM_BG, stmt);
 
+	stmt = CharacterDatabase.GetPreparedStatement(CHARACTER_SELECT_CHARACTER_CURRENCY);
+	stmt->setUInt64(0, lowGuid);
+	res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_CURRENCY, stmt);
+
     stmt = CharacterDatabase.GetPreparedStatement(CHARACTER_SELECT_CHARACTER_BANNED);
     stmt->setUInt32(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_BANNED, stmt);
@@ -1003,28 +1007,6 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
             sLFGMgr->SetState(pCurrChar->GetGUID(), sLFGMgr->GetState(group->GetGUID()));
         }
     }
-
-	//Set Currencies that dissapear at logout for some reason
-	if (pCurrChar)
-	{
-		QueryResult result = CharacterDatabase.PQuery("SELECT currency, count, thisweek FROM character_currency WHERE guid = '%u'", GetGuidLow());
-
-		if (result)
-		{
-			do
-			{
-				Field* fields = result->Fetch();
-
-				uint32 currencyId = fields[0].GetUInt32();
-				uint32 currentjPoints = fields[1].GetUInt32();
-
-				if (currencyId == 395) // Justice Points
-				{
-					pCurrChar->ModifyCurrency(395, currentjPoints);
-				}
-			} while (result->NextRow());
-		}
-	}
 
     if (!pCurrChar->GetMap()->AddPlayerToMap(pCurrChar) || !pCurrChar->CheckInstanceLoginValid())
     {
