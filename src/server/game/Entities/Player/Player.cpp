@@ -2690,8 +2690,6 @@ void Player::RegenerateHealth()
     uint32 curValue = GetHealth();
     uint32 maxValue = GetMaxHealth();
 
-	sLFGMgr->InitializeLockedDungeons(this); // This needs added somewhere else but this updates RDF item level.
-
     if (curValue >= maxValue)
         return;
 
@@ -13144,6 +13142,10 @@ Item* Player::EquipNewItem(uint16 pos, uint32 item, bool update)
     {
         ItemAddedQuestCheck(item, 1);
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_RECEIVE_EPIC_ITEM, item, 1);
+
+		// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+		sLFGMgr->InitializeLockedDungeons(this);
+
         return EquipItem(pos, pItem, update);
     }
 
@@ -13205,6 +13207,9 @@ Item* Player::EquipItem(uint16 pos, Item *pItem, bool update)
 
         ApplyEquipCooldown(pItem);
 
+		// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+		sLFGMgr->InitializeLockedDungeons(this);
+
          // update expertise and armor penetration - passive auras may need it
 
         if (slot == EQUIPMENT_SLOT_MAINHAND)
@@ -13249,6 +13254,9 @@ Item* Player::EquipItem(uint16 pos, Item *pItem, bool update)
 
         ApplyEquipCooldown(pItem2);
 
+		// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+		sLFGMgr->InitializeLockedDungeons(this);
+
         return pItem2;
     }
 
@@ -13274,6 +13282,9 @@ void Player::QuickEquipItem(uint16 pos, Item *pItem)
             pItem->AddToWorld();
             pItem->SendUpdateToPlayer(this);
         }
+
+		// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+		sLFGMgr->InitializeLockedDungeons(this);
 
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_ITEM, pItem->GetEntry());
         UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EQUIP_EPIC_ITEM, pItem->GetEntry(), slot);
@@ -13948,6 +13959,9 @@ void Player::SwapItem(uint16 src, uint16 dst)
     }
 
     // SRC checks
+
+	// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+	sLFGMgr->InitializeLockedDungeons(this);
 
     if (pSrcItem->_lootGenerated)                           // prevent swap looting item
     {
