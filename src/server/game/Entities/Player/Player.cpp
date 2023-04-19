@@ -3171,8 +3171,8 @@ void Player::GiveLevel(uint8 level)
 
     UpdateAllStats();
 
-    if (sWorld->getBoolConfig(CONFIG_ALWAYS_MAXSKILL)) // Max weapon skill when leveling up
-        UpdateSkillsToMaxSkillsForLevel();
+	//As of Cataclysm weapon skills have been removed, so just max level them.
+    UpdateSkillsToMaxSkillsForLevel();
 
 	sLFGMgr->InitializeLockedDungeons(this); // Re-do locked dungeons after a level-up
 
