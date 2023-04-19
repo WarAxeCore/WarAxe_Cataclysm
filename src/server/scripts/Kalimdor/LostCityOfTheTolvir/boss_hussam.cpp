@@ -117,11 +117,18 @@ public:
 		void JustSummoned(Creature* summon)
 		{
 			summons.Summon(summon);
+
+			//All summoned creature should be invisible+unattackable
+			if (summon)
+			{
+				summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED | UNIT_FLAG_DISABLE_MOVE);
+				summon->SetReactState(REACT_PASSIVE);
+				summon->SetDisplayId(11686);
+			}
+
 			switch (summon->GetEntry())
 			{
 			case NPC_LAND_MINE_TARGET:
-				summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_PACIFIED | UNIT_FLAG_DISABLE_MOVE);
-				summon->SetReactState(REACT_PASSIVE);
 				DoCast(summon, SPELL_MYSTIC_TRAP_PLANT);
 				break;
 			default:
@@ -463,6 +470,7 @@ public:
 		{
 			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 			me->SetReactState(REACT_PASSIVE);
+			me->SetDisplayId(11686);
 		}
 	};
 };
