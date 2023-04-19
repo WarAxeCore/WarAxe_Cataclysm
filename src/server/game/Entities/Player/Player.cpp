@@ -13391,6 +13391,9 @@ void Player::RemoveItem(uint8 bag, uint8 slot, bool update)
                         default:
                             break;
                     }
+
+					// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+					sLFGMgr->InitializeLockedDungeons(this);
                 }
             }
 
