@@ -10801,7 +10801,7 @@ void Unit::ApplyGatheringExp()
 	{
 		ToPlayer()->GiveXP(100 * ToPlayer()->getLevel() - 6600, this);
 	}
-	if (ToPlayer()->getLevel() >= 80 && ToPlayer()->getLevel() <= 85) // Formula: XP gain 750 * lvl - 58250
+	if (ToPlayer()->getLevel() >= 80 && ToPlayer()->getLevel() <= 84) // Formula: XP gain 750 * lvl - 58250
 	{
 		ToPlayer()->GiveXP(750 * ToPlayer()->getLevel() - 58250, this);
 	}
