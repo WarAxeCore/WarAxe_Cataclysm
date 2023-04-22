@@ -10780,6 +10780,33 @@ void Unit::AddPlayerToVision(Player* player)
     m_sharedVision.push_back(player);
 }
 
+void Unit::ApplyGatheringExp()
+{
+	if (GetTypeId() != TYPEID_PLAYER)
+		return;
+
+	if (ToPlayer()->getLevel() <= 49) // Formula: XP gain = 12.76 * lvl
+	{
+		ToPlayer()->GiveXP(12.76 * ToPlayer()->getLevel(), this);
+	}
+	if (ToPlayer()->getLevel() >= 50 && ToPlayer()->getLevel() <= 60) // Formula: XP gain = 25 * lvl - 550
+	{
+		ToPlayer()->GiveXP(25 * ToPlayer()->getLevel() - 550, this);
+	}
+	if (ToPlayer()->getLevel() >= 61 && ToPlayer()->getLevel() <= 69) // Formula: XP gain = 20 * lvl - 200
+	{
+		ToPlayer()->GiveXP(20 * ToPlayer()->getLevel() - 200, this);
+	}
+	if (ToPlayer()->getLevel() >= 70 && ToPlayer()->getLevel() <= 79) // Formula: XP gain = 100 * lvl - 6600
+	{
+		ToPlayer()->GiveXP(100 * ToPlayer()->getLevel() - 6600, this);
+	}
+	if (ToPlayer()->getLevel() >= 80 && ToPlayer()->getLevel() <= 85) // Formula: XP gain 750 * lvl - 58250
+	{
+		ToPlayer()->GiveXP(750 * ToPlayer()->getLevel() - 58250, this);
+	}
+}
+
 // only called in Player::SetSeer
 void Unit::RemovePlayerFromVision(Player* player)
 {

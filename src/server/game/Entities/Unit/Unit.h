@@ -1755,6 +1755,8 @@ class Unit : public WorldObject
         void RemoveCharmedBy(Unit* charmer);
         void RestoreFaction();
 
+		void ApplyGatheringExp();
+
         ControlList m_Controlled;
         Unit* GetFirstControlled() const;
         void RemoveAllControlled();

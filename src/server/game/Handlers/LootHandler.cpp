@@ -353,11 +353,20 @@ void WorldSession::DoLootRelease(uint64 lguid)
                         else                                // 100% chance until min uses
                             go->SetLootState(GO_READY);
                     }
-                    else                                    // max uses already
-                        go->SetLootState(GO_JUST_DEACTIVATED);
+					else                                    // max uses already
+					{
+						go->SetLootState(GO_JUST_DEACTIVATED);
+						player->ApplyGatheringExp();
+					}
                 }
-                else                                        // not vein
-                    go->SetLootState(GO_JUST_DEACTIVATED);
+				else                                        // not vein
+				{
+					go->SetLootState(GO_JUST_DEACTIVATED);
+					if (player->HasSkill(SKILL_HERBALISM))
+					{
+						player->ApplyGatheringExp();
+					}
+				}
             }
             else if (go->GetGoType() == GAMEOBJECT_TYPE_FISHINGHOLE)
             {                                               // The fishing hole used once more
