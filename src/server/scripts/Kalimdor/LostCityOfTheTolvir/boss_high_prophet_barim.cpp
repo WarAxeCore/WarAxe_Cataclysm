@@ -216,6 +216,13 @@ public:
 			instance->SetData(DATA_HIGH_PROPHET_BARIM_EVENT, DONE);
 			summons.DespawnAll();
 
+			Creature* _creatureSiamat = me->FindNearestCreature(44819, 500.0f);
+			if (_creatureSiamat)
+			{
+				_creatureSiamat->SetVisible(true);
+				_creatureSiamat->AI()->DoAction(0);
+			}
+
 			if (soulCounter >= 3 && IsHeroic())
 			{
 				Map::PlayerList const& playerList = me->GetMap()->GetPlayers();

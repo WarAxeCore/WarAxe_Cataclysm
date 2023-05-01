@@ -115,13 +115,20 @@ public:
 
 		void Reset()
 		{
+			_playerCount = 0;
 			killCount = 0;
 			events.Reset();
 			summons.DespawnAll();
 
+			//If players haven't killed the high prophet then we cannot engage.
+			if (instance->GetData(DATA_HIGH_PROPHET_BARIM_EVENT) != DONE)
+			{
+				me->SetVisible(false);
+			}
+
 			instance->SendEncounterUnit(ENCOUNTER_FRAME_REMOVE, me);
 			instance->SetData(DATA_SIAMAT_EVENT, NOT_STARTED);
-			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE); // idk why siamat is moving idle WITHOUT movement id and movetype... 
+			//me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE); // idk why siamat is moving idle WITHOUT movement id and movetype... 
 		}
 
 		void EnterCombat(Unit* /*victim*/)
@@ -129,6 +136,13 @@ public:
 			me->BossYell("Winds of the south, rise and come to your master's aid!", 20227);
 			DoCast(me, SPELL_TEMPEST_STORM_ROOT);
 			DoZoneInCombat();
+
+			// If for some reason the dome isn't destructed
+			GameObject* dome = me->FindNearestGameObject(205365, 250.0f);
+			if (dome && dome->GetDestructibleState() != GO_DESTRUCTIBLE_DESTROYED)
+			{
+				dome->SetDestructibleState(GO_DESTRUCTIBLE_DESTROYED);
+			}
 
 			events.SetPhase(PHASE_ONE);
 			events.ScheduleEvent(EVENT_DEFLECTING_WINDS, 1500, 0, PHASE_ONE);
@@ -209,12 +223,24 @@ public:
 		void DoAction(int32 const action)
 		{
 			if (action == 0) //# ACTION_INTRO  0
+			{
 				me->BossYell("I. AM. UNLEASHED!", 20231);
+
+				GameObject* dome = me->FindNearestGameObject(205365, 250.0f);
+				if (dome)
+				{
+					dome->SetDestructibleState(GO_DESTRUCTIBLE_DESTROYED);
+				}
+			}
+			if (action == 1)
+			{
+				killCount++;
+			}
 		}
 
 		void UpdateAI(const uint32 diff)
 		{
-			if (!UpdateVictim())
+			if (!me->isInCombat())
 				return;
 
 			events.Update(diff);
@@ -261,6 +287,7 @@ public:
 		EventMap events;
 		SummonList summons;
 		uint8 killCount;
+		uint8 _playerCount;
 	};
 
 	CreatureAI* GetAI(Creature* creature) const
@@ -396,6 +423,9 @@ public:
 
 		void IsSummonedBy(Unit* /*summoner*/)
 		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetReactState(REACT_PASSIVE);
+			me->SetDisplayId(11686);
 			DoCast(me, SPELL_CLOUD_BURST_VISUAL);
 			events.ScheduleEvent(EVENT_CLOUD_BURST, 3 * IN_MILLISECONDS);
 		}
@@ -478,7 +508,7 @@ public:
 
 		void UpdateAI(const uint32 diff)
 		{
-			if (instance->GetData(DATA_GENERAL_HUSAM_EVENT) == DONE && instance->GetData(DATA_HIGH_PROPHET_BARIM_EVENT) == DONE && instance->GetData(DATA_AUGH_EVENT) == DONE && instance->GetData(DATA_LOCKMAW_EVENT) == DONE)
+			if (instance->GetData(DATA_HIGH_PROPHET_BARIM_EVENT) == DONE)
 				me->SetVisible(true);
 			else me->SetVisible(false);
 		}
@@ -545,6 +575,8 @@ public:
 		void IsSummonedBy(Unit* summoner)
 		{
 			summoner->ToCreature()->DespawnOrUnsummon();
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+			me->SetReactState(REACT_PASSIVE);
 			me->AddAura(SPELL_TEMPEST_STORM_FORM, me);
 			me->AddAura(SPELL_TEMPEST_STORM_AURA, me);
 			me->GetMotionMaster()->MoveRandom(10.0f);
