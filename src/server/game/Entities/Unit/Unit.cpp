@@ -8722,17 +8722,6 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, uint32 damage, AuraEffect* trigg
                 }
                 switch (auraSpellInfo->Id)
                 {
-                    // Reactive Barrier
-                    case 86303:
-                    case 86304:
-                    {
-                        if (GetTypeId() == TYPEID_PLAYER && ToPlayer()->HasSpellCooldown(11426))
-                            return false;
-
-                        CastSpell(this, 86347, true);
-                        CastSpell(this, 11426, true);
-                        break;
-                    }
                 }
                 break;
             case SPELLFAMILY_WARRIOR:

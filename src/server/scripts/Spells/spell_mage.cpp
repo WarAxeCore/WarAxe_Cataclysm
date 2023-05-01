@@ -39,7 +39,61 @@ enum MageSpells
     SPELL_MAGE_FLAMESTRIKE                       = 2120,
     SPELL_MAGE_BLASTWAVE                         = 11113,
     SPELL_MAGE_GLYPH_OF_ICE_BARRIER              = 63095,
+	SPELL_MAGE_FINGERS_OF_FROST					 = 44544,
+	SPELL_MAGE_SHATTERED_BARRIER_R1				 = 44745,
+	SPELL_MAGE_SHATTERED_BARRIER_R2				 = 54787,
+	SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R1		 = 55080,
+	SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R2		 = 83073,
     SPELL_MAGE_CAUTERIZE_DAMAGE                  = 87023,
+};
+
+// 11426 - Ice Barrier
+class spell_mage_ice_barrier : public SpellScriptLoader
+{
+public:
+	spell_mage_ice_barrier() : SpellScriptLoader("spell_mage_ice_barrier") { }
+
+	class spell_mage_ice_barrier_AuraScript : public AuraScript
+	{
+		PrepareAuraScript(spell_mage_ice_barrier_AuraScript);
+
+		void AfterRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+		{
+			if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_ENEMY_SPELL || aurEff->GetAmount() > 0)
+				return;
+
+			if (GetTarget()->HasAura(SPELL_MAGE_SHATTERED_BARRIER_R1))
+				GetTarget()->CastSpell(GetTarget(), SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R1, true);
+			else if (GetTarget()->HasAura(SPELL_MAGE_SHATTERED_BARRIER_R2))
+				GetTarget()->CastSpell(GetTarget(), SPELL_MAGE_SHATTERED_BARRIER_FREEZE_R2, true);
+		}
+
+		void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
+		{
+			canBeRecalculated = false;
+			if (Unit* caster = GetCaster())
+			{
+				// +79.00% from sp bonus
+				amount += floor(0.79f * caster->SpellBaseDamageBonus(GetSpellInfo()->GetSchoolMask()) + 0.5f);
+
+				// Glyph of Ice barrier
+				if (AuraEffect const* glyph = caster->GetDummyAuraEffect(SPELLFAMILY_MAGE, 32, EFFECT_0))
+					AddPctN(amount, glyph->GetAmount());
+			}
+		}
+
+
+		void Register()
+		{
+			DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_ice_barrier_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+			AfterEffectRemove += AuraEffectRemoveFn(spell_mage_ice_barrier_AuraScript::AfterRemove, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
+		}
+	};
+
+	AuraScript* GetAuraScript() const
+	{
+		return new spell_mage_ice_barrier_AuraScript();
+	}
 };
 
 // HACK!
@@ -136,6 +190,80 @@ public:
     {
         return new spell_mage_blast_wave_SpellScript();
     }
+};
+
+class spell_mage_reactive_barrier : public SpellScriptLoader
+{
+public:
+	spell_mage_reactive_barrier() : SpellScriptLoader("spell_mage_reactive_barrier") { }
+
+	class spell_mage_reactive_barrier_AuraScript : public AuraScript
+	{
+		PrepareAuraScript(spell_mage_reactive_barrier_AuraScript);
+
+		Player * caster;
+
+		enum Spels
+		{
+			ICE_BARRIER = 11426,
+			REACTIVE_BARRIER_R1 = 86303,
+			REACTIVE_BARRIER_R2 = 86304,
+			RB_REDUCE_MANA_COST = 86347,
+		};
+
+		bool Load()
+		{
+			if (!GetCaster() || !GetCaster()->ToPlayer() || GetCaster()->ToPlayer()->getClass() != CLASS_MAGE)
+				return false;
+			else
+			{
+				caster = GetCaster()->ToPlayer();
+				return true;
+			}
+		}
+
+		void CalculateAmount(AuraEffect const * /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
+		{
+			amount = -1; // Set absorbtion amount to unlimited
+		}
+
+		void Absorb(AuraEffect * /*aurEff*/, DamageInfo & dmgInfo, uint32 & absorbAmount)
+		{
+			if (caster->GetHealth() < caster->GetMaxHealth() / 2) // must be above 50 % of health
+				return;
+
+			if (caster->GetHealth() - dmgInfo.GetDamage() > caster->GetMaxHealth() / 2) // Health after damage have to be less than 50 % of health
+				return;
+
+			if (caster->HasSpellCooldown(ICE_BARRIER)) // This talent obeys Ice Barrier's cooldown
+				return;
+
+			if (caster->HasAura(REACTIVE_BARRIER_R1))
+			{
+				if (roll_chance_i(50)) // 50 % chance for rank 1
+				{
+					caster->CastSpell(caster, RB_REDUCE_MANA_COST, true);
+					caster->CastSpell(caster, ICE_BARRIER, true);
+				}
+			}
+			else // 100 % chance for rank 2
+			{
+				caster->CastSpell(caster, RB_REDUCE_MANA_COST, true);
+				caster->CastSpell(caster, ICE_BARRIER, true);
+			}
+		}
+
+		void Register()
+		{
+			DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_reactive_barrier_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+			OnEffectAbsorb += AuraEffectAbsorbFn(spell_mage_reactive_barrier_AuraScript::Absorb, EFFECT_0);
+		}
+	};
+
+	AuraScript *GetAuraScript() const
+	{
+		return new spell_mage_reactive_barrier_AuraScript();
+	}
 };
 
 class spell_mage_cold_snap : public SpellScriptLoader
@@ -322,35 +450,54 @@ public:
     }
 };
 
-// Ice Barrier
-// Spell Id: 11426
-class spell_mage_ice_barrier : public SpellScriptLoader
+// 79684 - Arcane Missiles Proc.
+class spell_mage_arcane_missile_proc : public SpellScriptLoader
 {
 public:
-    spell_mage_ice_barrier() : SpellScriptLoader("spell_mage_ice_barrier") { }
+	spell_mage_arcane_missile_proc() : SpellScriptLoader("spell_mage_arcane_missile_proc") { }
 
-    class spell_mage_ice_barrier_AuraScript : public AuraScript
-    {
-        PrepareAuraScript(spell_mage_ice_barrier_AuraScript);
+	class spell_mage_arcane_missile_proc_AuraScript : public AuraScript
+	{
+		PrepareAuraScript(spell_mage_arcane_missile_proc_AuraScript);
 
-        void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
-        {
-            if (AuraEffect const* glyph = GetCaster()->GetAuraEffect(SPELL_MAGE_GLYPH_OF_ICE_BARRIER, 0))
-                amount += glyph->GetAmount(); // 30% increase absorb from glyph
+		bool Validate(SpellInfo const* /*spellInfo*/)
+		{
+			if (!sSpellMgr->GetSpellInfo(5143) || !sSpellMgr->GetSpellInfo(44445) || !sSpellMgr->GetSpellInfo(44546))
+				return false;
+			return true;
+		}
 
-            canBeRecalculated = false;
-        }
+		bool CheckProc(ProcEventInfo& eventInfo)
+		{
+			Player* player = GetTarget()->ToPlayer();
+			if (!player || !eventInfo.GetSpellInfo())
+				return false;
 
-        void Register()
-        {
-            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_ice_barrier_AuraScript::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
-        }
-    };
+			// Don't proc when caster does not know Arcane Missiles
+			if (!player->HasSpell(5143))
+				return false;
 
-    AuraScript* GetAuraScript() const
-    {
-        return new spell_mage_ice_barrier_AuraScript();
-    }
+			// Hot Streak will no longer allow Arcane Missiles to proc
+			if (player->HasAura(44445))
+				return false;
+
+			// Brain Freeze will no longer allow Arcane Missiles to proc
+			if (player->GetAuraOfRankedSpell(44546))
+				return false;
+
+			return true;
+		}
+
+		void Register()
+		{
+			DoCheckProc += AuraCheckProcFn(spell_mage_arcane_missile_proc_AuraScript::CheckProc);
+		}
+	};
+
+	AuraScript* GetAuraScript() const
+	{
+		return new spell_mage_arcane_missile_proc_AuraScript();
+	}
 };
 
 // 86948, 86949 Cauterize talent aura
@@ -425,6 +572,60 @@ public:
     }
 };
 
+// 33395 Water Elemental's Freeze
+class spell_mage_water_elemental_freeze : public SpellScriptLoader
+{
+public:
+	spell_mage_water_elemental_freeze() : SpellScriptLoader("spell_mage_water_elemental_freeze") { }
+
+	class spell_mage_water_elemental_freeze_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_mage_water_elemental_freeze_SpellScript);
+
+		bool Validate(SpellInfo const* /*spellInfo*/)
+		{
+			if (!sSpellMgr->GetSpellInfo(SPELL_MAGE_FINGERS_OF_FROST))
+				return false;
+			return true;
+		}
+
+		void CountTargets(std::list<WorldObject*>& targetList)
+		{
+			_didHit = !targetList.empty();
+		}
+
+		void HandleImprovedFreeze()
+		{
+			if (!_didHit)
+				return;
+
+			Unit* owner = GetCaster()->GetOwner();
+			if (!owner)
+				return;
+
+			if (AuraEffect* aurEff = owner->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_MAGE, 94, EFFECT_0))
+			{
+				if (roll_chance_i(aurEff->GetAmount()))
+					owner->CastCustomSpell(SPELL_MAGE_FINGERS_OF_FROST, SPELLVALUE_AURA_STACK, 2, owner, true);
+			}
+		}
+
+		void Register()
+		{
+			OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_mage_water_elemental_freeze_SpellScript::CountTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+			AfterCast += SpellCastFn(spell_mage_water_elemental_freeze_SpellScript::HandleImprovedFreeze);
+		}
+
+	private:
+		bool _didHit;
+	};
+
+	SpellScript* GetSpellScript() const
+	{
+		return new spell_mage_water_elemental_freeze_SpellScript();
+	}
+};
+
 void AddSC_mage_spell_scripts()
 {
 	new spell_mage_water_elemental();
@@ -435,4 +636,7 @@ void AddSC_mage_spell_scripts()
     new spell_mage_incanters_absorbtion_manashield();
     new spell_mage_ice_barrier();
     new spell_mage_cauterize();
+	new spell_mage_water_elemental_freeze();
+	new spell_mage_arcane_missile_proc();
+	new spell_mage_reactive_barrier();
 }

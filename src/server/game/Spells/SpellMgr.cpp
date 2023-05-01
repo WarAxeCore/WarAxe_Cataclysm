@@ -3236,8 +3236,14 @@ void SpellMgr::LoadSpellCustomAttr()
                 spellInfo->Effects[1].ApplyAuraName = SPELL_AURA_SWAP_SPELLS;
                 spellInfo->Effects[1].BasePoints = 92283;
                 break;
+			case 86303: // Reactive barrier (rank 1)
+			case 86304: // Reactvie barrier (rank 2)
+				spellInfo->Effects[0].ApplyAuraName = SPELL_AURA_SCHOOL_ABSORB;
+				spellInfo->Effects[0].MiscValue = 127;
+				break;
             case 44544: // Fingers of Frost
-                spellInfo->Effects[0].SpellClassMask = flag96(685904631, 1151048, 0);
+				spellInfo->Effects[0].SpellClassMask[0] |= 0x00020000;
+                //spellInfo->Effects[0].SpellClassMask = flag96(685904631, 1151048, 0);
                 break;
             case 74396: // Fingers of Frost visual buff
                 spellInfo->ProcCharges = 2;

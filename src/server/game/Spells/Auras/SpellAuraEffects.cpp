@@ -1272,6 +1272,16 @@ bool AuraEffect::IsAffectedOnSpell(SpellInfo const* spell) const
     if (spell->SpellFamilyName != m_spellInfo->SpellFamilyName)
         return false;
 
+	// Custom handling as there is no better place for it atm
+	switch (GetId())
+	{
+	case 44544: // Fingers of frost
+		if (Unit* owner = GetBase()->GetUnitOwner())
+			if (spell->Id == 44614 && owner->HasAura(57761))
+				return true;
+		break;
+	}
+
     // Check EffectClassMask
     if (m_spellInfo->Effects[m_effIndex].SpellClassMask & spell->SpellFamilyFlags)
         return true;
