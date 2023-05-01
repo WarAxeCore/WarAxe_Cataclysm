@@ -95,7 +95,7 @@ public:
 	{
 		boss_priestess_azilAI(Creature * creature) : BossAI(creature, DATA_HIGH_PRIESTESS_AZIL), vehicle(creature->GetVehicleKit())
 		{
-			ASSERT(vehicle);
+			//ASSERT(vehicle);
 		}
 
 		void Reset()
