@@ -13391,11 +13391,11 @@ void Player::RemoveItem(uint8 bag, uint8 slot, bool update)
                         default:
                             break;
                     }
-
-					// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
-					sLFGMgr->InitializeLockedDungeons(this);
                 }
             }
+
+			// When we are equiping or unequiping gear we have to reupdate the dungeon finder with new item level.
+			sLFGMgr->InitializeLockedDungeons(this);
 
             _items[slot] = NULL;
             SetUInt64Value(PLAYER_FIELD_INV_SLOT_HEAD + (slot * 2), 0);
@@ -13455,6 +13455,8 @@ void Player::MoveItemToInventory(ItemPosCountVec const& dest, Item* pItem, bool 
 
     if (pLastItem->HasFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_BOP_TRADEABLE))
         AddTradeableItem(pLastItem);
+
+	sLFGMgr->InitializeLockedDungeons(this);
 }
 
 void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
@@ -13543,6 +13545,8 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
             pItem->RemoveFromWorld();
             pItem->DestroyForPlayer(this);
         }
+
+		sLFGMgr->InitializeLockedDungeons(this);
 
         //pItem->SetOwnerGUID(0);
         pItem->SetUInt64Value(ITEM_FIELD_CONTAINED, 0);
@@ -14073,6 +14077,8 @@ void Player::SwapItem(uint16 src, uint16 dst)
             AutoUnequipOffhandIfNeed();
         }
 
+		sLFGMgr->InitializeLockedDungeons(this);
+
         return;
     }
 
@@ -14106,6 +14112,7 @@ void Player::SwapItem(uint16 src, uint16 dst)
                 {
                     EquipItem(eDest, pSrcItem, true);
                     AutoUnequipOffhandIfNeed();
+					sLFGMgr->InitializeLockedDungeons(this);
                 }
             }
             else
@@ -14296,6 +14303,7 @@ void Player::SwapItem(uint16 src, uint16 dst)
     }
 
     AutoUnequipOffhandIfNeed();
+	sLFGMgr->InitializeLockedDungeons(this);
 }
 
 void Player::AddItemToBuyBackSlot(Item *pItem)
