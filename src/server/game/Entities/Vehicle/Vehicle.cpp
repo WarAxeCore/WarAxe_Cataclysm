@@ -313,8 +313,14 @@ void Vehicle::InstallAccessory(uint32 entry, int8 seatId, bool minion, uint8 typ
         //    return;         // Something went wrong in the spellsystem
         //}
 
-        if (GetBase()->GetTypeId() == TYPEID_UNIT)
-            sScriptMgr->OnInstallAccessory(this, accessory);
+		if (GetBase()->GetTypeId() == TYPEID_UNIT)
+		{
+			sScriptMgr->OnInstallAccessory(this, accessory);
+			if (GetBase())
+			{
+				GetBase()->SetDisplayId(GetBase()->GetNativeDisplayId()); // HACK! Unsure why vehicles go invisible?
+			}
+		}
     }
 }
 
@@ -396,16 +402,25 @@ bool Vehicle::AddPassenger(Unit* unit, int8 seatId)
 
         if (_me->GetTypeId() == TYPEID_UNIT)
         {
-            if (_me->ToCreature()->IsAIEnabled)
-                _me->ToCreature()->AI()->PassengerBoarded(unit, seat->first, true);
+			if (_me->ToCreature()->IsAIEnabled)
+			{
+				_me->ToCreature()->AI()->PassengerBoarded(unit, seat->first, true);
+			}
 
             // update all passenger's positions
             RelocatePassengers(_me->GetPositionX(), _me->GetPositionY(), _me->GetPositionZ(), _me->GetOrientation());
         }
     }
 
-    if (GetBase()->GetTypeId() == TYPEID_UNIT)
-        sScriptMgr->OnAddPassenger(this, unit, seatId);
+	if (GetBase()->GetTypeId() == TYPEID_UNIT)
+	{
+		sScriptMgr->OnAddPassenger(this, unit, seatId);
+	}
+
+	if (GetBase())
+	{
+		GetBase()->SetDisplayId(GetBase()->GetNativeDisplayId()); // HACK! Unsure why vehicles go invisible?
+	}
 
     return true;
 }
@@ -453,8 +468,11 @@ void Vehicle::RemovePassenger(Unit* unit)
     if (unit->HasUnitMovementFlag(MOVEMENTFLAG_FLYING))
         _me->CastSpell(unit, VEHICLE_SPELL_PARACHUTE, true);
 
-    if (GetBase()->GetTypeId() == TYPEID_UNIT)
-        sScriptMgr->OnRemovePassenger(this, unit);
+	if (GetBase()->GetTypeId() == TYPEID_UNIT)
+	{
+		GetBase()->SetDisplayId(GetBase()->GetNativeDisplayId()); // HACK! Unsure why vehicles go invisible?
+		sScriptMgr->OnRemovePassenger(this, unit);
+	}
 }
 
 //! Must be called after m_base::Relocate
