@@ -128,8 +128,8 @@ bool BattlegroundSA::ResetObjs()
 
     // 335a - credits 2 Kiper for discovering these values,
     // 406a - these values need fixed, boats constantly reset.
-    GetBGObject(BG_SA_BOAT_ONE)->UpdateRotationFields(1.0f, 0.0002f);
-    GetBGObject(BG_SA_BOAT_TWO)->UpdateRotationFields(1.0f, 0.00001f);
+    //GetBGObject(BG_SA_BOAT_ONE)->UpdateRotationFields(1.0f, 0.0002f);
+    //GetBGObject(BG_SA_BOAT_TWO)->UpdateRotationFields(1.0f, 0.00001f);
     SpawnBGObject(BG_SA_BOAT_ONE, RESPAWN_IMMEDIATELY);
     SpawnBGObject(BG_SA_BOAT_TWO, RESPAWN_IMMEDIATELY);
 
@@ -265,6 +265,9 @@ void BattlegroundSA::StartShips()
     if (ShipsStarted)
         return;
 
+	/*GetBGObject(BG_SA_BOAT_ONE)->UpdateRotationFields(1.0f, 0.0002f);
+	GetBGObject(BG_SA_BOAT_TWO)->UpdateRotationFields(1.0f, 0.00001f);
+
     DoorOpen(BG_SA_BOAT_ONE);
     DoorOpen(BG_SA_BOAT_TWO);
 
@@ -281,7 +284,7 @@ void BattlegroundSA::StartShips()
                 p->GetSession()->SendPacket(&pkt);
             }
         }
-    }
+    } */
     ShipsStarted = true;
 }
 
@@ -319,8 +322,11 @@ void BattlegroundSA::PostUpdateImpl(uint32 diff)
             StartTimedAchievement(ACHIEVEMENT_TIMED_TYPE_EVENT, (Attackers == TEAM_ALLIANCE) ? 23748 : 21702);
         }
 
-        if (TotalTime >= BG_SA_BOAT_START)
-            StartShips();
+		if (TotalTime >= BG_SA_BOAT_START)
+		{
+			StartShips();
+			setLevelsScaled();
+		}
         return;
     }
     else if (Status == BG_SA_SECOND_WARMUP)
@@ -353,6 +359,7 @@ void BattlegroundSA::PostUpdateImpl(uint32 diff)
             {
                 SignaledRoundTwoHalfMin = true;
                 SendMessageToAll(LANGUAGE_BG_SA_ROUND_TWO_START_HALF_MINUTE, CHAT_MSG_BG_SYSTEM_NEUTRAL);
+				setLevelsScaled();
             }
         }
         StartShips();
@@ -399,6 +406,7 @@ void BattlegroundSA::PostUpdateImpl(uint32 diff)
         {
             SendTime();
             UpdateDemolisherSpawns();
+			sLog->outError("MADE IT (SEND TIME)");
         }
     }
 }
@@ -466,10 +474,12 @@ void BattlegroundSA::AddPlayer(Player* player)
             //             inRetail players are teleported directly to the deck of the boat.
             player->CastSpell(player, 12438, true);
 
-            if (urand(0, 1))
+			player->TeleportTo(607, 2315.79f, -299.55f, 1.90f, 3.2f, 0);
+
+            /*if (urand(0, 1))
                 player->TeleportTo(607, 2682.936f, -830.368f, 15.0f, 2.895f, 0);
             else
-                player->TeleportTo(607, 2577.003f, 980.261f, 15.0f, 0.807f, 0);
+                player->TeleportTo(607, 2577.003f, 980.261f, 15.0f, 0.807f, 0);*/
         }
         else
             player->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f, 0);
@@ -477,11 +487,12 @@ void BattlegroundSA::AddPlayer(Player* player)
     else
     {
         if (player->GetTeamId() == Attackers)
-            player->TeleportTo(607, 1600.381f, -106.263f, 8.8745f, 3.78f, 0);
+			player->TeleportTo(607, 2214.07f, -733.02f, 18.11f, 1.72f, 0);
+            //player->TeleportTo(607, 1600.381f, -106.263f, 8.8745f, 3.78f, 0);
         else
             player->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f, 0);
     }
-    SendTransportInit(player);
+    //SendTransportInit(player);
     PlayerScores[player->GetGUID()] = sc;
 }
 
@@ -541,10 +552,12 @@ void BattlegroundSA::TeleportPlayers()
                 //             inRetail players are teleported directly to the deck of the boat.
                 player->CastSpell(player, 12438, true);
 
-                if (urand(0, 1))
+				player->TeleportTo(607, 2315.79f, -299.55f, 1.90f, 3.2f, 0);
+
+                /*if (urand(0, 1))
                     player->TeleportTo(607, 2682.936f, -830.368f, 15.0f, 2.895f, 0);
                 else
-                    player->TeleportTo(607, 2577.003f, 980.261f, 15.0f, 0.807f, 0);
+                    player->TeleportTo(607, 2577.003f, 980.261f, 15.0f, 0.807f, 0);*/
             }
             else
                 player->TeleportTo(607, 1209.7f, -65.16f, 70.1f, 0.0f, 0);
@@ -911,6 +924,7 @@ void BattlegroundSA::ToggleTimer()
 {
     TimerEnabled = !TimerEnabled;
     UpdateWorldState(BG_SA_ENABLE_TIMER, (TimerEnabled) ? 1 : 0);
+	SendTime();
 }
 
 void BattlegroundSA::EndBattleground(uint32 winner)
@@ -926,6 +940,80 @@ void BattlegroundSA::EndBattleground(uint32 winner)
     RewardHonorToTeam(GetBonusHonorFromKill(2), HORDE);
 
     Battleground::EndBattleground(winner);
+}
+
+void BattlegroundSA::setLevelsScaled()
+{
+	for (uint8 i = BG_SA_DEMOLISHER_1; i <= BG_SA_DEMOLISHER_8; i++)
+	{
+		if (BgCreatures[i])
+		{
+			if (Creature* Demolisher = GetBGCreature(i))
+			{
+				if (Player* plr = Demolisher->FindNearestPlayer(1000.0f, false)) // Find player and get level
+				{
+					if (plr && plr->getLevel() >= 65 && plr->getLevel() >= 69)
+					{
+						Demolisher->SetLevel(67);
+						Demolisher->SetMaxHealth(6326 * Demolisher->GetCreatureTemplate()->ModHealth);
+					}
+					if (plr && plr->getLevel() >= 70 && plr->getLevel() >= 74)
+					{
+						Demolisher->SetLevel(72);
+						Demolisher->SetMaxHealth(9610 * Demolisher->GetCreatureTemplate()->ModHealth);
+					}
+					if (plr && plr->getLevel() >= 75 && plr->getLevel() >= 79)
+					{
+						Demolisher->SetLevel(77);
+						Demolisher->SetMaxHealth(11379 * Demolisher->GetCreatureTemplate()->ModHealth);
+					}
+					if (plr && plr->getLevel() >= 80 && plr->getLevel() >= 84)
+					{
+						Demolisher->SetLevel(82);
+						Demolisher->SetMaxHealth(44679 * Demolisher->GetCreatureTemplate()->ModHealth);
+					}
+					if (plr && plr->getLevel() >= 85)
+					{
+						Demolisher->SetLevel(85);
+						Demolisher->SetMaxHealth(91623 * Demolisher->GetCreatureTemplate()->ModHealth);
+					}
+				}
+			}
+		}
+	}
+
+	for (uint8 i = BG_SA_GUN_1; i <= BG_SA_GUN_10; i++)
+	{
+		if (BgCreatures[i])
+		{
+			if (Creature* Gun = GetBGCreature(i))
+			{
+				if (Player* plr2 = Gun->FindNearestPlayer(1000.0f, false)) // Find player and get level
+				{
+					if (plr2 && plr2->getLevel() >= 65 && plr2->getLevel() >= 69)
+					{
+						Gun->SetLevel(67);
+					}
+					if (plr2 && plr2->getLevel() >= 70 && plr2->getLevel() >= 74)
+					{
+						Gun->SetLevel(72);
+					}
+					if (plr2 && plr2->getLevel() >= 75 && plr2->getLevel() >= 79)
+					{
+						Gun->SetLevel(77);
+					}
+					if (plr2 && plr2->getLevel() >= 80 && plr2->getLevel() >= 84)
+					{
+						Gun->SetLevel(82);
+					}
+					if (plr2 && plr2->getLevel() >= 85)
+					{
+						Gun->SetLevel(85);
+					}
+				}
+			}
+		}
+	}
 }
 
 void BattlegroundSA::UpdateDemolisherSpawns()

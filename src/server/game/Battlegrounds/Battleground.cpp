@@ -486,6 +486,22 @@ inline void Battleground::_ProcessJoin(uint32 diff)
         SetStatus(STATUS_IN_PROGRESS);
         SetStartDelayTime(StartDelayTimes[BG_STARTING_EVENT_FOURTH]);
 
+		//For Strand of the Ancients tele to random dock.
+		if (GetMapId() == 607)
+		{
+			for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
+				if (Player* player = ObjectAccessor::FindPlayer(itr->first))
+				{
+					if (player && player->GetPositionX() >= 1644.0f)
+					{
+						if (urand(0, 1))
+							player->TeleportTo(607, 1597.25f + urand(1, 8), -106.55f, 11.821f, 4.1f, 0);
+						else
+							player->TeleportTo(607, 1605.32f + urand(1, 8), 52.48f, 12.59f, 2.33f, 0);
+					}
+				}
+		}
+
         // Remove preparation
         if (isArena())
         {

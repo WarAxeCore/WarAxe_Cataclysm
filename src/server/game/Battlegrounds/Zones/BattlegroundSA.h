@@ -596,6 +596,9 @@ class BattlegroundSA : public Battleground
         /// Respawn dead demolisher
         void UpdateDemolisherSpawns();
 
+		// Set Levels for Demos. (65+)
+		void setLevelsScaled();
+
         /// Send packet to player for create boats (client part)
         void SendTransportInit(Player* player);
         /// Send packet to player for destroy boats (client part)
