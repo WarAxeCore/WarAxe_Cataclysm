@@ -359,10 +359,10 @@ void BattlegroundSA::PostUpdateImpl(uint32 diff)
             {
                 SignaledRoundTwoHalfMin = true;
                 SendMessageToAll(LANGUAGE_BG_SA_ROUND_TWO_START_HALF_MINUTE, CHAT_MSG_BG_SYSTEM_NEUTRAL);
-				setLevelsScaled();
             }
         }
         StartShips();
+		setLevelsScaled();
         return;
     }
     else if (GetStatus() == STATUS_IN_PROGRESS)
@@ -406,7 +406,6 @@ void BattlegroundSA::PostUpdateImpl(uint32 diff)
         {
             SendTime();
             UpdateDemolisherSpawns();
-			sLog->outError("MADE IT (SEND TIME)");
         }
     }
 }
@@ -956,26 +955,31 @@ void BattlegroundSA::setLevelsScaled()
 					{
 						Demolisher->SetLevel(67);
 						Demolisher->SetMaxHealth(6326 * Demolisher->GetCreatureTemplate()->ModHealth);
+						Demolisher->SetHealth(Demolisher->GetMaxHealth());
 					}
 					if (plr && plr->getLevel() >= 70 && plr->getLevel() >= 74)
 					{
 						Demolisher->SetLevel(72);
 						Demolisher->SetMaxHealth(9610 * Demolisher->GetCreatureTemplate()->ModHealth);
+						Demolisher->SetHealth(Demolisher->GetMaxHealth());
 					}
 					if (plr && plr->getLevel() >= 75 && plr->getLevel() >= 79)
 					{
 						Demolisher->SetLevel(77);
 						Demolisher->SetMaxHealth(11379 * Demolisher->GetCreatureTemplate()->ModHealth);
+						Demolisher->SetHealth(Demolisher->GetMaxHealth());
 					}
 					if (plr && plr->getLevel() >= 80 && plr->getLevel() >= 84)
 					{
 						Demolisher->SetLevel(82);
 						Demolisher->SetMaxHealth(44679 * Demolisher->GetCreatureTemplate()->ModHealth);
+						Demolisher->SetHealth(Demolisher->GetMaxHealth());
 					}
 					if (plr && plr->getLevel() >= 85)
 					{
 						Demolisher->SetLevel(85);
 						Demolisher->SetMaxHealth(91623 * Demolisher->GetCreatureTemplate()->ModHealth);
+						Demolisher->SetHealth(Demolisher->GetMaxHealth());
 					}
 				}
 			}
@@ -992,23 +996,53 @@ void BattlegroundSA::setLevelsScaled()
 				{
 					if (plr2 && plr2->getLevel() >= 65 && plr2->getLevel() >= 69)
 					{
+						if (Gun->GetVehicle())
+						{
+							Gun->GetVehicle()->RemoveAllPassengers();
+						}
 						Gun->SetLevel(67);
+						Gun->SetMaxHealth(6326 * Gun->GetCreatureTemplate()->ModHealth);
+						Gun->SetHealth(Gun->GetMaxHealth());
 					}
 					if (plr2 && plr2->getLevel() >= 70 && plr2->getLevel() >= 74)
 					{
+						if (Gun->GetVehicle())
+						{
+							Gun->GetVehicle()->RemoveAllPassengers();
+						}
 						Gun->SetLevel(72);
+						Gun->SetMaxHealth(9610 * Gun->GetCreatureTemplate()->ModHealth);
+						Gun->SetHealth(Gun->GetMaxHealth());
 					}
 					if (plr2 && plr2->getLevel() >= 75 && plr2->getLevel() >= 79)
 					{
+						if (Gun->GetVehicle())
+						{
+							Gun->GetVehicle()->RemoveAllPassengers();
+						}
 						Gun->SetLevel(77);
+						Gun->SetMaxHealth(11379 * Gun->GetCreatureTemplate()->ModHealth);
+						Gun->SetHealth(Gun->GetMaxHealth());
 					}
 					if (plr2 && plr2->getLevel() >= 80 && plr2->getLevel() >= 84)
 					{
+						if (Gun->GetVehicle())
+						{
+							Gun->GetVehicle()->RemoveAllPassengers();
+						}
 						Gun->SetLevel(82);
+						Gun->SetMaxHealth(44679 * Gun->GetCreatureTemplate()->ModHealth);
+						Gun->SetHealth(Gun->GetMaxHealth());
 					}
 					if (plr2 && plr2->getLevel() >= 85)
 					{
+						if (Gun->GetVehicle())
+						{
+							Gun->GetVehicle()->RemoveAllPassengers();
+						}
 						Gun->SetLevel(85);
+						Gun->SetMaxHealth(91623 * Gun->GetCreatureTemplate()->ModHealth);
+						Gun->SetHealth(Gun->GetMaxHealth());
 					}
 				}
 			}
