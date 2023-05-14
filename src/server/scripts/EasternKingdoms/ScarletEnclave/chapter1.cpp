@@ -768,6 +768,11 @@ public:
         {
             ScriptedAI::MoveInLineOfSight(who);
 
+			if (who->GetTypeId() == TYPEID_PLAYER && who->ToPlayer()->GetQuestStatus(QUEST_REALM_OF_SHADOWS) == QUEST_STATUS_INCOMPLETE)
+			{
+				who->ToPlayer()->GroupEventHappens(QUEST_REALM_OF_SHADOWS, me);
+			}
+
             if (who->GetTypeId() == TYPEID_UNIT && who->IsVehicle() && me->IsWithinDistInMap(who, 5.0f))
             {
                 if (Unit* charmer = who->GetCharmer())
@@ -827,8 +832,8 @@ public:
             deathcharger->RestoreFaction();
             deathcharger->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
             deathcharger->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            if (!me->GetVehicle() && deathcharger->IsVehicle() && deathcharger->GetVehicleKit()->HasEmptySeat(0))
-                me->EnterVehicle(deathcharger);
+            //if (!me->GetVehicle() && deathcharger->IsVehicle() && deathcharger->GetVehicleKit()->HasEmptySeat(0))
+                //me->EnterVehicle(deathcharger);
         }
 
         void JustDied(Unit* killer)
@@ -837,9 +842,12 @@ public:
             if (!deathcharger) return;
             if (killer->GetTypeId() == TYPEID_PLAYER && deathcharger->GetTypeId() == TYPEID_UNIT && deathcharger->IsVehicle())
             {
+				deathcharger->setFaction(35);
                 deathcharger->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK);
                 deathcharger->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                deathcharger->setFaction(2096);
+
+				if (!killer->GetVehicle() && deathcharger->IsVehicle() && deathcharger->GetVehicleKit()->HasEmptySeat(0))
+					killer->EnterVehicle(deathcharger);
             }
         }
     };
