@@ -421,10 +421,8 @@ void LFGMgr::InitializeLockedDungeons(Player* player)
 	playeritemlvl = 0;
 	
 	//WarAxeCore: Check players item level, if it is lower than zero just leave it at zero since values cannot show negative.
-	if (player && player->GetAverageItemLevel() < 0)
-		playeritemlvl = 0;
-	else
-		playeritemlvl = player->GetAverageItemLevel();
+	float avgItemLevel = player ? player->GetAverageItemLevel() : 0.0f;
+	playeritemlvl = (avgItemLevel < 0) ? 0 : avgItemLevel;
 
     for (LfgDungeonSet::const_iterator it = dungeons.begin(); it != dungeons.end(); ++it)
     {
