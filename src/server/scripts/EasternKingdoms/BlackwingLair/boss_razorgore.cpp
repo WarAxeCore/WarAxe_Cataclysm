@@ -1,135 +1,324 @@
 /*
- * Copyright (C) 2011-2019 Project SkyFire <http://www.projectskyfire.org/>
- * Copyright (C) 2008-2019 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2006-2019 ScriptDev2 <https://github.com/scriptdev2/scriptdev2/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of the WarAxeCore Project, ported from AzerothCore.
  */
 
-/* ScriptData
-SDName: Boss_Razorgore
-SD%Complete: 50
-SDComment: Needs additional review. Phase 1 NYI (Grethok the Controller)
-SDCategory: Blackwing Lair
-EndScriptData */
-
 #include "ScriptPCH.h"
-
-//Razorgore Phase 2 Script
-
-enum Say
-{
-    SAY_EGGS_BROKEN1        = -1469022,
-    SAY_EGGS_BROKEN2        = -1469023,
-    SAY_EGGS_BROKEN3        = -1469024,
-    SAY_DEATH               = -1469025
-};
+#include "blackwing_lair.h"
 
 enum Spells
 {
-    SPELL_CLEAVE            = 22540,
-    SPELL_WARSTOMP          = 24375,
-    SPELL_FIREBALLVOLLEY    = 22425,
-    SPELL_CONFLAGRATION     = 23023
+	SPELL_MINDCONTROL = 19832,
+	SPELL_MINDCONTROL_VISUAL = 45537,
+	SPELL_EGG_DESTROY = 19873,
+	SPELL_MIND_EXHAUSTION = 23958,
+
+	SPELL_CLEAVE = 19632,
+	SPELL_WARSTOMP = 24375,
+	SPELL_FIREBALLVOLLEY = 22425,
+	SPELL_CONFLAGRATION = 23023,
+
+	SPELL_EXPLODE_ORB = 20037,
+	SPELL_EXPLOSION = 20038, // Instakill everything.
+
+	SPELL_WARMING_FLAMES = 23040,
+};
+
+enum Summons
+{
+	NPC_ELITE_DRACHKIN = 12422,
+	NPC_ELITE_WARRIOR = 12458,
+	NPC_WARRIOR = 12416,
+	NPC_MAGE = 12420,
+	NPC_WARLOCK = 12459,
+
+	GO_EGG = 177807
+};
+
+enum EVENTS
+{
+	EVENT_CLEAVE = 1,
+	EVENT_STOMP = 2,
+	EVENT_FIREBALL = 3,
+	EVENT_CONFLAGRATION = 4
 };
 
 class boss_razorgore : public CreatureScript
 {
 public:
-    boss_razorgore() : CreatureScript("boss_razorgore") { }
+	boss_razorgore() : CreatureScript("boss_razorgore") { }
 
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new boss_razorgoreAI (creature);
-    }
+	struct boss_razorgoreAI : public BossAI
+	{
+		boss_razorgoreAI(Creature* creature) : BossAI(creature, DATA_RAZORGORE_THE_UNTAMED)
+		{
+			secondPhase = false;
+			charmerGUID = 0;
+		}
 
-    struct boss_razorgoreAI : public ScriptedAI
-    {
-        boss_razorgoreAI(Creature* creature) : ScriptedAI(creature) {}
+		void Reset()
+		{
+			_Reset();
+			charmerGUID = 0;
+			secondPhase = false;
+			summons.DespawnAll();
+			if (instance)
+			{
+				instance->SetData(DATA_EGG_EVENT, NOT_STARTED);
+			}
+			summonGUIDs.clear();
+		}
 
-        uint32 Cleave_Timer;
-        uint32 WarStomp_Timer;
-        uint32 FireballVolley_Timer;
-        uint32 Conflagration_Timer;
+		void JustDied(Unit* /*killer*/)
+		{
+			if (secondPhase)
+			{
+				_JustDied();
+			}
+			else
+			{
+				// Respawn shorty in case of failure during phase 1.
+				me->RemoveCorpse(false);
+				me->SetRespawnTime(30);
+				me->SaveRespawnTime();
 
-        void Reset()
-        {
-            Cleave_Timer = 15000;                               //These times are probably wrong
-            WarStomp_Timer = 35000;
-            FireballVolley_Timer = 7000;
-            Conflagration_Timer = 12000;
-        }
+				// Might not be required, safe measure.
+				me->SetLootRecipient(NULL);
 
-        void EnterCombat(Unit* /*who*/)
-        {
-            DoZoneInCombat();
-        }
+				instance->SetData(DATA_EGG_EVENT, FAIL);
+			}
+		}
 
-        void JustDied(Unit* /*Killer*/)
-        {
-            DoScriptText(SAY_DEATH, me);
-        }
+		bool CanAIAttack(Unit const* target) const
+		{
+			return !(target->GetTypeId() == TYPEID_UNIT && !secondPhase);
+		}
 
-        void UpdateAI(const uint32 diff)
-        {
-            if (!UpdateVictim())
-                return;
+		void EnterCombat(Unit* who)
+		{
+			BossAI::EnterCombat(who);
 
-            //Cleave_Timer
-            if (Cleave_Timer <= diff)
-            {
-                DoCast(me->getVictim(), SPELL_CLEAVE);
-                Cleave_Timer = urand(7000, 10000);
-            } else Cleave_Timer -= diff;
+			events.ScheduleEvent(EVENT_CLEAVE, 15000);
+			events.ScheduleEvent(EVENT_STOMP, 35000);
+			events.ScheduleEvent(EVENT_FIREBALL, 7000);
+			events.ScheduleEvent(EVENT_CONFLAGRATION, 12000);
 
-            //WarStomp_Timer
-            if (WarStomp_Timer <= diff)
-            {
-                DoCast(me->getVictim(), SPELL_WARSTOMP);
-                WarStomp_Timer = urand(15000, 25000);
-            } else WarStomp_Timer -= diff;
+			if (instance)
+			{
+				instance->SetData(DATA_EGG_EVENT, IN_PROGRESS);
+			}
+		}
 
-            //FireballVolley_Timer
-            if (FireballVolley_Timer <= diff)
-            {
-                DoCast(me->getVictim(), SPELL_FIREBALLVOLLEY);
-                FireballVolley_Timer = urand(12000, 15000);
-            } else FireballVolley_Timer -= diff;
+		void DoChangePhase()
+		{
+			secondPhase = true;
+			charmerGUID = 0;
+			me->RemoveAllAuras();
 
-            //Conflagration_Timer
-            if (Conflagration_Timer <= diff)
-            {
-                DoCast(me->getVictim(), SPELL_CONFLAGRATION);
-                //We will remove this threat reduction and add an aura check.
+			DoCast(me, SPELL_WARMING_FLAMES, true);
 
-                //if (DoGetThreat(me->getVictim()))
-                //DoModifyThreatPercent(me->getVictim(), -50);
+			//if (Creature* troops = ObjectAccessor::GetCreature(*me, nefarianTroopsGUID))
+				//troops->AI()->Talk(EMOTE_TROOPS_RETREAT);
 
-                Conflagration_Timer = 12000;
-            } else Conflagration_Timer -= diff;
+			for (std::vector<uint64>::iterator itr = summonGUIDs.begin(); itr != summonGUIDs.end(); ++itr)
+			{
+				if (Creature* creature = ObjectAccessor::GetCreature(*me, *itr))
+				{
+					if (creature->isAlive())
+					{
+						creature->CombatStop(true);
+						creature->SetReactState(REACT_PASSIVE);
+						creature->GetMotionMaster()->MovePoint(0, -7560.568848f, -1028.553345f, 408.491211f, 0.523858f);
+					}
+				}
+			}
+		}
 
-            // Aura Check. If the gamer is affected by confliguration we attack a random gamer.
-            if (me->getVictim() && me->getVictim()->HasAura(SPELL_CONFLAGRATION))
-                if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 1, 100, true))
-                    me->TauntApply(target);
+		void SetGUID(uint64 guid, int32 /*id*/)
+		{
+			charmerGUID = guid;
+		}
 
-            DoMeleeAttackIfReady();
-        }
-    };
+		void OnCharmed(bool apply)
+		{
+			if (apply)
+			{
+				if (Unit* charmer = ObjectAccessor::GetUnit(*me, charmerGUID))
+				{
+					charmer->CastSpell(charmer, SPELL_MIND_EXHAUSTION, true);
+					charmer->CastSpell(me, SPELL_MINDCONTROL_VISUAL, false);
+				}
+			}
+			else
+			{
+				if (Unit* charmer = ObjectAccessor::GetUnit(*me, charmerGUID))
+				{
+					charmer->RemoveAurasDueToSpell(SPELL_MINDCONTROL_VISUAL);
+					me->TauntApply(charmer);
+				}
+			}
+		}
+
+		void DoAction(int32 action)
+		{
+			if (action == ACTION_PHASE_TWO)
+				DoChangePhase();
+
+			if (action == TALK_EGG_BROKEN_RAND)
+			{
+				switch (urand(0, 2))
+				{
+				case 0:
+					me->BossYell("Fools! These eggs are more precious than you know!", 8276);
+					break;
+				case 1:
+					me->BossYell("No - not another one! I'll have your heads for this atrocity!", 8277);
+					break;
+				case 2:
+					me->BossYell("You'll pay for forcing me to do this!", 8275);
+					break;
+				}
+			}
+		}
+
+		void JustSummoned(Creature* summon)
+		{
+			summonGUIDs.push_back(summon->GetGUID());
+			summon->SetUInt64Value(UNIT_FIELD_SUMMONEDBY, me->GetGUID());
+			summons.Summon(summon);
+		}
+
+		void SummonMovementInform(Creature* summon, uint32 movementType, uint32 /*pathId*/)
+		{
+			if (movementType == POINT_MOTION_TYPE)
+				summon->DespawnOrUnsummon();
+		}
+
+		void DamageTaken(Unit*, uint32& damage, DamageEffectType, SpellSchoolMask)
+		{
+			if (!secondPhase && damage >= me->GetHealth())
+			{
+				me->BossYell("If I fall into the abyss, I'll take all of you mortals with me!", 8278);
+				DoCastAOE(SPELL_EXPLODE_ORB);
+				DoCastAOE(SPELL_EXPLOSION);
+			}
+		}
+
+		void UpdateAI(uint32 diff)
+		{
+			if (me->HasAura(11446))
+			{
+				if (me->GetAura(11446)->GetDuration() >= 90001)
+					me->GetAura(11446)->SetDuration(90000);
+			}
+
+			if (!UpdateVictim())
+				return;
+
+			if (!me->isCharmed())
+				events.Update(diff);
+
+			if (me->HasUnitState(UNIT_STATE_CASTING))
+				return;
+
+			while (uint32 eventId = events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_CLEAVE:
+					DoCastVictim(SPELL_CLEAVE);
+					events.ScheduleEvent(EVENT_CLEAVE, urand(7000, 10000));
+					break;
+				case EVENT_STOMP:
+					DoCastVictim(SPELL_WARSTOMP);
+					events.ScheduleEvent(EVENT_STOMP, urand(15000, 25000));
+					break;
+				case EVENT_FIREBALL:
+					DoCastVictim(SPELL_FIREBALLVOLLEY);
+					events.ScheduleEvent(EVENT_FIREBALL, urand(12000, 15000));
+					break;
+				case EVENT_CONFLAGRATION:
+					DoCastVictim(SPELL_CONFLAGRATION);
+					events.ScheduleEvent(EVENT_CONFLAGRATION, 30000);
+					break;
+				}
+			}
+
+			DoMeleeAttackIfReady();
+		}
+
+	private:
+		bool secondPhase;
+		uint64 charmerGUID;
+		std::vector<uint64> summonGUIDs;
+	};
+
+	CreatureAI* GetAI(Creature* creature) const
+	{
+		return new boss_razorgoreAI(creature);
+	}
+};
+
+class go_orb_of_domination : public GameObjectScript
+{
+public:
+	go_orb_of_domination() : GameObjectScript("go_orb_of_domination") { }
+
+	bool OnGossipHello(Player* player, GameObject* go)
+	{
+		if (InstanceScript* instance = go->GetInstanceScript())
+			if (instance->GetData(DATA_EGG_EVENT) != DONE && !player->HasAura(SPELL_MIND_EXHAUSTION) && !player->GetPet())
+				if (Creature* razor = go->FindNearestCreature(NPC_RAZORGORE, 250.0f, true))
+				{
+					razor->AI()->SetGUID(player->GetGUID(), 0);
+					razor->Attack(player, true);
+					player->CastSpell(razor, SPELL_MINDCONTROL);
+					player->CastSpell(razor, 11446);
+				}
+		return true;
+	}
+};
+
+class spell_egg_event : public SpellScriptLoader
+{
+public:
+	spell_egg_event() : SpellScriptLoader("spell_egg_event") { }
+
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_egg_event_SpellScript();
+	}
+
+	class spell_egg_event_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_egg_event_SpellScript);
+
+		void HandleOnHit()
+		{
+			if (InstanceScript* instance = GetCaster()->GetInstanceScript())
+				instance->SetData(DATA_EGG_EVENT, SPECIAL);
+
+			if (Creature* razorgore = GetCaster()->ToCreature())
+			{
+				if (GameObject* egg = GetHitGObj())
+				{
+					razorgore->AI()->DoAction(TALK_EGG_BROKEN_RAND);
+					egg->SetLootState(GO_READY);
+					egg->UseDoorOrButton(10000);
+					egg->SetRespawnTime(WEEK);
+				}
+			}
+		}
+
+		void Register()
+		{
+			OnHit += SpellHitFn(spell_egg_event_SpellScript::HandleOnHit);
+		}
+	};
 };
 
 void AddSC_boss_razorgore()
 {
-    new boss_razorgore();
+	new boss_razorgore();
+	new go_orb_of_domination();
+	new spell_egg_event();
 }

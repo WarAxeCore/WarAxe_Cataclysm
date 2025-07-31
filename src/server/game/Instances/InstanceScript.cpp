@@ -441,6 +441,12 @@ void InstanceScript::SendEncounterUnit(uint32 type, Unit* unit /*= NULL*/, uint8
     }
 }
 
+void InstanceScript::DoRespawnCreature(uint64 guid, bool force)
+{
+	if (Creature* creature = instance->GetCreature(guid))
+		creature->Respawn(force);
+}
+
 void InstanceScript::UpdateEncounterState(EncounterCreditType type, uint32 creditEntry, Unit* source)
 {
     DungeonEncounterList const* encounters = sObjectMgr->GetDungeonEncounterList(instance->GetId(), instance->GetDifficulty());

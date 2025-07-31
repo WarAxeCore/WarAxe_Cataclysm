@@ -161,6 +161,9 @@ class InstanceScript : public ZoneScript
         //change active state of doors or buttons
         void DoUseDoorOrButton(uint64 guid, uint32 withRestoreTime = 0, bool useAlternativeState = false);
 
+		// Respawns a creature.
+		void DoRespawnCreature(uint64 guid, bool force = false);
+
         //Respawns a GO having negative spawntimesecs in gameobject-table
         void DoRespawnGameObject(uint64 guid, uint32 timeToDespawn = MINUTE);
 
